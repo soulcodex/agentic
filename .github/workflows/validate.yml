@@ -35,6 +35,13 @@ jobs:
 
       - name: Check index files are up to date
         run: |
+          # generated_at is a wall-clock timestamp that always differs in CI.
+          # Restore it to the committed value before diffing so only substantive
+          # changes (added/removed fragments or skills) cause a failure.
+          for file in index/fragments.json index/skills.json; do
+            committed_at=$(git show HEAD:"$file" | jq -r '.generated_at')
+            jq --arg t "$committed_at" '.generated_at = $t' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+          done
           if ! git diff --quiet index/; then
             echo "Index files are out of date. Run 'just index' and commit the result."
             git diff index/
