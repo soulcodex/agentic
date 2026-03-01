@@ -106,7 +106,7 @@ fi
 
 # ── Output ────────────────────────────────────────────────────────────────────
 if [[ "$DRY_RUN" == "true" ]]; then
-  echo "$OUTPUT"
+  printf '%s\n' "$OUTPUT"
 else
   mkdir -p "$TARGET"
   echo "$OUTPUT" > "$TARGET/AGENTS.md"
