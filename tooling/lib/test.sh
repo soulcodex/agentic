@@ -143,16 +143,18 @@ assert_file_not_contains "$TMP/t02/AGENTS.md" "## TypeScript" "T02"
 
 # T03 — compose: dry-run produces stdout, no files written
 run_test "T03 — compose: dry-run produces stdout, no files written"
-DRY_OUT=$(bash "$COMPOSE" \
+DRY_TMPFILE=$(mktemp)
+T03_EXIT=0
+bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t03" \
-  --dry-run 2>&1)
-T03_EXIT=$?
+  --dry-run > "$DRY_TMPFILE" 2>/dev/null || T03_EXIT=$?
 
 assert_exit_code 0 "$T03_EXIT" "T03"
 assert_file_not_exists "$TMP/t03" "T03"
-assert_stdout_contains "$DRY_OUT" "## Git Conventions" "T03"
+assert_file_contains "$DRY_TMPFILE" "## Git Conventions" "T03"
+rm -f "$DRY_TMPFILE"
 
 # T04 — compose: unknown profile fails with exit code 1
 run_test "T04 — compose: unknown profile fails"
