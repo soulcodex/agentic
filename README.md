@@ -71,7 +71,7 @@ No manual editing. No copy-pasting. Run `just deploy` again after updating a fra
 
 | Profile | What it's for | Language | Key patterns |
 |---|---|---|---|
-| `typescript-hexagonal-microservice` | TypeScript backend service with NestJS | TypeScript | Hexagonal, DDD, CQRS, event-driven |
+| `typescript-hexagonal-microservice` | TypeScript backend service with Hono | TypeScript | Hexagonal, DDD, CQRS, event-driven |
 | `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript | BFF, microservices, stateless |
 | `go-hexagonal-microservice` | Go backend microservice | Go | Hexagonal, DDD, explicit error handling |
 | `python-fastapi-microservice` | FastAPI service with uv + Pydantic | Python | Hexagonal, microservices, full type annotations |
