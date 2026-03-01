@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-01T17:08:44Z",
+  "generated_at": "2026-03-01T18:30:18Z",
   "fragments": [
     {
       "name": "bff",
@@ -22,6 +22,13 @@
       "path": "agents/architecture/ddd.md",
       "heading": "Domain-Driven Design (DDD)",
       "words": 484
+    },
+    {
+      "name": "eda",
+      "group": "architecture",
+      "path": "agents/architecture/eda.md",
+      "heading": "Event-Driven Architecture",
+      "words": 901
     },
     {
       "name": "event-sourcing",
@@ -127,6 +134,13 @@
       "path": "agents/practices/observability.md",
       "heading": "Observability",
       "words": 398
+    },
+    {
+      "name": "relational-database-design",
+      "group": "practices",
+      "path": "agents/practices/relational-database-design.md",
+      "heading": "Relational Database Design",
+      "words": 982
     },
     {
       "name": "tdd",

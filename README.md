@@ -1,4 +1,4 @@
-# agentic
+# 🧩 agentic
 
 A centralized, vendor-agnostic library for composing AI agent instructions — fork it, pick a profile, run one command, and every AI tool in your project reads the same source of truth.
 
@@ -202,6 +202,13 @@ just index                  # rebuild index/skills.json and index/fragments.json
 
 ## Prerequisites
 
+Run the setup command to check (and install on macOS) all required tools:
+
+```bash
+just setup
+```
+
+Or install manually:
 - [just](https://github.com/casey/just) — command runner (`brew install just`)
 - bash — macOS system `/bin/bash` 3.2+ works, no extra install needed
 - [yq](https://github.com/mikefarah/yq) — YAML processor (`brew install yq`)

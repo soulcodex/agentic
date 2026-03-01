@@ -2,7 +2,7 @@ meta:
   name: "TypeScript Hexagonal Microservice"
   description: >
     TypeScript backend microservice following hexagonal architecture with DDD,
-    CQRS, and event-driven patterns. Uses NestJS, pnpm, and Vitest.
+    CQRS, and event-driven patterns. Uses hono, pnpm, and Vitest.
   version: "1.0.0"
 
 fragments:

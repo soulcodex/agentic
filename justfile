@@ -110,6 +110,10 @@ index:
 
 # ─── Quality ──────────────────────────────────────────────────────────────────
 
+# Check prerequisites and install missing tools (macOS: via Homebrew; Linux: guided)
+setup:
+    @"{{LIBRARY_ROOT}}/tooling/lib/setup.sh"
+
 # Validate all fragments, profiles, and vendor adapters
 lint:
     @"{{LIBRARY_ROOT}}/tooling/lib/lint.sh" \

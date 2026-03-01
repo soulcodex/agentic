@@ -11,9 +11,9 @@ Thumbs.db
 # Temporary / local
 .just-cache/
 
+# AI models
+.claude
+
 # Environment files (real ones, not examples)
 *.env
 !*.env.example
-
-# Just (temporary)
-.just-cache/
