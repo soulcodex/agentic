@@ -93,7 +93,7 @@ done < <(find "$LIBRARY/profiles" -name "*.yaml" | sort)
 # ── Vendor adapter validation ─────────────────────────────────────────────────
 echo ""
 echo "Validating vendor adapters..."
-for vendor in claude copilot codex gemini; do
+for vendor in claude copilot codex gemini opencode; do
   adapter_file="$LIBRARY/vendors/$vendor/adapter.json"
   if [[ ! -f "$adapter_file" ]]; then
     warn "vendors/$vendor/adapter.json — not found"

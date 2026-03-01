@@ -43,6 +43,11 @@
           "enum": ["native", "prompt-inject", "unsupported"],
           "description": "How this skill is deployed for Claude Code"
         },
+        "opencode": {
+          "type": "string",
+          "enum": ["native", "prompt-inject", "unsupported"],
+          "description": "How this skill is deployed for Opencode"
+        },
         "copilot": {
           "type": "string",
           "enum": ["native", "prompt-inject", "unsupported"],

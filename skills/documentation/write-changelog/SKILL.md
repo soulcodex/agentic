@@ -13,6 +13,7 @@ tags:
 resources: []
 vendor_support:
   claude: native
+  opencode: native
   copilot: prompt-inject
   codex: prompt-inject
   gemini: prompt-inject

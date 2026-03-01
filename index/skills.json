@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-01T18:30:18Z",
+  "generated_at": "2026-03-01T23:04:26Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -11,6 +11,18 @@
       "tags": [
         "agentic",
         "meta",
+        "setup"
+      ]
+    },
+    {
+      "name": "configure-mcp",
+      "group": "agentic",
+      "path": "skills/agentic/configure-mcp/SKILL.md",
+      "description": ">",
+      "version": "1.0.0",
+      "tags": [
+        "agentic",
+        "mcp",
         "setup"
       ]
     },

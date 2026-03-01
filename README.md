@@ -53,8 +53,9 @@ This writes the following files into `~/code/my-api`:
 
 ```
 my-api/
-├── AGENTS.md                                  # canonical — read by Claude, Codex, and others
+├── AGENTS.md                                  # canonical — read by Claude, Codex, Opencode, and others
 ├── CLAUDE.md                                  # symlink → AGENTS.md (Claude Code)
+├── opencode.json                              # Opencode config: model, permissions, MCP block
 ├── .github/
 │   ├── copilot-instructions.md                # global Copilot instructions
 │   └── instructions/
@@ -93,6 +94,7 @@ just dry-run typescript-hexagonal-microservice
 | **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` | Global always-on instructions + glob-scoped per-language files with `applyTo` frontmatter |
 | **OpenAI Codex** | `AGENTS.md` | Native passthrough — Codex reads `AGENTS.md` hierarchically (supports monorepo subdirectories) |
 | **Gemini CLI** | `.gemini/systemPrompt.md` | All sections concatenated into a single system prompt file |
+| **Opencode** | `AGENTS.md`, `opencode.json` | Reads `AGENTS.md` natively; `opencode.json` generated with model defaults, permission settings, and empty MCP block. Skills land in `.claude/skills/` (Opencode reads this path for Claude compatibility) |
 
 ---
 
@@ -197,6 +199,16 @@ just lint                   # validate all fragments, profiles, and vendor adapt
 just test                   # run the integration test suite
 just index                  # rebuild index/skills.json and index/fragments.json
 ```
+
+### MCP servers
+
+```bash
+just mcp-add TARGET                     # interactive wizard: add an MCP server to a project
+just mcp-remove TARGET SERVER_NAME      # remove an MCP server from a project
+just mcp-list TARGET                    # list all configured MCP servers in a project
+```
+
+Writes `.mcp.json` in the target project (Claude standard format) and optionally syncs to `opencode.json` and `.gemini/settings.json`.
 
 ---
 
