@@ -39,7 +39,7 @@ PROFILE_VER="unknown"
 # ── Resolve which vendors to generate ─────────────────────────────────────────
 resolve_vendors() {
   if [[ "$VENDORS" == "all" ]]; then
-    echo "claude copilot codex gemini"
+    echo "claude copilot codex gemini opencode"
   else
     echo "${VENDORS//,/ }"
   fi
@@ -160,14 +160,33 @@ gen_gemini() {
   echo "  Created: .gemini/systemPrompt.md"
 }
 
+# ── Opencode adapter ──────────────────────────────────────────────────────────
+gen_opencode() {
+  echo "  Generating Opencode adapter..."
+  local template="$LIBRARY/vendors/opencode/template.opencode.json"
+  local out_file="$TARGET/opencode.json"
+
+  sed \
+    -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
+    -e "s/{{PROFILE_NAME}}/${PROFILE}/g" \
+    -e "s/{{PROFILE_VERSION}}/${PROFILE_VER}/g" \
+    -e "s/{{GENERATED_AT}}/${GENERATED_AT}/g" \
+    -e "s|{{TARGET_PATH}}|${TARGET}|g" \
+    "$template" > "$out_file"
+
+  echo "  Created: opencode.json"
+  echo "  Opencode reads AGENTS.md natively — AGENTS.md is already the Opencode-compatible file."
+}
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 for vendor in $(resolve_vendors); do
   echo "Generating vendor files: $vendor"
   case "$vendor" in
-    claude)  gen_claude  ;;
-    copilot) gen_copilot ;;
-    codex)   gen_codex   ;;
-    gemini)  gen_gemini  ;;
+    claude)   gen_claude   ;;
+    copilot)  gen_copilot  ;;
+    codex)    gen_codex    ;;
+    gemini)   gen_gemini   ;;
+    opencode) gen_opencode ;;
     *) echo "Warning: unknown vendor '$vendor' — skipping" >&2 ;;
   esac
 done

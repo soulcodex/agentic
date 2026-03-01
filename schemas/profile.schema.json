@@ -100,7 +100,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["claude", "copilot", "codex", "gemini"]
+            "enum": ["claude", "copilot", "codex", "gemini", "opencode"]
           },
           "description": "Which vendor adapter files to generate"
         }

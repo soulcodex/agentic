@@ -1,0 +1,45 @@
+{
+  "$schema": "../_schema/adapter.schema.json",
+  "vendor": "opencode",
+  "version": "1.0.0",
+  "output_paths": {
+    "base": ".",
+    "skills": ".opencode/skills"
+  },
+  "section_mappings": [
+    {
+      "agents_md_heading": "## Git Conventions",
+      "output_file": "AGENTS.md",
+      "activation_mode": "passthrough",
+      "frontmatter": {}
+    },
+    {
+      "agents_md_heading": "## Security",
+      "output_file": "AGENTS.md",
+      "activation_mode": "passthrough",
+      "frontmatter": {}
+    },
+    {
+      "agents_md_heading": "## Code Review",
+      "output_file": "AGENTS.md",
+      "activation_mode": "passthrough",
+      "frontmatter": {}
+    },
+    {
+      "agents_md_heading": "## Testing Philosophy",
+      "output_file": "AGENTS.md",
+      "activation_mode": "passthrough",
+      "frontmatter": {}
+    },
+    {
+      "agents_md_heading": "## Documentation",
+      "output_file": "AGENTS.md",
+      "activation_mode": "passthrough",
+      "frontmatter": {}
+    }
+  ],
+  "unsupported_sections": [],
+  "character_limit_per_file": null,
+  "total_character_limit": null,
+  "notes": "Opencode reads AGENTS.md natively. gen_opencode() generates a starter opencode.json. Skills deploy to .claude/skills/ (Claude-compat path that Opencode also reads). The .opencode/skills path is reserved for Opencode-native skills only."
+}

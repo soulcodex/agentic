@@ -134,3 +134,18 @@ dry-run profile:
         --profile "{{profile}}" \
         --target /dev/stdout \
         --dry-run
+
+# Manage MCP servers in a target project (interactive wizard)
+# Usage: just mcp-add /path/to/project
+mcp-add target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/mcp.sh" --action add --target "{{target}}"
+
+# Remove an MCP server from a target project
+# Usage: just mcp-remove /path/to/project github
+mcp-remove target name:
+    @"{{LIBRARY_ROOT}}/tooling/lib/mcp.sh" --action remove --target "{{target}}" --name "{{name}}"
+
+# List MCP servers configured in a target project
+# Usage: just mcp-list /path/to/project
+mcp-list target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/mcp.sh" --action list --target "{{target}}"
