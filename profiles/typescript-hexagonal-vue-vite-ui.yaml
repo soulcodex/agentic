@@ -38,12 +38,20 @@ tiers:
       - hexagonal
       - ddd
       - microservices
+    commands:
+      build_command: "pnpm --filter backend build"
+      test_command:  "pnpm --filter backend test"
+      lint_command:  "pnpm --filter backend lint"
   ui:
     languages:
       - typescript
     frameworks:
       - vue
     architecture: []
+    commands:
+      build_command: "pnpm --filter ui build"
+      test_command:  "pnpm --filter ui test"
+      lint_command:  "pnpm --filter ui lint"
 
 tech_stack:
   language_runtime: "Node 22+"
@@ -63,6 +71,7 @@ skills:
   - add-tests
   - write-adr
   - write-readme
+  - relational-database-design
 
 output:
   build_command: "pnpm build"

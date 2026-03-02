@@ -32,6 +32,9 @@ fragments:
 
   domains: []
 
+skills:
+  - relational-database-design
+
 output:
   build_command: "pnpm build"
   test_command: "pnpm test --run"

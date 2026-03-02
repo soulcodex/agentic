@@ -31,6 +31,9 @@ fragments:
 
   domains: []
 
+skills:
+  - relational-database-design
+
 output:
   build_command: "go build ./..."
   test_command: "go test ./... -race -cover"

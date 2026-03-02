@@ -38,12 +38,20 @@ tiers:
       - hexagonal
       - ddd
       - microservices
+    commands:
+      build_command: "go build ./..."
+      test_command:  "go test ./... -race -cover"
+      lint_command:  "golangci-lint run"
   ui:
     languages:
       - typescript
     frameworks:
       - vue
     architecture: []
+    commands:
+      build_command: "pnpm build"
+      test_command:  "pnpm test"
+      lint_command:  "pnpm lint"
 
 tech_stack:
   language_runtime: "Go 1.23+ (backend) / Node 22+ (frontend)"
@@ -63,6 +71,7 @@ skills:
   - add-tests
   - write-adr
   - write-readme
+  - relational-database-design
 
 output:
   build_command: "go build ./... && pnpm build"
