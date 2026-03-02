@@ -59,7 +59,7 @@ output:
   build_command: "pnpm build"
   test_command: "pnpm test"
   lint_command: "pnpm lint"
-  structure: flat
+  structure: nested
   project_header: |
     Full-stack TypeScript project: Hono hexagonal backend + Nuxt 3 frontend.
     Backend domain layer must have zero framework dependencies.

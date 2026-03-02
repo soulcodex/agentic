@@ -42,8 +42,15 @@ BUILD_CMD=$(yq     '.output.build_command  // ""'  "$PROFILE_FILE")
 TEST_CMD=$(yq      '.output.test_command   // ""'  "$PROFILE_FILE")
 LINT_CMD=$(yq      '.output.lint_command   // ""'  "$PROFILE_FILE")
 
-# ── Fragment loading ──────────────────────────────────────────────────────────
-load_fragments() {
+# Profile-level mode default (overridden by --full flag)
+PROFILE_MODE=$(yq '.output.mode // "lean"' "$PROFILE_FILE")
+[[ "$FULL_MODE" == "false" && "$PROFILE_MODE" == "full" ]] && FULL_MODE=true
+
+# ── Fragment loading — builds RESOLVED_FRAGMENTS array ───────────────────────
+# RESOLVED_FRAGMENTS holds the absolute path of every fragment, in layer order.
+RESOLVED_FRAGMENTS=()
+
+resolve_fragments() {
   local group="$1"   # e.g. "base", "languages", "architecture"
   local subdir="$2"  # e.g. "agents/base", "agents/languages"
 
@@ -59,10 +66,52 @@ load_fragments() {
       echo "Warning: fragment '$subdir/$name.md' not found — skipping" >&2
       continue
     fi
-    printf '\n<!-- fragment: %s/%s -->\n\n' "$subdir" "$name"
-    cat "$frag_file"
+    RESOLVED_FRAGMENTS+=("$frag_file")
+  done
+}
+
+resolve_fragments "base"         "agents/base"
+resolve_fragments "languages"    "agents/languages"
+resolve_fragments "frameworks"   "agents/frameworks"
+resolve_fragments "architecture" "agents/architecture"
+resolve_fragments "practices"    "agents/practices"
+resolve_fragments "domains"      "agents/domains"
+
+# ── Fragment inline output (used in --full mode) ──────────────────────────────
+inline_fragments() {
+  for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
+    local rel_path="${frag#$LIBRARY/}"
+    printf '\n<!-- fragment: %s -->\n\n' "$rel_path"
+    cat "$frag"
     printf '\n'
   done
+}
+
+# ── Fragment copy (used in lean mode) ─────────────────────────────────────────
+copy_fragments_to_target() {
+  local dest="$TARGET/.agentic/fragments"
+  mkdir -p "$dest"
+  for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
+    cp "$frag" "$dest/$(basename "$frag")"
+  done
+}
+
+# ── Fragment reference table (lean mode) ──────────────────────────────────────
+build_fragment_reference_table() {
+  local section=""
+  section+=$'\n## Conventions & Patterns\n\n'
+  section+="> Load the relevant file for full guidelines on that area."$'\n\n'
+  section+="| Area | File |"$'\n'
+  section+="|------|------|"$'\n'
+
+  for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
+    local heading fname
+    heading=$(grep -m1 '^## ' "$frag" | sed 's/^## //')
+    fname=$(basename "$frag")
+    section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+  done
+
+  printf '%s' "$section"
 }
 
 # ── Technical Stack section ───────────────────────────────────────────────────
@@ -161,7 +210,7 @@ build_skills_section() {
     done
     printf '%s' "$section"
   else
-    # Slim mode: listing table
+    # Lean mode: listing table
     local section=""
     section+=$'\n## Skills\n\n'
     section+="Load the relevant skill file before starting the task."$'\n\n'
@@ -211,15 +260,15 @@ fi
 # Technical Stack section
 OUTPUT+=$(build_tech_stack_section)
 
-# Fragments in layer order
-OUTPUT+=$(load_fragments "base"         "agents/base")
-OUTPUT+=$(load_fragments "languages"    "agents/languages")
-OUTPUT+=$(load_fragments "frameworks"   "agents/frameworks")
-OUTPUT+=$(load_fragments "architecture" "agents/architecture")
-OUTPUT+=$(load_fragments "practices"    "agents/practices")
-OUTPUT+=$(load_fragments "domains"      "agents/domains")
+if [[ "$FULL_MODE" == "true" ]]; then
+  # Full mode: inline all fragment content
+  OUTPUT+=$(inline_fragments)
+else
+  # Lean mode: reference table pointing to copied fragment files
+  OUTPUT+=$(build_fragment_reference_table)
+fi
 
-# Skills section (slim listing or full embedded, depending on --full flag)
+# Skills section
 OUTPUT+=$(build_skills_section "$FULL_MODE")
 
 # Local override (project-specific additions, if present)
@@ -231,20 +280,18 @@ if [[ -f "$LOCAL_OVERRIDE" ]]; then
 fi
 
 # ── Output ────────────────────────────────────────────────────────────────────
-# Determine output filename
-OUTPUT_FILENAME="AGENTS.md"
-[[ "$FULL_MODE" == "true" ]] && OUTPUT_FILENAME="AGENTS.full.md"
-
 if [[ "$DRY_RUN" == "true" ]]; then
   printf '%s\n' "$OUTPUT"
 else
   mkdir -p "$TARGET"
-  echo "$OUTPUT" > "$TARGET/$OUTPUT_FILENAME"
+  echo "$OUTPUT" > "$TARGET/AGENTS.md"
 
-  # Write lock file (only for primary AGENTS.md, not full mode)
+  LOCK_DIR="$TARGET/.agentic"
+  mkdir -p "$LOCK_DIR"
+
   if [[ "$FULL_MODE" == "false" ]]; then
-    LOCK_DIR="$TARGET/.agentic"
-    mkdir -p "$LOCK_DIR"
+    # Lean mode: copy fragments and write lock with mode: lean
+    copy_fragments_to_target
     cat > "$LOCK_DIR/config.yaml" <<LOCK
 # Managed by agentic library — do not edit manually
 # Regenerate with: just compose ${PROFILE} ${TARGET}
@@ -252,8 +299,20 @@ library_commit: "$(cd "$LIBRARY" && git rev-parse HEAD 2>/dev/null || echo "unkn
 profile: "${PROFILE}"
 profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
+mode: lean
+LOCK
+  else
+    # Full mode: write lock with mode: full (no fragments copied)
+    cat > "$LOCK_DIR/config.yaml" <<LOCK
+# Managed by agentic library — do not edit manually
+# Regenerate with: just compose-full ${PROFILE} ${TARGET}
+library_commit: "$(cd "$LIBRARY" && git rev-parse HEAD 2>/dev/null || echo "unknown")"
+profile: "${PROFILE}"
+profile_version: "${PROFILE_VER}"
+composed_at: "${GENERATED_AT}"
+mode: full
 LOCK
   fi
 
-  echo "Composed ${OUTPUT_FILENAME} → $TARGET/$OUTPUT_FILENAME"
+  echo "Composed AGENTS.md → $TARGET/AGENTS.md"
 fi

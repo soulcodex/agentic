@@ -31,10 +31,14 @@ GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 PROJECT_NAME=$(basename "$TARGET")
 PROFILE="unknown"
 PROFILE_VER="unknown"
+COMPOSE_MODE="lean"
 [[ -f "$LOCK_FILE" ]] && {
-  PROFILE=$(yq '.profile'         "$LOCK_FILE" 2>/dev/null || echo "unknown")
+  PROFILE=$(yq '.profile'             "$LOCK_FILE" 2>/dev/null || echo "unknown")
   PROFILE_VER=$(yq '.profile_version' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+  COMPOSE_MODE=$(yq '.mode // "lean"' "$LOCK_FILE" 2>/dev/null || echo "lean")
 }
+
+FRAGS_DIR="$TARGET/.agentic/fragments"
 
 # ── Resolve which vendors to generate ─────────────────────────────────────────
 resolve_vendors() {
@@ -46,12 +50,37 @@ resolve_vendors() {
 }
 
 # ── Section extraction ────────────────────────────────────────────────────────
-# Extract a section from AGENTS.md by its H2 heading
+# Extract a section from a monolithic AGENTS.md by its H2 heading (full mode)
 extract_section() {
   local heading="$1"
   local file="$2"
   # Match from the heading line to the next H2 heading or end of file
   awk "/^## ${heading//\//\\/}/{found=1; next} found && /^## /{exit} found{print}" "$file"
+}
+
+# Extract a section from the fragments directory (lean mode)
+# Finds the fragment file whose first H2 matches the heading, then returns its content
+# minus the heading line itself (matching the behaviour of extract_section in full mode).
+extract_section_from_fragments() {
+  local heading="$1"   # e.g. "Git Conventions"
+  local frags_dir="$2" # TARGET/.agentic/fragments/
+  [[ ! -d "$frags_dir" ]] && return
+  local match
+  match=$(grep -rl "^## ${heading}$" "$frags_dir" 2>/dev/null | head -1)
+  [[ -z "$match" ]] && return
+  # Skip the first H2 heading line so callers get body content only,
+  # matching the behaviour of extract_section which uses `next` to skip it.
+  awk "/^## ${heading//\//\\/}/{found=1; next} found{print}" "$match"
+}
+
+# Unified dispatcher: routes to the right source depending on compose mode
+get_section_content() {
+  local heading="$1"  # heading text without "## " prefix, e.g. "Git Conventions"
+  if [[ "$COMPOSE_MODE" == "lean" ]]; then
+    extract_section_from_fragments "$heading" "$FRAGS_DIR"
+  else
+    extract_section "$heading" "$AGENTS_MD"
+  fi
 }
 
 # ── Auto-gen header ───────────────────────────────────────────────────────────
@@ -99,7 +128,7 @@ gen_copilot() {
     # Extract always-on sections by reading adapter mappings
     jq -r '.section_mappings[] | select(.activation_mode == "always-on") | .agents_md_heading' "$adapter" | \
     sed 's/^## //' | while read -r heading; do
-      content=$(extract_section "$heading" "$AGENTS_MD")
+      content=$(get_section_content "$heading")
       [[ -n "$content" ]] && printf '\n## %s\n\n%s\n' "$heading" "$content"
     done
   } > "$global_file"
@@ -109,7 +138,7 @@ gen_copilot() {
   jq -r '.section_mappings[] | select(.activation_mode == "glob-scoped") | [.agents_md_heading, .output_file, (.frontmatter.applyTo // "")] | @tsv' "$adapter" | \
   while IFS=$'\t' read -r heading out_file glob; do
     heading_text="${heading#\## }"
-    content=$(extract_section "$heading_text" "$AGENTS_MD")
+    content=$(get_section_content "$heading_text")
     [[ -z "$content" ]] && continue
 
     out_path="$TARGET/.github/$out_file"
@@ -142,9 +171,6 @@ gen_gemini() {
 
   mkdir -p "$gemini_dir"
 
-  # Concatenate all sections into the system prompt
-  ALL_SECTIONS=$(awk '/^## /{found=1} found{print}' "$AGENTS_MD")
-
   sed \
     -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
     -e "s/{{PROFILE_NAME}}/${PROFILE}/g" \
@@ -153,9 +179,17 @@ gen_gemini() {
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" | sed "s|{{ALL_SECTIONS}}||" > "$out_file"
 
-  # Append sections after the template header
-  echo "" >> "$out_file"
-  echo "$ALL_SECTIONS" >> "$out_file"
+  # Append content — in lean mode, read all fragment files; in full mode, read AGENTS.md sections
+  if [[ "$COMPOSE_MODE" == "lean" && -d "$FRAGS_DIR" ]]; then
+    echo "" >> "$out_file"
+    for frag_file in "$FRAGS_DIR"/*.md; do
+      [[ -f "$frag_file" ]] && cat "$frag_file" >> "$out_file" && echo "" >> "$out_file"
+    done
+  else
+    ALL_SECTIONS=$(awk '/^## /{found=1} found{print}' "$AGENTS_MD")
+    echo "" >> "$out_file"
+    echo "$ALL_SECTIONS" >> "$out_file"
+  fi
 
   echo "  Created: .gemini/systemPrompt.md"
 }

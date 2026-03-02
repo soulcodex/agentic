@@ -123,6 +123,11 @@
           "enum": ["flat", "nested"],
           "default": "flat",
           "description": "Output structure: flat (single AGENTS.md) or nested (reserved for future use)"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["lean", "full"],
+          "description": "lean (default): slim AGENTS.md with fragment refs copied to .agentic/fragments/; full: all content inlined"
         }
       }
     },
