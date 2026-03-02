@@ -16,23 +16,78 @@ Every project using AI coding tools ends up with a scatter of hand-written instr
 
 ## Mental Model
 
-This repo is to agentic configs what a design system is to UI components —
-a library you **compose from**, not use directly.
+This repo is to agentic configs what a design system is to UI components — a library you **compose from**, not a tool you run inside projects. You declare *what you want* in a profile; the tooling assembles, distributes, and version-locks everything.
 
-Fragments from this repo are assembled into a single `AGENTS.md` and deployed
-into target project repositories. Vendor-specific files are generated from that
-canonical `AGENTS.md` and never edited manually.
+### What the library contains
 
 ```
-agentic/ (this repo)
-    agents/languages/typescript.md  ─┐
-    agents/architecture/hexagonal.md ─┤──► compose ──► AGENTS.md ──► vendor-gen ──► target-project/
-    agents/practices/tdd.md         ─┘                                              ├── AGENTS.md
-                                                                                    ├── CLAUDE.md
-                                                                                    ├── .github/copilot-instructions.md
-                                                                                    ├── .github/instructions/*.instructions.md
-                                                                                    └── .gemini/systemPrompt.md
+agentic/  (this repo — fork it, make it yours)
+│
+├── profiles/                    ← entry point: named composition presets
+│   └── my-profile.yaml
+│       ├── fragments:            which building blocks to include
+│       ├── tech_stack:           runtime, frameworks, tools  (optional)
+│       ├── skills:               on-demand agent tasks       (optional)
+│       └── output:               build / test / lint commands
+│
+├── agents/                      ← composable Markdown building blocks
+│   ├── base/                     git, security, testing philosophy, docs
+│   ├── languages/                go, typescript, python, php
+│   ├── frameworks/               vue, nuxt, cobra, typer …
+│   ├── architecture/             hexagonal, ddd, cqrs, eda …
+│   └── practices/                tdd, api-design, observability …
+│
+├── skills/                      ← agent task definitions (loaded on demand)
+│   ├── development/              code-review, add-tests, fix-bug …
+│   └── documentation/            write-adr, write-readme, write-changelog …
+│
+└── vendors/                     ← per-tool output adapters
+    └── claude / copilot / codex / gemini / opencode
 ```
+
+### How `just deploy` works
+
+```
+PROFILE (my-profile.yaml)
+ │
+ ├─ fragments:                           ┐
+ │    agents/base/*.md                   │
+ │    agents/languages/go.md             │
+ │    agents/frameworks/cobra.md         │  step 1 — just compose
+ │    agents/architecture/hexagonal.md   │
+ │    agents/practices/tdd.md            │
+ │                                       │
+ ├─ tech_stack: Go 1.23+, Cobra + Viper  │
+ │                                       │
+ └─ skills: [code-review, write-adr]    ─┘
+                    │
+                    ▼
+         AGENTS.md  (canonical source of truth)
+         ├── ## Commands
+         ├── ## Technical Stack     ◄── tech_stack
+         ├── ## Git Conventions     ◄── agents/base/
+         ├── ## Go                  ◄── agents/languages/
+         ├── ## Cobra CLI (Go)      ◄── agents/frameworks/
+         ├── ## Hexagonal Arch.     ◄── agents/architecture/
+         ├── ## TDD                 ◄── agents/practices/
+         └── ## Skills listing      ◄── skills[]
+                    │
+                    ├──► step 2 — just vendor-gen
+                    │         CLAUDE.md
+                    │         .github/copilot-instructions.md
+                    │         .gemini/systemPrompt.md
+                    │         opencode.json
+                    │
+                    └──► step 3 — just deploy-skills
+                              .claude/skills/
+                                  code-review/SKILL.md
+                                  write-adr/SKILL.md
+
+              ~/code/my-project/        ← all files land here
+              .agentic/config.yaml      ← profile + library version lock
+```
+
+> **Tip:** `just compose-full PROFILE TARGET` embeds complete skill content inline into `AGENTS.full.md` instead of a path listing — useful when the target tool doesn't support on-demand file reads.
 
 ---
 
@@ -74,8 +129,14 @@ No manual editing. No copy-pasting. Run `just deploy` again after updating a fra
 |---|---|---|---|
 | `typescript-hexagonal-microservice` | TypeScript backend service with Hono | TypeScript | Hexagonal, DDD, CQRS, event-driven |
 | `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript | BFF, microservices, stateless |
+| `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend | TypeScript | Hexagonal, DDD, SSR, Vite, Vitest |
+| `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend | TypeScript | Hexagonal, DDD, Vite, Vitest |
 | `go-hexagonal-microservice` | Go backend microservice | Go | Hexagonal, DDD, explicit error handling |
+| `golang-hexagonal-nuxt-vite-ui` | Go backend + Nuxt 3 / Vue 3 frontend | Go + TypeScript | Hexagonal, DDD, SSR, Vite, Vitest |
+| `golang-hexagonal-vue-vite-ui` | Go backend + Vue 3 SPA frontend | Go + TypeScript | Hexagonal, DDD, Vite, Vitest |
+| `golang-hexagonal-cobra-cli` | Go CLI tool with Cobra + Viper | Go | Hexagonal, DDD, testable commands |
 | `python-fastapi-microservice` | FastAPI service with uv + Pydantic | Python | Hexagonal, microservices, full type annotations |
+| `python-hexagonal-typer-cli` | Python CLI tool with Typer + Rich | Python | Hexagonal, DDD, type-annotation contract |
 | `php-hexagonal-ddd` | PHP 8.3+ Symfony application | PHP | Hexagonal, DDD, CQRS, PHPStan level 8 |
 
 Preview any profile without writing files:
