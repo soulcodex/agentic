@@ -19,7 +19,7 @@
   is reconstructable from the error message.
 - Define sentinel errors with `errors.New` for expected conditions that callers must handle.
 - Use custom error types (implementing `error`) when callers need to inspect error properties.
-- Never ignore errors. Use `_` only when the error is provably irrelevant (e.g., writing to
+- Never ignore errors. Use `_` only when the error is probably irrelevant (e.g., writing to
   an in-memory buffer that never fails).
 
 ### Naming Conventions
