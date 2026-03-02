@@ -94,6 +94,7 @@ agentic/  (this repo — fork it, make it yours)
 │   └── my-profile.yaml
 │       ├── fragments:            which building blocks to include
 │       ├── tech_stack:           runtime, frameworks, tools  (optional)
+│       │   └── proprietary_libraries: internal packages with doc links (optional)
 │       ├── skills:               on-demand agent tasks       (optional)
 │       └── output:               build / test / lint commands
 │
@@ -218,6 +219,33 @@ mkdir -p skills/development/my-skill
 touch skills/development/my-skill/SKILL.md
 just index
 ```
+
+### Declare proprietary libraries
+
+List internal packages that agents need to be aware of — their name, what they provide, and where to find the docs. Agents are told to load the relevant documentation before making changes.
+
+**Project-wide** (rendered in root `AGENTS.md`, under `tech_stack`):
+
+```yaml
+tech_stack:
+  proprietary_libraries:
+    - name: "@acme/core"
+      description: "Core domain primitives shared across all services"
+      url_doc: "https://docs.acme.internal/core"   # optional
+```
+
+**Tier-specific** (nested profiles only — rendered in that tier's `AGENTS.md`):
+
+```yaml
+tiers:
+  backend:
+    proprietary_libraries:
+      - name: "@acme/domain-kit"
+        description: "Backend domain helpers"
+        url_doc: "https://docs.acme.internal/domain-kit"
+```
+
+`url_doc` is optional. When omitted the Docs column shows `—`.
 
 ---
 
