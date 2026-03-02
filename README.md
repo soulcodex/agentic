@@ -4,21 +4,88 @@ A centralized, vendor-agnostic library for composing AI agent instructions — f
 
 ![CI](https://github.com/soulcodex/agentic/actions/workflows/validate.yml/badge.svg)
 
+One library. One deploy. All your AI tools stay in sync.
+
 ---
 
-## The Problem It Solves
+## The Problem
 
-Every project using AI coding tools ends up with a scatter of hand-written instruction files: a `CLAUDE.md` here, a `.github/copilot-instructions.md` there, a `.cursor/rules/` folder somewhere else. They drift apart, contradict each other, and get out of date. Onboarding a new tool means starting from scratch.
+```
+Without agentic              With agentic
+─────────────────────────    ────────────────────────────────────
+my-project/                  my-project/
+├── CLAUDE.md                ├── AGENTS.md       ← one source
+├── .github/                 ├── CLAUDE.md       ← generated
+│   └── copilot-instr.md     ├── .github/        ← generated
+├── .cursor/rules/           │   └── copilot-instr.md
+│   └── *.mdc                ├── .gemini/        ← generated
+└── .gemini/                 │   └── systemPrompt.md
+    └── systemPrompt.md      └── .agentic/config.yaml ← locked
+```
 
-**agentic** treats agent instructions the way a design system treats UI components — you maintain one curated library of fragments, pick a named profile for each project, and the tooling assembles and distributes everything. Change a fragment once, redeploy, and every project stays consistent.
+- Instructions drift and contradict each other across tools
+- Every new project means starting from scratch
+- Adding a new AI tool means updating N files manually
+
+---
+
+## Quickstart
+
+```bash
+# 1. Fork this repo — it becomes your team's instruction library
+git clone https://github.com/your-org/agentic ~/agentic
+
+# 2. Pick a profile
+just list-profiles
+
+# 3. Deploy to your project
+just deploy typescript-hexagonal-microservice ~/code/my-api
+```
+
+Writes into `~/code/my-api`:
+
+```
+my-api/
+├── AGENTS.md                           # canonical — Claude, Codex, Opencode
+├── CLAUDE.md                           # symlink → AGENTS.md (Claude Code)
+├── opencode.json                       # Opencode config
+├── .github/
+│   ├── copilot-instructions.md
+│   └── instructions/
+│       └── typescript.instructions.md
+└── .gemini/
+    └── systemPrompt.md
+```
+
+No manual editing. Run `just deploy` again after updating a fragment to sync all projects.
+
+---
+
+## Available Profiles
+
+| Profile | What it's for | Language | Key patterns |
+|---|---|---|---|
+| `typescript-hexagonal-microservice` | TypeScript backend service with Hono | TypeScript | Hexagonal, DDD, CQRS, event-driven |
+| `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript | BFF, microservices, stateless |
+| `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend | TypeScript | Hexagonal, DDD, SSR, Vite, Vitest |
+| `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend | TypeScript | Hexagonal, DDD, Vite, Vitest |
+| `go-hexagonal-microservice` | Go backend microservice | Go | Hexagonal, DDD, explicit error handling |
+| `golang-hexagonal-nuxt-vite-ui` | Go backend + Nuxt 3 / Vue 3 frontend | Go + TypeScript | Hexagonal, DDD, SSR, Vite, Vitest |
+| `golang-hexagonal-vue-vite-ui` | Go backend + Vue 3 SPA frontend | Go + TypeScript | Hexagonal, DDD, Vite, Vitest |
+| `golang-hexagonal-cobra-cli` | Go CLI tool with Cobra + Viper | Go | Hexagonal, DDD, testable commands |
+| `python-fastapi-microservice` | FastAPI service with uv + Pydantic | Python | Hexagonal, microservices, full type annotations |
+| `python-hexagonal-typer-cli` | Python CLI tool with Typer + Rich | Python | Hexagonal, DDD, type-annotation contract |
+| `php-hexagonal-ddd` | PHP 8.3+ Symfony application | PHP | Hexagonal, DDD, CQRS, PHPStan level 8 |
+
+```bash
+just dry-run typescript-hexagonal-microservice
+```
 
 ---
 
 ## Mental Model
 
-This repo is to agentic configs what a design system is to UI components — a library you **compose from**, not a tool you run inside projects. You declare *what you want* in a profile; the tooling assembles, distributes, and version-locks everything.
-
-### What the library contains
+### Library structure
 
 ```
 agentic/  (this repo — fork it, make it yours)
@@ -45,105 +112,55 @@ agentic/  (this repo — fork it, make it yours)
     └── claude / copilot / codex / gemini / opencode
 ```
 
-### How `just deploy` works
+### Pipeline
 
 ```
-PROFILE (my-profile.yaml)
- │
- ├─ fragments:                           ┐
- │    agents/base/*.md                   │
- │    agents/languages/go.md             │
- │    agents/frameworks/cobra.md         │  step 1 — just compose
- │    agents/architecture/hexagonal.md   │
- │    agents/practices/tdd.md            │
- │                                       │
- ├─ tech_stack: Go 1.23+, Cobra + Viper  │
- │                                       │
- └─ skills: [code-review, write-adr]    ─┘
-                    │
-                    ▼
-         AGENTS.md  (canonical source of truth)
-         ├── ## Commands
-         ├── ## Technical Stack     ◄── tech_stack
-         ├── ## Git Conventions     ◄── agents/base/
-         ├── ## Go                  ◄── agents/languages/
-         ├── ## Cobra CLI (Go)      ◄── agents/frameworks/
-         ├── ## Hexagonal Arch.     ◄── agents/architecture/
-         ├── ## TDD                 ◄── agents/practices/
-         └── ## Skills listing      ◄── skills[]
-                    │
-                    ├──► step 2 — just vendor-gen
-                    │         CLAUDE.md
-                    │         .github/copilot-instructions.md
-                    │         .gemini/systemPrompt.md
-                    │         opencode.json
-                    │
-                    └──► step 3 — just deploy-skills
-                              .claude/skills/
-                                  code-review/SKILL.md
-                                  write-adr/SKILL.md
-
-              ~/code/my-project/        ← all files land here
-              .agentic/config.yaml      ← profile + library version lock
+step 1 — just compose
+┌──────────────────────────────────────────────────────────────┐
+│ PROFILE (my-profile.yaml)                                    │
+│                                                              │
+│  fragments:   agents/base/*.md                               │
+│               agents/languages/go.md                         │
+│               agents/frameworks/cobra.md                     │
+│               agents/architecture/hexagonal.md               │
+│               agents/practices/tdd.md                        │
+│                                                              │
+│  tech_stack:  Go 1.23+, Cobra + Viper                        │
+│  skills:      [code-review, write-adr]                       │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+              ┌────────────────────────────────────┐
+              │ AGENTS.md  (canonical)             │
+              │                                    │
+              │  ## Commands                       │
+              │  ## Technical Stack  ◄ tech_stack  │
+              │  ## Git Conventions  ◄ base/       │
+              │  ## Go               ◄ languages/  │
+              │  ## Cobra CLI        ◄ frameworks/ │
+              │  ## Hexagonal Arch.  ◄ architecture│
+              │  ## TDD              ◄ practices/  │
+              │  ## Skills listing   ◄ skills[]    │
+              └──────────────┬─────────────────────┘
+                             │
+               ┌─────────────┴──────────────┐
+               │                            │
+               ▼                            ▼
+  step 2 — just vendor-gen      step 3 — just deploy-skills
+  ─────────────────────────     ─────────────────────────────
+  CLAUDE.md                     .claude/skills/
+  .github/copilot-instr.md          code-review/SKILL.md
+  .gemini/systemPrompt.md           write-adr/SKILL.md
+  opencode.json
+               │                            │
+               └────────────────────────────┘
+                             │
+                             ▼
+              ~/code/my-project/
+              .agentic/config.yaml  ← version lock
 ```
 
-> **Tip:** `just compose-full PROFILE TARGET` embeds complete skill content inline into `AGENTS.full.md` instead of a path listing — useful when the target tool doesn't support on-demand file reads.
-
----
-
-## How It Works in 60 Seconds
-
-1. **Fork this repo** — it becomes your team's instruction library.
-2. **Pick a profile** — profiles are named presets that declare which fragments to compose.
-3. **Run one command** — `just deploy` assembles and writes everything into your project.
-4. **Done** — every AI tool reads its native file, all generated from the same source.
-
-Concretely, for a TypeScript microservice:
-
-```bash
-just deploy typescript-hexagonal-microservice ~/code/my-api
-```
-
-This writes the following files into `~/code/my-api`:
-
-```
-my-api/
-├── AGENTS.md                                  # canonical — read by Claude, Codex, Opencode, and others
-├── CLAUDE.md                                  # symlink → AGENTS.md (Claude Code)
-├── opencode.json                              # Opencode config: model, permissions, MCP block
-├── .github/
-│   ├── copilot-instructions.md                # global Copilot instructions
-│   └── instructions/
-│       └── typescript.instructions.md         # scoped to **/*.ts, **/*.tsx
-└── .gemini/
-    └── systemPrompt.md                        # Gemini CLI system prompt
-```
-
-No manual editing. No copy-pasting. Run `just deploy` again after updating a fragment to sync all projects.
-
----
-
-## Available Profiles
-
-| Profile | What it's for | Language | Key patterns |
-|---|---|---|---|
-| `typescript-hexagonal-microservice` | TypeScript backend service with Hono | TypeScript | Hexagonal, DDD, CQRS, event-driven |
-| `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript | BFF, microservices, stateless |
-| `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend | TypeScript | Hexagonal, DDD, SSR, Vite, Vitest |
-| `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend | TypeScript | Hexagonal, DDD, Vite, Vitest |
-| `go-hexagonal-microservice` | Go backend microservice | Go | Hexagonal, DDD, explicit error handling |
-| `golang-hexagonal-nuxt-vite-ui` | Go backend + Nuxt 3 / Vue 3 frontend | Go + TypeScript | Hexagonal, DDD, SSR, Vite, Vitest |
-| `golang-hexagonal-vue-vite-ui` | Go backend + Vue 3 SPA frontend | Go + TypeScript | Hexagonal, DDD, Vite, Vitest |
-| `golang-hexagonal-cobra-cli` | Go CLI tool with Cobra + Viper | Go | Hexagonal, DDD, testable commands |
-| `python-fastapi-microservice` | FastAPI service with uv + Pydantic | Python | Hexagonal, microservices, full type annotations |
-| `python-hexagonal-typer-cli` | Python CLI tool with Typer + Rich | Python | Hexagonal, DDD, type-annotation contract |
-| `php-hexagonal-ddd` | PHP 8.3+ Symfony application | PHP | Hexagonal, DDD, CQRS, PHPStan level 8 |
-
-Preview any profile without writing files:
-
-```bash
-just dry-run typescript-hexagonal-microservice
-```
+> **Tip:** `just compose-full PROFILE TARGET` embeds full skill content inline into `AGENTS.full.md` — useful when the target tool doesn't support on-demand file reads.
 
 ---
 
@@ -151,36 +168,29 @@ just dry-run typescript-hexagonal-microservice
 
 | Vendor | Output file(s) | How it's used |
 |---|---|---|
-| **Claude** (Claude Code) | `AGENTS.md`, `CLAUDE.md` | Reads `AGENTS.md` natively; `CLAUDE.md` is a symlink. Skills land in `.claude/skills/` |
-| **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` | Global always-on instructions + glob-scoped per-language files with `applyTo` frontmatter |
-| **OpenAI Codex** | `AGENTS.md` | Native passthrough — Codex reads `AGENTS.md` hierarchically (supports monorepo subdirectories) |
-| **Gemini CLI** | `.gemini/systemPrompt.md` | All sections concatenated into a single system prompt file |
-| **Opencode** | `AGENTS.md`, `opencode.json` | Reads `AGENTS.md` natively; `opencode.json` generated with model defaults, permission settings, and empty MCP block. Skills land in `.claude/skills/` (Opencode reads this path for Claude compatibility) |
+| **Claude** (Claude Code) | `AGENTS.md`, `CLAUDE.md` | `AGENTS.md` natively; `CLAUDE.md` symlink; skills in `.claude/skills/` |
+| **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` | Global instructions + glob-scoped per-language files |
+| **OpenAI Codex** | `AGENTS.md` | `AGENTS.md` natively; hierarchical for monorepos |
+| **Gemini CLI** | `.gemini/systemPrompt.md` | Single system prompt file |
+| **Opencode** | `AGENTS.md`, `opencode.json` | `AGENTS.md` + `opencode.json`; skills in `.claude/skills/` |
 
 ---
 
-## Making It Your Own
-
-The library is a pattern — the content is yours. Fork it and treat it as your team's living standard.
+## Extending
 
 ### Add a fragment
 
+One `## Heading` per file, plain Markdown, no hardcoded project names or paths.
+
 ```bash
-# 1. Create the file — one ## heading, self-contained, no cross-references
 touch agents/practices/my-practice.md
-
-# 2. Write your rules under a single ## heading
-# 3. Rebuild the index
+# write your rules, then:
 just index
-
-# 4. Reference it in a profile or use it in a one-off compose
 ```
-
-Fragment files follow a simple convention: one `## Heading` per file, plain Markdown, no hardcoded project names or paths.
 
 ### Add a profile
 
-Profiles are YAML files in `profiles/`. Copy an existing one and adjust the fragment lists:
+Copy an existing profile and adjust the fragment lists.
 
 ```yaml
 name: My Custom Profile
@@ -197,29 +207,17 @@ toolchain:
   lint: pnpm lint
 ```
 
-Run `just lint` after adding a profile — it validates the schema.
+Run `just lint` after adding a profile.
 
 ### Add a skill
 
-Skills are reusable agent task definitions. Create a directory under `skills/{group}/{name}/` with a `SKILL.md` file:
+Skills are reusable agent task definitions in `skills/{group}/{name}/SKILL.md`.
 
 ```bash
 mkdir -p skills/development/my-skill
 touch skills/development/my-skill/SKILL.md
-just index   # rebuild the skill index
+just index
 ```
-
-Deploy skills to a project:
-
-```bash
-just deploy-skills /path/to/project my-skill,code-review
-# or all skills at once:
-just deploy-skills /path/to/project all
-```
-
-### Add a vendor adapter
-
-Add a directory under `vendors/{vendor}/` with an `adapter.json` following the schema in `vendors/_schema/adapter.schema.json`. The adapter declares output paths and how each section of `AGENTS.md` maps to the vendor's native format.
 
 ---
 
@@ -264,52 +262,18 @@ just index                  # rebuild index/skills.json and index/fragments.json
 ### MCP servers
 
 ```bash
-just mcp-add TARGET                     # interactive wizard: add an MCP server to a project
-just mcp-remove TARGET SERVER_NAME      # remove an MCP server from a project
-just mcp-list TARGET                    # list all configured MCP servers in a project
+just mcp-add TARGET                     # interactive wizard: add an MCP server
+just mcp-remove TARGET SERVER_NAME      # remove an MCP server
+just mcp-list TARGET                    # list all configured MCP servers
 ```
 
-Writes `.mcp.json` in the target project (Claude standard format) and optionally syncs to `opencode.json` and `.gemini/settings.json`.
+Writes `.mcp.json` in the target project and optionally syncs to `opencode.json` and `.gemini/settings.json`.
 
 ---
 
-## Prerequisites
+## Prerequisites & Contributing
 
-Run the setup command to check (and install on macOS) all required tools:
-
-```bash
-just setup
-```
-
-Or install manually:
-- [just](https://github.com/casey/just) — command runner (`brew install just`)
-- bash — macOS system `/bin/bash` 3.2+ works, no extra install needed
-- [yq](https://github.com/mikefarah/yq) — YAML processor (`brew install yq`)
-- [jq](https://stedolan.github.io/jq/) — JSON processor (`brew install jq`)
-
----
-
-## Repository Structure
-
-| Directory | Purpose |
-|---|---|
-| `agents/base/` | Universal fragments, always included |
-| `agents/languages/` | Language-specific rules (TypeScript, Go, Python, PHP) |
-| `agents/frameworks/` | Framework-specific rules |
-| `agents/architecture/` | Architectural patterns (Hexagonal, DDD, CQRS, BFF, ...) |
-| `agents/practices/` | Cross-cutting practices (TDD, API design, observability) |
-| `agents/domains/` | Business-domain context (fintech, healthcare, SaaS) |
-| `skills/` | Reusable agent skill definitions |
-| `automations/` | n8n workflow exports and templates |
-| `vendors/` | Vendor adapter configs and output templates |
-| `profiles/` | Named composition presets (YAML) |
-| `tooling/` | Assembly scripts (called via `just`) |
-| `schemas/` | JSON Schemas for all structured files |
-| `index/` | Auto-generated searchable indexes |
-
----
-
-## Contributing / License
+Run `just setup` to check (and install on macOS) all required tools: `just`, `bash`, `yq`, `jq`.
 
 Contributions welcome — new fragments, profiles, vendor adapters, and skills. Run `just lint && just test` before opening a PR.
 
