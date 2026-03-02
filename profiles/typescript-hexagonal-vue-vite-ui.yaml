@@ -15,16 +15,11 @@ fragments:
     - testing-philosophy
     - documentation
 
-  languages:
-    - typescript
+  languages: []       # ignored in nested mode — declared in tiers below
 
-  frameworks:
-    - vue
+  frameworks: []      # ignored in nested mode — declared in tiers below
 
-  architecture:
-    - hexagonal
-    - ddd
-    - microservices
+  architecture: []    # ignored in nested mode — each tier defines its own
 
   practices:
     - tdd
@@ -33,6 +28,22 @@ fragments:
     - ci-cd
 
   domains: []
+
+tiers:
+  backend:
+    languages:
+      - typescript
+    frameworks: []
+    architecture:
+      - hexagonal
+      - ddd
+      - microservices
+  ui:
+    languages:
+      - typescript
+    frameworks:
+      - vue
+    architecture: []
 
 tech_stack:
   language_runtime: "Node 22+"
@@ -57,7 +68,7 @@ output:
   build_command: "pnpm build"
   test_command: "pnpm test"
   lint_command: "pnpm lint"
-  structure: flat
+  structure: nested
   project_header: |
     Full-stack TypeScript project: Hono hexagonal backend + Vue 3 SPA frontend (no SSR).
     Backend domain layer must have zero framework dependencies.

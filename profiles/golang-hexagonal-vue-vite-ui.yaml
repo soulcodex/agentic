@@ -15,17 +15,11 @@ fragments:
     - testing-philosophy
     - documentation
 
-  languages:
-    - go
-    - typescript
+  languages: []       # ignored in nested mode — declared in tiers below
 
-  frameworks:
-    - vue
+  frameworks: []      # ignored in nested mode — declared in tiers below
 
-  architecture:
-    - hexagonal
-    - ddd
-    - microservices
+  architecture: []    # ignored in nested mode — each tier defines its own
 
   practices:
     - tdd
@@ -34,6 +28,22 @@ fragments:
     - ci-cd
 
   domains: []
+
+tiers:
+  backend:
+    languages:
+      - go
+    frameworks: []
+    architecture:
+      - hexagonal
+      - ddd
+      - microservices
+  ui:
+    languages:
+      - typescript
+    frameworks:
+      - vue
+    architecture: []
 
 tech_stack:
   language_runtime: "Go 1.23+ (backend) / Node 22+ (frontend)"
@@ -58,7 +68,7 @@ output:
   build_command: "go build ./... && pnpm build"
   test_command: "go test ./... -race -cover && pnpm test"
   lint_command: "golangci-lint run && pnpm lint"
-  structure: flat
+  structure: nested
   project_header: |
     Full-stack project: Go hexagonal backend + Vue 3 SPA frontend (no SSR).
     Backend domain package must have zero external dependencies.
