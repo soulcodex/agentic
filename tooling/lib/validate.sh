@@ -62,6 +62,19 @@ fi
 LOCK_FILE="$TARGET/.agentic/config.yaml"
 if [[ -f "$LOCK_FILE" ]]; then
   ok "Lock file present: .agentic/config.yaml"
+
+  # ── Check tier AGENTS.md files for nested mode ──────────────────────────────
+  nested_structure=$(yq '.structure // "flat"' "$LOCK_FILE" 2>/dev/null || echo "flat")
+  if [[ "$nested_structure" == "nested" ]]; then
+    while IFS= read -r tier; do
+      [[ -z "$tier" || "$tier" == "null" ]] && continue
+      if [[ -f "$TARGET/$tier/AGENTS.md" ]]; then
+        ok "Tier AGENTS.md present: ${tier}/AGENTS.md"
+      else
+        fail "Tier AGENTS.md missing: ${tier}/AGENTS.md (run 'just compose' to regenerate)"
+      fi
+    done < <(yq '.tiers[]' "$LOCK_FILE" 2>/dev/null || true)
+  fi
 else
   warn "Lock file missing (.agentic/config.yaml) — run 'just compose' to generate it"
 fi

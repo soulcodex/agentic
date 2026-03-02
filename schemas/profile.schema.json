@@ -98,6 +98,19 @@
       "description": "Skill names to include in the generated Skills section (names must match index/skills.json)",
       "default": []
     },
+    "tiers": {
+      "type": "object",
+      "description": "Named composition tiers for nested output (output.structure: nested). Each key is a subdirectory name. Languages, frameworks, and architecture are tier-specific; base/practices/domains go in the root AGENTS.md.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "languages":    { "type": "array", "items": { "type": "string" }, "default": [] },
+          "frameworks":   { "type": "array", "items": { "type": "string" }, "default": [] },
+          "architecture": { "type": "array", "items": { "type": "string" }, "default": [] }
+        }
+      }
+    },
     "output": {
       "type": "object",
       "additionalProperties": false,

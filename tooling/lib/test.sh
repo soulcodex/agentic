@@ -435,6 +435,63 @@ assert_file_exists "$TMP/t23/.github/copilot-instructions.md" "T23"
 assert_file_contains "$TMP/t23/.github/copilot-instructions.md" "Conventional Commits" "T23"
 assert_file_contains "$TMP/t23/.github/copilot-instructions.md" "Git Conventions" "T23"
 
+# T24 — compose: nested mode produces root AGENTS.md with tier table
+run_test "T24 — compose: nested mode root AGENTS.md has Tiers section"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t24" > /dev/null 2>&1
+
+assert_file_exists        "$TMP/t24/AGENTS.md"                                          "T24"
+assert_file_contains      "$TMP/t24/AGENTS.md" "## Conventions & Patterns"              "T24"
+assert_file_contains      "$TMP/t24/AGENTS.md" "## Tiers"                               "T24"
+assert_file_contains      "$TMP/t24/AGENTS.md" "backend/AGENTS.md"                      "T24"
+assert_file_contains      "$TMP/t24/AGENTS.md" "ui/AGENTS.md"                           "T24"
+assert_file_contains      "$TMP/t24/AGENTS.md" ".agentic/fragments/tdd.md"              "T24"
+assert_file_not_contains  "$TMP/t24/AGENTS.md" ".agentic/fragments/hexagonal.md"        "T24"
+assert_file_not_contains  "$TMP/t24/AGENTS.md" ".agentic/fragments/vue.md"              "T24"
+assert_file_contains      "$TMP/t24/.agentic/config.yaml" "structure: nested"           "T24"
+assert_file_contains      "$TMP/t24/.agentic/config.yaml" "mode: lean"                  "T24"
+
+# T25 — compose: nested lean mode writes correct tier AGENTS.md files
+run_test "T25 — compose: nested lean mode tier AGENTS.md content"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t25" > /dev/null 2>&1
+
+assert_file_exists        "$TMP/t25/backend/AGENTS.md"                                  "T25"
+assert_file_exists        "$TMP/t25/ui/AGENTS.md"                                       "T25"
+assert_file_contains      "$TMP/t25/backend/AGENTS.md" ".agentic/fragments/typescript.md"  "T25"
+assert_file_contains      "$TMP/t25/backend/AGENTS.md" ".agentic/fragments/hexagonal.md"   "T25"
+assert_file_not_contains  "$TMP/t25/backend/AGENTS.md" ".agentic/fragments/vue.md"         "T25"
+assert_file_not_contains  "$TMP/t25/backend/AGENTS.md" ".agentic/fragments/nuxt.md"        "T25"
+assert_file_contains      "$TMP/t25/ui/AGENTS.md"      ".agentic/fragments/vue.md"         "T25"
+assert_file_contains      "$TMP/t25/ui/AGENTS.md"      ".agentic/fragments/nuxt.md"        "T25"
+assert_file_not_contains  "$TMP/t25/ui/AGENTS.md"      ".agentic/fragments/hexagonal.md"   "T25"
+assert_file_not_contains  "$TMP/t25/backend/AGENTS.md" ".agentic/fragments/tdd.md"         "T25"
+assert_file_not_contains  "$TMP/t25/ui/AGENTS.md"      ".agentic/fragments/tdd.md"         "T25"
+assert_file_exists        "$TMP/t25/.agentic/fragments/hexagonal.md"                    "T25"
+assert_file_exists        "$TMP/t25/.agentic/fragments/vue.md"                          "T25"
+
+# T26 — compose: nested --full inlines content into tier AGENTS.md files
+run_test "T26 — compose: nested --full inlines fragment content in tier files"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t26" \
+  --full > /dev/null 2>&1
+
+assert_file_contains      "$TMP/t26/AGENTS.md"         "## Testing Philosophy"          "T26"
+assert_file_not_contains  "$TMP/t26/AGENTS.md"         "## Hexagonal Architecture"      "T26"
+assert_file_not_contains  "$TMP/t26/AGENTS.md"         "## Vue 3"                       "T26"
+assert_file_contains      "$TMP/t26/backend/AGENTS.md" "## TypeScript"                  "T26"
+assert_file_contains      "$TMP/t26/backend/AGENTS.md" "## Hexagonal Architecture"      "T26"
+assert_file_not_contains  "$TMP/t26/backend/AGENTS.md" "## Vue 3"                       "T26"
+assert_file_contains      "$TMP/t26/ui/AGENTS.md"      "## Vue 3"                       "T26"
+assert_file_not_contains  "$TMP/t26/ui/AGENTS.md"      "## Hexagonal Architecture"      "T26"
+assert_file_contains      "$TMP/t26/.agentic/config.yaml" "structure: nested"           "T26"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
