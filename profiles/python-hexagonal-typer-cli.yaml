@@ -47,6 +47,7 @@ skills:
   - add-tests
   - write-adr
   - write-changelog
+  - relational-database-design
 
 output:
   build_command: "uv build"

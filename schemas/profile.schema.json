@@ -89,6 +89,20 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "Extra libraries or tools not covered by the named fields"
+        },
+        "proprietary_libraries": {
+          "type": "array",
+          "description": "Internal/private packages — listed with context in the Proprietary Libraries section",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "name":        { "type": "string", "description": "Package identifier (e.g. @acme/core)" },
+              "description": { "type": "string", "description": "What this package provides" },
+              "url_doc":     { "type": "string", "description": "URL to the package documentation (optional)" }
+            }
+          }
         }
       }
     },
@@ -107,7 +121,31 @@
         "properties": {
           "languages":    { "type": "array", "items": { "type": "string" }, "default": [] },
           "frameworks":   { "type": "array", "items": { "type": "string" }, "default": [] },
-          "architecture": { "type": "array", "items": { "type": "string" }, "default": [] }
+          "architecture": { "type": "array", "items": { "type": "string" }, "default": [] },
+          "commands": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Per-tier build/test/lint commands emitted into this tier's AGENTS.md",
+            "properties": {
+              "build_command": { "type": "string" },
+              "test_command":  { "type": "string" },
+              "lint_command":  { "type": "string" }
+            }
+          },
+          "proprietary_libraries": {
+            "type": "array",
+            "description": "Tier-specific private packages",
+            "items": {
+              "type": "object",
+              "required": ["name", "description"],
+              "additionalProperties": false,
+              "properties": {
+                "name":        { "type": "string" },
+                "description": { "type": "string" },
+                "url_doc":     { "type": "string" }
+              }
+            }
+          }
         }
       }
     },

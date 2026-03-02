@@ -38,6 +38,14 @@ tiers:
       - hexagonal
       - ddd
       - microservices
+    commands:
+      build_command: "pnpm --filter backend build"
+      test_command:  "pnpm --filter backend test"
+      lint_command:  "pnpm --filter backend lint"
+    proprietary_libraries:
+      - name: "@acme/domain-kit"
+        description: "Backend domain kit"
+        url_doc: "https://docs.acme.internal/domain-kit"
   ui:
     languages:
       - typescript
@@ -45,6 +53,13 @@ tiers:
       - vue
       - nuxt
     architecture: []
+    commands:
+      build_command: "pnpm --filter ui build"
+      test_command:  "pnpm --filter ui test"
+      lint_command:  "pnpm --filter ui lint"
+    proprietary_libraries:
+      - name: "@acme/ui-tokens"
+        description: "Design system tokens"
 
 tech_stack:
   language_runtime: "Node 22+"
@@ -59,12 +74,16 @@ tech_stack:
     - "Vue 3"
     - "pinia"
     - "VueRouter"
+  proprietary_libraries:
+    - name: "@acme/core"
+      description: "Core domain primitives shared across all services"
 
 skills:
   - code-review
   - add-tests
   - write-adr
   - write-readme
+  - relational-database-design
 
 output:
   build_command: "pnpm build"

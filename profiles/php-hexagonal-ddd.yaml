@@ -31,6 +31,9 @@ fragments:
 
   domains: []
 
+skills:
+  - relational-database-design
+
 output:
   build_command: "composer install --no-dev --optimize-autoloader"
   test_command: "vendor/bin/phpunit"

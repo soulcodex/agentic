@@ -378,16 +378,17 @@ assert_file_contains "$TMP/t19/AGENTS.md" "## Skills" "T19"
 assert_file_contains "$TMP/t19/AGENTS.md" "## Code Review Skill" "T19"
 assert_file_not_contains "$TMP/t19/AGENTS.md" "Load the relevant skill file before starting the task." "T19"
 
-# T20 — compose: profile without tech_stack/skills has no ## Technical Stack or ## Skills
-run_test "T20 — compose: profile without tech_stack/skills omits those sections"
+# T20 — compose: profile without tech_stack has no ## Technical Stack; has ## Skills with relational-database-design
+run_test "T20 — compose: profile without tech_stack omits that section; skills section present"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile go-hexagonal-microservice \
   --target "$TMP/t20" \
   > /dev/null 2>&1
 
-assert_file_not_contains "$TMP/t20/AGENTS.md" "## Technical Stack" "T20"
-assert_file_not_contains "$TMP/t20/AGENTS.md" "## Skills" "T20"
+assert_file_not_contains "$TMP/t20/AGENTS.md" "## Technical Stack"        "T20"
+assert_file_contains     "$TMP/t20/AGENTS.md" "## Skills"                  "T20"
+assert_file_contains     "$TMP/t20/AGENTS.md" "relational-database-design" "T20"
 
 # T21 — compose: --full produces monolithic AGENTS.md with mode: full in lock file
 run_test "T21 — compose: --full flag produces monolithic AGENTS.md"
@@ -452,6 +453,7 @@ assert_file_not_contains  "$TMP/t24/AGENTS.md" ".agentic/fragments/hexagonal.md"
 assert_file_not_contains  "$TMP/t24/AGENTS.md" ".agentic/fragments/vue.md"              "T24"
 assert_file_contains      "$TMP/t24/.agentic/config.yaml" "structure: nested"           "T24"
 assert_file_contains      "$TMP/t24/.agentic/config.yaml" "mode: lean"                  "T24"
+assert_file_not_contains  "$TMP/t24/AGENTS.md"            "## Commands"                 "T24"
 
 # T25 — compose: nested lean mode writes correct tier AGENTS.md files
 run_test "T25 — compose: nested lean mode tier AGENTS.md content"
@@ -473,6 +475,8 @@ assert_file_not_contains  "$TMP/t25/backend/AGENTS.md" ".agentic/fragments/tdd.m
 assert_file_not_contains  "$TMP/t25/ui/AGENTS.md"      ".agentic/fragments/tdd.md"         "T25"
 assert_file_exists        "$TMP/t25/.agentic/fragments/hexagonal.md"                    "T25"
 assert_file_exists        "$TMP/t25/.agentic/fragments/vue.md"                          "T25"
+assert_file_contains      "$TMP/t25/backend/AGENTS.md" "## Commands"                    "T25"
+assert_file_contains      "$TMP/t25/ui/AGENTS.md"      "## Commands"                    "T25"
 
 # T26 — compose: nested --full inlines content into tier AGENTS.md files
 run_test "T26 — compose: nested --full inlines fragment content in tier files"
@@ -491,6 +495,21 @@ assert_file_not_contains  "$TMP/t26/backend/AGENTS.md" "## Vue 3"               
 assert_file_contains      "$TMP/t26/ui/AGENTS.md"      "## Vue 3"                       "T26"
 assert_file_not_contains  "$TMP/t26/ui/AGENTS.md"      "## Hexagonal Architecture"      "T26"
 assert_file_contains      "$TMP/t26/.agentic/config.yaml" "structure: nested"           "T26"
+
+# T27 — compose: proprietary_libraries appear in correct locations
+run_test "T27 — compose: proprietary_libraries sections in correct locations"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t27" > /dev/null 2>&1
+
+assert_file_contains      "$TMP/t27/AGENTS.md"         "@acme/core"              "T27"
+assert_file_contains      "$TMP/t27/AGENTS.md"         "Core domain primitives"  "T27"
+assert_file_contains      "$TMP/t27/backend/AGENTS.md" "@acme/domain-kit"        "T27"
+assert_file_contains      "$TMP/t27/backend/AGENTS.md" "docs.acme.internal"      "T27"
+assert_file_contains      "$TMP/t27/ui/AGENTS.md"      "@acme/ui-tokens"         "T27"
+assert_file_not_contains  "$TMP/t27/AGENTS.md"         "@acme/domain-kit"        "T27"
+assert_file_not_contains  "$TMP/t27/AGENTS.md"         "@acme/ui-tokens"         "T27"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

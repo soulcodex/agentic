@@ -30,6 +30,9 @@ fragments:
 
   domains: []
 
+skills:
+  - relational-database-design
+
 output:
   build_command: "uv build"
   test_command: "uv run pytest"

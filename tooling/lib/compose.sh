@@ -172,6 +172,50 @@ build_tech_stack_section() {
   printf '%s' "$section"
 }
 
+# ── Commands section builder ───────────────────────────────────────────────────
+build_commands_block() {
+  local build_cmd="$1" test_cmd="$2" lint_cmd="$3"
+  local section=""
+  [[ -z "$build_cmd" && -z "$test_cmd" && -z "$lint_cmd" ]] && return
+  [[ "$build_cmd" == "null" && "$test_cmd" == "null" && "$lint_cmd" == "null" ]] && return
+
+  section+=$'\n## Commands\n\n'
+  [[ -n "$build_cmd" && "$build_cmd" != "null" ]] && section+="- **Build**: \`${build_cmd}\`"$'\n'
+  [[ -n "$test_cmd"  && "$test_cmd"  != "null" ]] && section+="- **Test**: \`${test_cmd}\`"$'\n'
+  [[ -n "$lint_cmd"  && "$lint_cmd"  != "null" ]] && section+="- **Lint**: \`${lint_cmd}\`"$'\n'
+  printf '%s' "$section"
+}
+
+# ── Proprietary Libraries section builder ─────────────────────────────────────
+build_proprietary_libraries_section() {
+  local profile_file="$1"
+  local yq_path="$2"
+
+  local count
+  count=$(yq "${yq_path} | length" "$profile_file" 2>/dev/null || echo "0")
+  [[ "$count" == "0" || "$count" == "null" ]] && return
+
+  local section=""
+  section+=$'\n## Proprietary Libraries\n\n'
+  section+="> Internal packages not available on public registries. Load the relevant docs before making changes."$'\n\n'
+  section+="| Package | Description | Docs |"$'\n'
+  section+="|---------|-------------|------|"$'\n'
+
+  local i=0
+  while [[ $i -lt $count ]]; do
+    local name desc url_doc
+    name=$(yq    "${yq_path}[$i].name"            "$profile_file")
+    desc=$(yq    "${yq_path}[$i].description"     "$profile_file")
+    url_doc=$(yq "${yq_path}[$i].url_doc // \"\"" "$profile_file")
+    local docs_cell="—"
+    [[ -n "$url_doc" && "$url_doc" != "null" ]] && docs_cell="[docs](${url_doc})"
+    section+="| \`${name}\` | ${desc} | ${docs_cell} |"$'\n'
+    i=$(( i + 1 ))
+  done
+
+  printf '%s' "$section"
+}
+
 # ── Skills section ────────────────────────────────────────────────────────────
 build_skills_section() {
   local full_mode="$1"  # "true" or "false"
@@ -249,22 +293,17 @@ HEADER
 
 # Project-specific header (from profile output.project_header)
 if [[ -n "$PROJECT_HEADER" && "$PROJECT_HEADER" != "null" ]]; then
-  OUTPUT+=$'\n'"## Project Context"$'\n\n'"${PROJECT_HEADER}"$'\n'
-fi
-
-# Commands section
-if [[ -n "$BUILD_CMD" || -n "$TEST_CMD" || -n "$LINT_CMD" ]]; then
-  OUTPUT+=$'\n'"## Commands"$'\n\n'
-  [[ -n "$BUILD_CMD" && "$BUILD_CMD" != "null" ]] && OUTPUT+="- **Build**: \`${BUILD_CMD}\`"$'\n'
-  [[ -n "$TEST_CMD"  && "$TEST_CMD"  != "null" ]] && OUTPUT+="- **Test**: \`${TEST_CMD}\`"$'\n'
-  [[ -n "$LINT_CMD"  && "$LINT_CMD"  != "null" ]] && OUTPUT+="- **Lint**: \`${LINT_CMD}\`"$'\n'
+  OUTPUT+=$'\n\n---\n\n'"## Project Context"$'\n\n'"${PROJECT_HEADER}"$'\n'
 fi
 
 # Technical Stack section
 OUTPUT+=$(build_tech_stack_section)
+OUTPUT+=$(build_proprietary_libraries_section "$PROFILE_FILE" ".tech_stack.proprietary_libraries")
 
 # ── Flat mode (single AGENTS.md) ─────────────────────────────────────────────
 compose_flat() {
+  OUTPUT+=$(build_commands_block "$BUILD_CMD" "$TEST_CMD" "$LINT_CMD")
+
   if [[ "$FULL_MODE" == "true" ]]; then
     OUTPUT+=$(inline_fragments)
   else
@@ -447,6 +486,12 @@ compose_nested() {
     tier_out+="<!-- Generated: ${GENERATED_AT} -->"$'\n'
     tier_out+="<!-- DO NOT EDIT — run \`just compose ${PROFILE} <target>\` to regenerate -->"$'\n\n'
 
+    local tier_build tier_test tier_lint
+    tier_build=$(yq ".tiers.${tier}.commands.build_command // \"\"" "$PROFILE_FILE")
+    tier_test=$(yq  ".tiers.${tier}.commands.test_command  // \"\""  "$PROFILE_FILE")
+    tier_lint=$(yq  ".tiers.${tier}.commands.lint_command  // \"\""  "$PROFILE_FILE")
+    tier_out+=$(build_commands_block "$tier_build" "$tier_test" "$tier_lint")
+
     if [[ ${#tier_frags[@]} -gt 0 ]]; then
       if [[ "$FULL_MODE" == "true" ]]; then
         for f in "${tier_frags[@]}"; do
@@ -468,6 +513,8 @@ compose_nested() {
         done
       fi
     fi
+
+    tier_out+=$(build_proprietary_libraries_section "$PROFILE_FILE" ".tiers.${tier}.proprietary_libraries")
 
     tier_out+=$'\n## Cross-tier Conventions\n\n'
     tier_out+="> Base conventions and practices are in the root \`AGENTS.md\`."$'\n'
