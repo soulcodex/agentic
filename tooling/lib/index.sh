@@ -32,13 +32,15 @@ build_skills_index() {
     name=$(basename "$dir")
     local path="${skill_file#$LIBRARY/}"
 
-    # Extract frontmatter fields using yq (treating YAML frontmatter)
+    # Extract frontmatter fields using yq (parse YAML block between first two --- delimiters)
+    local frontmatter
+    frontmatter=$(awk '/^---$/{n++; if(n==1){p=1;next} if(n==2){exit}} p' "$skill_file")
     local description
-    description=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep '^description:' | sed 's/^description: *//' | tr -d '"' | head -1)
+    description=$(echo "$frontmatter" | yq '.description // ""' | tr -d '\n' | sed 's/  */ /g')
     local version
-    version=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep '^version:' | sed 's/^version: *//' | tr -d '"' | head -1)
+    version=$(echo "$frontmatter" | yq '.version // "0.0.0"')
     local tags
-    tags=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep -A20 '^tags:' | grep '^  - ' | sed 's/^  - //' | jq -Rsc 'split("\n") | map(select(length > 0))' 2>/dev/null || echo '[]')
+    tags=$(echo "$frontmatter" | yq -o=json '.tags // []' 2>/dev/null || echo '[]')
 
     [[ "$first" == "false" ]] && skills_json+=","
     skills_json+=$(printf '{"name":"%s","group":"%s","path":"%s","description":"%s","version":"%s","tags":%s}' \

@@ -1,0 +1,68 @@
+meta:
+  name: "Python Hexagonal Typer CLI"
+  description: >
+    Python CLI tool following hexagonal architecture with DDD patterns.
+    Typer + Rich for the command layer; domain and application layers have
+    zero CLI framework dependencies. Fully type-annotated, tested with pytest,
+    linted with ruff, and type-checked with mypy.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+
+  languages:
+    - python
+
+  frameworks:
+    - typer
+
+  architecture:
+    - hexagonal
+    - ddd
+
+  practices:
+    - tdd
+    - observability
+    - ci-cd
+
+  domains: []
+
+tech_stack:
+  language_runtime: "Python 3.12+"
+  package_manager: "uv"
+  cli_framework: "Typer"
+  test_framework: "pytest"
+  additional:
+    - "Rich"
+    - "ruff"
+    - "mypy"
+
+skills:
+  - code-review
+  - add-tests
+  - write-adr
+  - write-changelog
+
+output:
+  build_command: "uv build"
+  test_command: "uv run pytest"
+  lint_command: "uv run ruff check . && uv run mypy ."
+  structure: flat
+  project_header: |
+    Python CLI tool built with Typer and hexagonal architecture.
+    The domain package must have zero external dependencies — no Typer, no Rich, no CLI libs.
+    Type annotations are the CLI contract; never bypass them with manual argument parsing.
+    All dependencies are injected via interfaces defined in the domain or application layer.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

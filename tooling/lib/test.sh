@@ -143,7 +143,7 @@ assert_file_not_contains "$TMP/t02/AGENTS.md" "## TypeScript" "T02"
 
 # T03 — compose: dry-run produces stdout, no files written
 run_test "T03 — compose: dry-run produces stdout, no files written"
-DRY_TMPFILE=$(mktemp)
+DRY_TMPFILE=$(mktemp "$TMP/dry-XXXXXX")
 T03_EXIT=0
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -154,7 +154,6 @@ bash "$COMPOSE" \
 assert_exit_code 0 "$T03_EXIT" "T03"
 assert_file_not_exists "$TMP/t03" "T03"
 assert_file_contains "$DRY_TMPFILE" "## Git Conventions" "T03"
-rm -f "$DRY_TMPFILE"
 
 # T04 — compose: unknown profile fails with exit code 1
 run_test "T04 — compose: unknown profile fails"
@@ -323,6 +322,68 @@ assert_json_valid "$LIBRARY/index/skills.json" "T15"
 assert_json_valid "$LIBRARY/index/fragments.json" "T15"
 assert_json_min_count "$LIBRARY/index/skills.json" '.skills | length' 10 "T15 skills"
 assert_json_min_count "$LIBRARY/index/fragments.json" '.fragments | length' 19 "T15 fragments"
+
+# T16 — compose: profile with tech_stack produces ## Technical Stack section
+run_test "T16 — compose: tech_stack profile produces ## Technical Stack"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t16" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t16/AGENTS.md" "## Technical Stack" "T16"
+assert_file_contains "$TMP/t16/AGENTS.md" "Go 1.23+" "T16"
+assert_file_contains "$TMP/t16/AGENTS.md" "Cobra + Viper" "T16"
+
+# T17 — compose: profile with skills produces slim ## Skills listing
+run_test "T17 — compose: skills profile produces ## Skills listing"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t17" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t17/AGENTS.md" "## Skills" "T17"
+assert_file_contains "$TMP/t17/AGENTS.md" "Load the relevant skill file before starting the task." "T17"
+assert_file_contains "$TMP/t17/AGENTS.md" "code-review" "T17"
+assert_file_contains "$TMP/t17/AGENTS.md" "write-adr" "T17"
+
+# T18 — compose: --full writes AGENTS.full.md, not AGENTS.md
+run_test "T18 — compose: --full writes AGENTS.full.md, not AGENTS.md"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t18" \
+  --full \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t18/AGENTS.full.md" "T18"
+assert_file_not_exists "$TMP/t18/AGENTS.md" "T18"
+assert_file_not_exists "$TMP/t18/.agentic" "T18"
+
+# T19 — compose: --full embeds skill content inline (not just listing)
+run_test "T19 — compose: --full embeds full skill content"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t19" \
+  --full \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t19/AGENTS.full.md" "## Skills" "T19"
+assert_file_contains "$TMP/t19/AGENTS.full.md" "## Code Review Skill" "T19"
+assert_file_not_contains "$TMP/t19/AGENTS.full.md" "Load the relevant skill file before starting the task." "T19"
+
+# T20 — compose: profile without tech_stack/skills has no ## Technical Stack or ## Skills
+run_test "T20 — compose: profile without tech_stack/skills omits those sections"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile go-hexagonal-microservice \
+  --target "$TMP/t20" \
+  > /dev/null 2>&1
+
+assert_file_not_contains "$TMP/t20/AGENTS.md" "## Technical Stack" "T20"
+assert_file_not_contains "$TMP/t20/AGENTS.md" "## Skills" "T20"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

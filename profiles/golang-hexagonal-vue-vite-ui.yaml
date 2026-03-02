@@ -1,0 +1,74 @@
+meta:
+  name: "Go Hexagonal + Vue/Vite SPA"
+  description: >
+    Full-stack application with a Go hexagonal backend and a Vue 3 SPA
+    frontend. Go handles all business logic and HTTP APIs; Vue delivers a
+    client-side single-page application with Vite for fast builds and Vitest
+    for unit tests. No SSR.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+
+  languages:
+    - go
+    - typescript
+
+  frameworks:
+    - vue
+
+  architecture:
+    - hexagonal
+    - ddd
+    - microservices
+
+  practices:
+    - tdd
+    - api-design
+    - observability
+    - ci-cd
+
+  domains: []
+
+tech_stack:
+  language_runtime: "Go 1.23+ (backend) / Node 22+ (frontend)"
+  package_manager: "Go modules (backend) / pnpm (frontend)"
+  backend_framework: "gorilla/mux"
+  frontend_framework: "Vue 3 (SPA)"
+  ui_component_library: "shadcn/vue"
+  css_framework: "Tailwind CSS v4"
+  build_tool: "Vite 6"
+  test_framework: "Vitest (frontend) / testify (backend)"
+  additional:
+    - "pinia"
+    - "VueRouter"
+
+skills:
+  - code-review
+  - add-tests
+  - write-adr
+  - write-readme
+
+output:
+  build_command: "go build ./... && pnpm build"
+  test_command: "go test ./... -race -cover && pnpm test"
+  lint_command: "golangci-lint run && pnpm lint"
+  structure: flat
+  project_header: |
+    Full-stack project: Go hexagonal backend + Vue 3 SPA frontend (no SSR).
+    Backend domain package must have zero external dependencies.
+    Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    All dependencies are injected via interfaces defined in the domain or application layer.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

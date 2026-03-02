@@ -1,0 +1,65 @@
+meta:
+  name: "Go Hexagonal Cobra CLI"
+  description: >
+    Go CLI tool following hexagonal architecture with DDD patterns.
+    Cobra + Viper for the command layer; domain and application layers have
+    zero CLI framework dependencies. Designed for testable, composable commands.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+
+  languages:
+    - go
+
+  frameworks:
+    - cobra
+
+  architecture:
+    - hexagonal
+    - ddd
+
+  practices:
+    - tdd
+    - observability
+    - ci-cd
+
+  domains: []
+
+tech_stack:
+  language_runtime: "Go 1.23+"
+  package_manager: "Go modules"
+  cli_framework: "Cobra + Viper"
+  test_framework: "testify"
+  additional:
+    - "go-pretty/v6 (table output)"
+
+skills:
+  - code-review
+  - add-tests
+  - write-adr
+  - write-changelog
+
+output:
+  build_command: "go build ./..."
+  test_command: "go test ./... -race -cover"
+  lint_command: "golangci-lint run"
+  structure: flat
+  project_header: |
+    Go CLI tool built with Cobra and hexagonal architecture.
+    The domain package must have zero external dependencies — no Cobra, no Viper, no output libs.
+    Commands accept io.Writer arguments and never call os.Exit directly.
+    All dependencies are injected via interfaces defined in the domain or application layer.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

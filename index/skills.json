@@ -1,12 +1,12 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-01T23:04:26Z",
+  "generated_at": "2026-03-02T11:38:38Z",
   "skills": [
     {
       "name": "compose-agents-md",
       "group": "agentic",
       "path": "skills/agentic/compose-agents-md/SKILL.md",
-      "description": ">",
+      "description": "Meta-skill: helps create an AGENTS.md for a new project by guiding the user through selecting the right profile from the",
       "version": "1.0.0",
       "tags": [
         "agentic",
@@ -18,7 +18,7 @@
       "name": "configure-mcp",
       "group": "agentic",
       "path": "skills/agentic/configure-mcp/SKILL.md",
-      "description": ">",
+      "description": "Guides the user through selecting and configuring an MCP (Model Context Protocol) server for a project. Recommends serve",
       "version": "1.0.0",
       "tags": [
         "agentic",
@@ -30,7 +30,7 @@
       "name": "deploy-config",
       "group": "agentic",
       "path": "skills/agentic/deploy-config/SKILL.md",
-      "description": ">",
+      "description": "Meta-skill: deploys the full agentic configuration to a target project — AGENTS.md composition, vendor file generation, ",
       "version": "1.0.0",
       "tags": [
         "agentic",
@@ -42,7 +42,7 @@
       "name": "relational-database-design",
       "group": "data",
       "path": "skills/data/relational-database-design/SKILL.md",
-      "description": ">",
+      "description": "Designs or reviews a relational database schema for a given domain. Covers table structure, normalization, indexes, cons",
       "version": "1.0.0",
       "tags": [
         "data",
@@ -56,7 +56,7 @@
       "name": "add-tests",
       "group": "development",
       "path": "skills/development/add-tests/SKILL.md",
-      "description": ">",
+      "description": "Generates tests for existing code. Analyzes the target function, method, or class to identify the happy path, error case",
       "version": "1.0.0",
       "tags": [
         "testing",
@@ -68,20 +68,19 @@
       "name": "code-review",
       "group": "development",
       "path": "skills/development/code-review/SKILL.md",
-      "description": ">",
+      "description": "Performs a structured code review on the current diff or specified files. Checks for correctness, security vulnerabiliti",
       "version": "1.0.0",
       "tags": [
         "quality",
         "review",
-        "security",
-        "checklist.md"
+        "security"
       ]
     },
     {
       "name": "fix-bug",
       "group": "development",
       "path": "skills/development/fix-bug/SKILL.md",
-      "description": ">",
+      "description": "Investigates and fixes a reported bug. Reads relevant code, identifies the root cause, proposes a fix, and adds or updat",
       "version": "1.0.0",
       "tags": [
         "debugging",
@@ -93,7 +92,7 @@
       "name": "refactor",
       "group": "development",
       "path": "skills/development/refactor/SKILL.md",
-      "description": ">",
+      "description": "Refactors specified code to improve clarity, reduce duplication, or align with the project's architectural patterns — wi",
       "version": "1.0.0",
       "tags": [
         "refactoring",
@@ -105,7 +104,7 @@
       "name": "write-dockerfile",
       "group": "devops",
       "path": "skills/devops/write-dockerfile/SKILL.md",
-      "description": ">",
+      "description": "Creates an optimized, production-ready Dockerfile for the current project. Detects the language and framework, applies b",
       "version": "1.0.0",
       "tags": [
         "devops",
@@ -117,20 +116,19 @@
       "name": "write-adr",
       "group": "documentation",
       "path": "skills/documentation/write-adr/SKILL.md",
-      "description": ">",
+      "description": "Creates an Architecture Decision Record (ADR) documenting a significant technical decision. Follows the standard ADR for",
       "version": "1.0.0",
       "tags": [
         "documentation",
         "architecture",
-        "decision",
-        "adr-template.md"
+        "decision"
       ]
     },
     {
       "name": "write-changelog",
       "group": "documentation",
       "path": "skills/documentation/write-changelog/SKILL.md",
-      "description": ">",
+      "description": "Generates a CHANGELOG.md entry for a release by summarizing git commits since the last tag. Groups changes by type: Adde",
       "version": "1.0.0",
       "tags": [
         "documentation",
@@ -142,7 +140,7 @@
       "name": "write-readme",
       "group": "documentation",
       "path": "skills/documentation/write-readme/SKILL.md",
-      "description": ">",
+      "description": "Generates or updates a README.md for a project or package. Reads the source code to understand the project and produces ",
       "version": "1.0.0",
       "tags": [
         "documentation",

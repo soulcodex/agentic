@@ -1,0 +1,75 @@
+meta:
+  name: "TypeScript Hexagonal + Nuxt/Vite UI"
+  description: >
+    Full-stack TypeScript application with a Hono hexagonal backend and a
+    Nuxt 3 / Vue 3 frontend. Hono handles all business logic and HTTP APIs;
+    Nuxt delivers SSR-capable pages with Vite for fast builds and Vitest for
+    unit tests. Monorepo or split-repo — same language end to end.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+
+  languages:
+    - typescript
+
+  frameworks:
+    - vue
+    - nuxt
+
+  architecture:
+    - hexagonal
+    - ddd
+    - microservices
+
+  practices:
+    - tdd
+    - api-design
+    - observability
+    - ci-cd
+
+  domains: []
+
+tech_stack:
+  language_runtime: "Node 22+"
+  package_manager: "pnpm"
+  backend_framework: "Hono"
+  frontend_framework: "Nuxt 3"
+  ui_component_library: "shadcn/vue"
+  css_framework: "Tailwind CSS v4"
+  build_tool: "Vite 6"
+  test_framework: "Vitest"
+  additional:
+    - "Vue 3"
+    - "pinia"
+    - "VueRouter"
+
+skills:
+  - code-review
+  - add-tests
+  - write-adr
+  - write-readme
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test"
+  lint_command: "pnpm lint"
+  structure: flat
+  project_header: |
+    Full-stack TypeScript project: Hono hexagonal backend + Nuxt 3 frontend.
+    Backend domain layer must have zero framework dependencies.
+    Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    All dependencies are injected via interfaces defined in the domain or application layer.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

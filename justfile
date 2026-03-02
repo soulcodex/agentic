@@ -89,7 +89,7 @@ deploy-skills target skills="all":
 
 # ─── Full Pipeline ────────────────────────────────────────────────────────────
 
-# Full deploy: compose + vendor-gen + deploy skills
+# Full deploy: compose + vendor-gen + deploy skills (use compose-full for inlined skill content)
 # Usage: just deploy typescript-hexagonal-microservice /path/to/project
 # Usage: just deploy typescript-hexagonal-microservice /path/to/project code-review,write-adr
 deploy profile target skills="all":
@@ -99,6 +99,15 @@ deploy profile target skills="all":
     @echo ""
     @echo "Deployed profile '{{profile}}' to {{target}}"
     @echo "Run 'just validate {{target}}' to verify the config."
+
+# Compose AGENTS.full.md with all skill content inlined (instead of a slim listing)
+# Usage: just compose-full typescript-hexagonal-microservice /path/to/project
+compose-full profile target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/compose.sh" \
+        --library "{{LIBRARY_ROOT}}" \
+        --profile "{{profile}}" \
+        --target "{{target}}" \
+        --full
 
 # ─── Index ────────────────────────────────────────────────────────────────────
 

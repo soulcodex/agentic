@@ -69,6 +69,35 @@
         }
       }
     },
+    "tech_stack": {
+      "type": "object",
+      "description": "Optional tech stack metadata used to generate a Technical Stack section in AGENTS.md",
+      "additionalProperties": false,
+      "properties": {
+        "language_runtime": { "type": "string" },
+        "package_manager": { "type": "string" },
+        "backend_framework": { "type": "string" },
+        "frontend_framework": { "type": "string" },
+        "ui_component_library": { "type": "string" },
+        "css_framework": { "type": "string" },
+        "build_tool": { "type": "string" },
+        "test_framework": { "type": "string" },
+        "cli_framework": { "type": "string" },
+        "database": { "type": "string" },
+        "messaging": { "type": "string" },
+        "additional": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Extra libraries or tools not covered by the named fields"
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Skill names to include in the generated Skills section (names must match index/skills.json)",
+      "default": []
+    },
     "output": {
       "type": "object",
       "additionalProperties": false,
@@ -88,6 +117,12 @@
         "project_header": {
           "type": "string",
           "description": "Optional text injected at the top of the assembled AGENTS.md"
+        },
+        "structure": {
+          "type": "string",
+          "enum": ["flat", "nested"],
+          "default": "flat",
+          "description": "Output structure: flat (single AGENTS.md) or nested (reserved for future use)"
         }
       }
     },

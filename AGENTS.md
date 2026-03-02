@@ -56,6 +56,16 @@ project repositories via the tooling provided here.
 - Always run `just index` after adding or modifying skills or fragments.
 - The index files are committed to the repo so they are available without running tooling.
 
+### Testing & Quality
+
+- **Always run `just test` before committing any change to `tooling/`.** All 29 (or more) assertions must pass.
+- **When adding or changing behaviour in `compose.sh`, `vendor-gen.sh`, `deploy-skills.sh`, or any other script, add corresponding assertions to `tooling/lib/test.sh`.**
+  - New compose feature (e.g. a new generated section)? Add a `T##` test that composes a suitable profile and asserts the section is present.
+  - New flag or mode? Add a test that exercises the flag, checks the output file(s) exist (or don't), and verifies the content.
+  - New error path? Add a test that triggers the error and asserts exit code 1.
+- **Run `just lint` after adding or modifying any fragment, profile, skill, or vendor adapter** to catch schema violations and missing H2 headings before committing.
+- **Run `just index` after adding or modifying any fragment or skill**, then commit the updated index files together with the source change in the same commit.
+
 ## Commit Conventions
 
 Follow Conventional Commits format:

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-01T23:04:26Z",
+  "generated_at": "2026-03-02T11:38:38Z",
   "fragments": [
     {
       "name": "bff",
@@ -85,6 +85,34 @@
       "path": "agents/base/testing-philosophy.md",
       "heading": "Testing Philosophy",
       "words": 386
+    },
+    {
+      "name": "cobra",
+      "group": "frameworks",
+      "path": "agents/frameworks/cobra.md",
+      "heading": "Cobra CLI (Go)",
+      "words": 363
+    },
+    {
+      "name": "nuxt",
+      "group": "frameworks",
+      "path": "agents/frameworks/nuxt.md",
+      "heading": "Nuxt 3",
+      "words": 475
+    },
+    {
+      "name": "typer",
+      "group": "frameworks",
+      "path": "agents/frameworks/typer.md",
+      "heading": "Typer CLI (Python)",
+      "words": 380
+    },
+    {
+      "name": "vue",
+      "group": "frameworks",
+      "path": "agents/frameworks/vue.md",
+      "heading": "Vue 3",
+      "words": 394
     },
     {
       "name": "go",
