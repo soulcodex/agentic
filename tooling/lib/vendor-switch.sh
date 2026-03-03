@@ -1,7 +1,7 @@
 #!/bin/bash
 # vendor-switch.sh — Switches the active AI vendor in a target project
 # Called by: just vendor-switch <target> <vendor>
-#            TARGET/agentic <vendor|list>
+#            TARGET/agentic <vendor|list|sync>
 set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
@@ -20,14 +20,24 @@ done
 
 [[ -z "$LIBRARY" ]] && { echo "Error: --library required" >&2; exit 1; }
 [[ -z "$TARGET"  ]] && { echo "Error: --target required" >&2; exit 1; }
-[[ -z "$VENDOR"  ]] && { echo "Error: vendor argument required (or 'list')" >&2; exit 1; }
+[[ -z "$VENDOR"  ]] && { echo "Error: vendor argument required (or 'list', 'sync')" >&2; exit 1; }
 
 VENDOR_GEN="$LIBRARY/tooling/lib/vendor-gen.sh"
 DEPLOY_SKILLS="$LIBRARY/tooling/lib/deploy-skills.sh"
+SYNC_SCRIPT="$LIBRARY/tooling/lib/sync.sh"
 CONFIG="$TARGET/.agentic/config.yaml"
 VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
 
 ALL_VENDORS="claude copilot codex gemini opencode"
+
+# ── Sync subcommand ────────────────────────────────────────────────────────────
+if [[ "$VENDOR" == "sync" ]]; then
+  if [[ ! -f "$SYNC_SCRIPT" ]]; then
+    echo "Error: sync.sh not found at $SYNC_SCRIPT" >&2
+    exit 1
+  fi
+  exec bash "$SYNC_SCRIPT" --target "$TARGET"
+fi
 
 # ── List subcommand ────────────────────────────────────────────────────────────
 if [[ "$VENDOR" == "list" ]]; then

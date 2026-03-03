@@ -1,0 +1,92 @@
+#!/bin/bash
+# sync.sh — Regenerates target project from local profile
+# Called by: ./agentic sync
+# Uses: .agentic/profile.yaml (local customizable profile)
+#       .agentic/config.yaml (library_path, active_vendor)
+set -euo pipefail
+
+# ── Argument parsing ──────────────────────────────────────────────────────────
+TARGET=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --target) TARGET="$2"; shift 2 ;;
+    *)        echo "Unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
+
+[[ -z "$TARGET" ]] && { echo "Error: --target required" >&2; exit 1; }
+
+CONFIG="$TARGET/.agentic/config.yaml"
+LOCAL_PROFILE="$TARGET/.agentic/profile.yaml"
+
+# ── Validate prerequisites ────────────────────────────────────────────────────
+[[ ! -f "$CONFIG" ]] && {
+  echo "Error: $CONFIG not found. Run 'just compose' first to initialize." >&2
+  exit 1
+}
+
+[[ ! -f "$LOCAL_PROFILE" ]] && {
+  echo "Error: $LOCAL_PROFILE not found. Run 'just compose' first to copy the profile." >&2
+  exit 1
+}
+
+# ── Resolve library path ──────────────────────────────────────────────────────
+# Priority: 1. config.yaml library_path  2. AGENTIC_REPO_ROOT env var
+LIBRARY=$(yq '.library_path // ""' "$CONFIG" 2>/dev/null || echo "")
+[[ "$LIBRARY" == "null" ]] && LIBRARY=""
+
+if [[ -z "$LIBRARY" ]]; then
+  if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
+    LIBRARY="$AGENTIC_REPO_ROOT"
+    echo "Using AGENTIC_REPO_ROOT: $LIBRARY"
+  else
+    echo "Error: library_path not in config.yaml and AGENTIC_REPO_ROOT not set" >&2
+    echo "Set AGENTIC_REPO_ROOT to the agentic library path, e.g.:" >&2
+    echo "  export AGENTIC_REPO_ROOT=\$HOME/Code/agentic" >&2
+    exit 1
+  fi
+fi
+
+[[ ! -d "$LIBRARY" ]] && {
+  echo "Error: library path '$LIBRARY' does not exist" >&2
+  exit 1
+}
+
+COMPOSE_SCRIPT="$LIBRARY/tooling/lib/compose.sh"
+[[ ! -f "$COMPOSE_SCRIPT" ]] && {
+  echo "Error: compose.sh not found at $COMPOSE_SCRIPT" >&2
+  exit 1
+}
+
+# ── Read current configuration ────────────────────────────────────────────────
+ACTIVE_VENDOR=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || echo "")
+[[ "$ACTIVE_VENDOR" == "null" ]] && ACTIVE_VENDOR=""
+
+MODE=$(yq '.mode // "lean"' "$CONFIG" 2>/dev/null || echo "lean")
+[[ "$MODE" == "null" ]] && MODE="lean"
+
+# ── Sync: regenerate from local profile ───────────────────────────────────────
+echo "Syncing from local profile: $LOCAL_PROFILE"
+echo "Library: $LIBRARY"
+echo "Mode: $MODE"
+[[ -n "$ACTIVE_VENDOR" ]] && echo "Active vendor: $ACTIVE_VENDOR"
+echo ""
+
+# Build compose command
+COMPOSE_CMD=("bash" "$COMPOSE_SCRIPT" "--library" "$LIBRARY" "--profile-file" "$LOCAL_PROFILE" "--target" "$TARGET")
+[[ "$MODE" == "full" ]] && COMPOSE_CMD+=("--full")
+
+# Run compose
+"${COMPOSE_CMD[@]}"
+
+# ── Restore active vendor if set ──────────────────────────────────────────────
+if [[ -n "$ACTIVE_VENDOR" ]]; then
+  echo ""
+  echo "Restoring vendor: $ACTIVE_VENDOR"
+  VENDOR_SWITCH="$LIBRARY/tooling/lib/vendor-switch.sh"
+  bash "$VENDOR_SWITCH" --library "$LIBRARY" --target "$TARGET" "$ACTIVE_VENDOR"
+fi
+
+echo ""
+echo "Sync complete. Project regenerated from local profile."

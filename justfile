@@ -65,6 +65,12 @@ sync-check target:
         --library "{{LIBRARY_ROOT}}" \
         --target "{{target}}"
 
+# Regenerate a project from its local profile (.agentic/profile.yaml)
+# Usage: just sync /path/to/project
+sync target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/sync.sh" \
+        --target "{{target}}"
+
 # ─── Vendor Generation ────────────────────────────────────────────────────────
 
 # Generate vendor-specific files from a target project's AGENTS.md

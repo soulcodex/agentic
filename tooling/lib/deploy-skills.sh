@@ -38,6 +38,28 @@ deploy_skill() {
   echo "  Deployed skill: $skill_name → .agentic/skills/$skill_name"
 }
 
+# Deploy a project-local skill (project: prefix)
+deploy_project_skill() {
+  local skill_name="$1"
+  local project_skills_dir="$TARGET/.agentic/project-skills"
+  local skill_dir="$project_skills_dir/$skill_name"
+
+  if [[ ! -d "$skill_dir" ]]; then
+    echo "Warning: project skill '$skill_name' not found at $skill_dir — skipping" >&2
+    return 0
+  fi
+
+  if [[ ! -f "$skill_dir/SKILL.md" ]]; then
+    echo "Warning: project skill '$skill_name' missing SKILL.md — skipping" >&2
+    return 0
+  fi
+
+  local dst="$SKILLS_DST/$skill_name"
+  mkdir -p "$dst"
+  cp -r "$skill_dir/." "$dst/"
+  echo "  Deployed project skill: $skill_name → .agentic/skills/$skill_name"
+}
+
 # ── Generate skills README ────────────────────────────────────────────────────
 generate_skills_readme() {
   local readme="$SKILLS_DST/README.md"
@@ -158,6 +180,14 @@ else
   IFS=',' read -ra SKILL_NAMES <<< "$SKILLS"
   for name in "${SKILL_NAMES[@]}"; do
     name=$(echo "$name" | tr -d ' ')
+
+    # Handle project: prefix for project-specific skills
+    if [[ "$name" == project:* ]]; then
+      local_skill_name="${name#project:}"
+      deploy_project_skill "$local_skill_name"
+      continue
+    fi
+
     skill_dir=$(find "$LIBRARY/skills" -maxdepth 2 -type d -name "$name" | head -1)
     if [[ -z "$skill_dir" ]]; then
       echo "Warning: skill '$name' not found in library — skipping" >&2

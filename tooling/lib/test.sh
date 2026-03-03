@@ -686,6 +686,156 @@ assert_file_contains "$TMP/t34/.agentic/skills/README.md" ".claude/skills" "T34"
 assert_file_contains "$TMP/t34/.agentic/skills/README.md" ".agents/skills" "T34"
 assert_file_contains "$TMP/t34/.agentic/skills/README.md" "code-review" "T34"
 
+# ══════════════════════════════════════════════════════════════════════════════
+# LOCAL PROFILE SUPPORT TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T35 — compose: copies profile to .agentic/profile.yaml
+run_test "T35 — compose: copies profile to .agentic/profile.yaml"
+mkdir -p "$TMP/t35"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t35" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t35/.agentic/profile.yaml" "T35"
+assert_file_contains "$TMP/t35/.agentic/profile.yaml" "meta:" "T35"
+
+# T36 — compose: --profile-file flag works with local profile
+run_test "T36 — compose: --profile-file flag works with local profile"
+mkdir -p "$TMP/t36"
+# First compose to get a profile
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t36" \
+  > /dev/null 2>&1
+
+# Modify the local profile
+sed -i.bak 's/version: .*/version: "99.0.0"/' "$TMP/t36/.agentic/profile.yaml"
+
+# Re-compose using local profile
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t36/.agentic/profile.yaml" \
+  --target "$TMP/t36" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t36/AGENTS.md" "v99.0.0" "T36"
+
+# T37 — sync.sh: regenerates from local profile
+run_test "T37 — sync.sh: regenerates from local profile"
+SYNC="$LIBRARY/tooling/lib/sync.sh"
+mkdir -p "$TMP/t37"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t37" \
+  > /dev/null 2>&1
+
+# Modify the local profile version
+sed -i.bak 's/version: .*/version: "88.0.0"/' "$TMP/t37/.agentic/profile.yaml"
+
+# Run sync
+bash "$SYNC" --target "$TMP/t37" > /dev/null 2>&1
+
+assert_file_contains "$TMP/t37/AGENTS.md" "v88.0.0" "T37"
+
+# T38 — vendor-switch: sync subcommand works
+run_test "T38 — vendor-switch: sync subcommand works"
+mkdir -p "$TMP/t38"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t38" \
+  > /dev/null 2>&1
+
+# Activate a vendor first
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t38" \
+  claude \
+  > /dev/null 2>&1
+
+# Modify the local profile version
+sed -i.bak 's/version: .*/version: "77.0.0"/' "$TMP/t38/.agentic/profile.yaml"
+
+# Run sync via vendor-switch
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t38" \
+  sync \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t38/AGENTS.md" "v77.0.0" "T38"
+# Active vendor should be preserved
+assert_file_contains "$TMP/t38/.agentic/config.yaml" "active_vendor: claude" "T38"
+
+# T39 — deploy-skills: project: prefix deploys project-local skills
+run_test "T39 — deploy-skills: project: prefix deploys project-local skills"
+mkdir -p "$TMP/t39/.agentic/project-skills/my-custom-skill"
+cat > "$TMP/t39/.agentic/project-skills/my-custom-skill/SKILL.md" <<'EOF'
+---
+name: my-custom-skill
+description: A project-specific custom skill
+version: 1.0.0
+tags: [custom]
+vendor_support: [claude, opencode]
+---
+# My Custom Skill
+
+This is a custom project-local skill.
+EOF
+
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t39" \
+  --skills "project:my-custom-skill" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t39/.agentic/skills/my-custom-skill/SKILL.md" "T39"
+
+# T40 — deploy-skills: missing project: skill warns but does not fail
+run_test "T40 — deploy-skills: missing project: skill warns but does not fail"
+mkdir -p "$TMP/t40"
+
+# Deploy a missing project skill - should warn but exit 0
+OUTPUT=$(bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t40" \
+  --skills "project:nonexistent-skill" \
+  2>&1) || true
+
+if echo "$OUTPUT" | grep -q "Warning:.*nonexistent-skill"; then
+  pass "T40 — warns about missing project skill"
+else
+  fail "T40 — should warn about missing project skill"
+fi
+
+# Should NOT have created the skill directory
+assert_file_not_exists "$TMP/t40/.agentic/skills/nonexistent-skill" "T40"
+
+# T41 — agentic wrapper: supports dynamic library resolution
+run_test "T41 — agentic wrapper: supports dynamic library resolution"
+mkdir -p "$TMP/t41"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t41" \
+  > /dev/null 2>&1
+
+# Wrapper should exist and be executable
+assert_file_exists "$TMP/t41/agentic" "T41"
+if [[ -x "$TMP/t41/agentic" ]]; then
+  pass "T41 — agentic wrapper is executable"
+else
+  fail "T41 — agentic wrapper should be executable"
+fi
+# Wrapper should contain dynamic resolution logic
+assert_file_contains "$TMP/t41/agentic" "AGENTIC_REPO_ROOT" "T41"
+assert_file_contains "$TMP/t41/agentic" "library_path" "T41"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
