@@ -86,26 +86,28 @@ vendor-switch target vendor:
 # ─── Skills ───────────────────────────────────────────────────────────────────
 
 # Deploy skills to a target project
-# Usage: just deploy-skills /path/to/project code-review,add-tests
-# Usage: just deploy-skills /path/to/project all
-deploy-skills target skills="all":
+# Usage: just deploy-skills /path/to/project code-review,add-tests claude
+# Usage: just deploy-skills /path/to/project all opencode
+deploy-skills target skills="all" vendor="":
     @"{{LIBRARY_ROOT}}/tooling/lib/deploy-skills.sh" \
         --library "{{LIBRARY_ROOT}}" \
         --target "{{target}}" \
-        --skills "{{skills}}"
+        --skills "{{skills}}" \
+        --vendor "{{vendor}}"
 
 # ─── Full Pipeline ────────────────────────────────────────────────────────────
 
 # Full deploy: compose (lean) + vendor-gen + deploy skills
-# Usage: just deploy typescript-hexagonal-microservice /path/to/project
-# Usage: just deploy typescript-hexagonal-microservice /path/to/project code-review,write-adr
-deploy profile target skills="all":
+# Usage: just deploy typescript-hexagonal-microservice /path/to/project claude
+# Usage: just deploy typescript-hexagonal-microservice /path/to/project claude,opencode code-review,write-adr
+deploy profile target vendors skills="all":
     @just compose "{{profile}}" "{{target}}"
-    @just vendor-gen "{{target}}"
-    @just deploy-skills "{{target}}" "{{skills}}"
+    @just vendor-gen "{{target}}" "{{vendors}}"
+    @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
     @echo ""
     @echo "Deployed profile '{{profile}}' to {{target}}"
-    @echo "Run 'just validate {{target}}' to verify the config."
+    @echo "Vendors: {{vendors}}"
+    @echo "Run './agentic <vendor>' in the target to switch between vendors."
 
 # Compose monolithic AGENTS.md with all fragment content inlined
 # Usage: just compose-full typescript-hexagonal-microservice /path/to/project
@@ -117,14 +119,16 @@ compose-full profile target:
         --full
 
 # Full deploy with monolithic AGENTS.md (all fragment content inlined)
-# Usage: just deploy-full typescript-hexagonal-microservice /path/to/project
-deploy-full profile target skills="all":
+# Usage: just deploy-full typescript-hexagonal-microservice /path/to/project claude
+# Usage: just deploy-full typescript-hexagonal-microservice /path/to/project claude,opencode code-review,write-adr
+deploy-full profile target vendors skills="all":
     @just compose-full "{{profile}}" "{{target}}"
-    @just vendor-gen "{{target}}"
-    @just deploy-skills "{{target}}" "{{skills}}"
+    @just vendor-gen "{{target}}" "{{vendors}}"
+    @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
     @echo ""
     @echo "Deployed profile '{{profile}}' (full mode) to {{target}}"
-    @echo "Run 'just validate {{target}}' to verify the config."
+    @echo "Vendors: {{vendors}}"
+    @echo "Run './agentic <vendor>' in the target to switch between vendors."
 
 # ─── Index ────────────────────────────────────────────────────────────────────
 

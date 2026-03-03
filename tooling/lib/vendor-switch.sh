@@ -23,7 +23,9 @@ done
 [[ -z "$VENDOR"  ]] && { echo "Error: vendor argument required (or 'list')" >&2; exit 1; }
 
 VENDOR_GEN="$LIBRARY/tooling/lib/vendor-gen.sh"
+DEPLOY_SKILLS="$LIBRARY/tooling/lib/deploy-skills.sh"
 CONFIG="$TARGET/.agentic/config.yaml"
+VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
 
 ALL_VENDORS="claude copilot codex gemini opencode"
 
@@ -62,47 +64,135 @@ if [[ -f "$CONFIG" ]]; then
   [[ "$CURRENT_VENDOR" == "null" ]] && CURRENT_VENDOR=""
 fi
 
-# ── Stash current vendor files ─────────────────────────────────────────────────
-stash_vendor() {
+# ── Migrate from old stash system ──────────────────────────────────────────────
+migrate_from_stash() {
+  local stash_dir="$TARGET/.agentic/vendor-stash"
+  if [[ -d "$stash_dir" ]]; then
+    echo "Migrating from old stash system..."
+    # Remove stash directory - we'll regenerate vendor files fresh
+    rm -rf "$stash_dir"
+    echo "  Removed: .agentic/vendor-stash/"
+  fi
+}
+
+# ── Remove all vendor symlinks ─────────────────────────────────────────────────
+remove_all_vendor_symlinks() {
+  # Remove vendor entrypoint symlinks (check if symlink before removing)
+  [[ -L "$TARGET/CLAUDE.md" ]] && rm "$TARGET/CLAUDE.md"
+  [[ -L "$TARGET/opencode.json" ]] && rm "$TARGET/opencode.json"
+  [[ -L "$TARGET/.github/copilot-instructions.md" ]] && rm "$TARGET/.github/copilot-instructions.md"
+  [[ -L "$TARGET/.github/instructions" ]] && rm "$TARGET/.github/instructions"
+  [[ -L "$TARGET/.gemini/systemPrompt.md" ]] && rm "$TARGET/.gemini/systemPrompt.md"
+  
+  # Remove skill symlinks
+  [[ -L "$TARGET/.claude/skills" ]] && rm "$TARGET/.claude/skills"
+  [[ -L "$TARGET/.opencode/skills" ]] && rm "$TARGET/.opencode/skills"
+  [[ -L "$TARGET/.agents/skills" ]] && rm "$TARGET/.agents/skills"
+  
+  # Clean up empty directories (only if they exist and are empty)
+  [[ -d "$TARGET/.github/instructions" ]] && rmdir "$TARGET/.github/instructions" 2>/dev/null || true
+  [[ -d "$TARGET/.github" ]] && rmdir "$TARGET/.github" 2>/dev/null || true
+  [[ -d "$TARGET/.gemini" ]] && rmdir "$TARGET/.gemini" 2>/dev/null || true
+  [[ -d "$TARGET/.claude" ]] && rmdir "$TARGET/.claude" 2>/dev/null || true
+  [[ -d "$TARGET/.opencode" ]] && rmdir "$TARGET/.opencode" 2>/dev/null || true
+  [[ -d "$TARGET/.agents" ]] && rmdir "$TARGET/.agents" 2>/dev/null || true
+}
+
+# ── Create vendor-specific symlinks ────────────────────────────────────────────
+create_vendor_symlinks() {
   local vendor="$1"
-  local stash_dir="$TARGET/.agentic/vendor-stash/$vendor"
-  mkdir -p "$stash_dir"
-  echo "  Stashing $vendor files → .agentic/vendor-stash/$vendor/"
+  echo "  Creating symlinks for $vendor..."
+  
   case "$vendor" in
     claude)
-      [[ -f "$TARGET/CLAUDE.md" ]] && mv "$TARGET/CLAUDE.md" "$stash_dir/CLAUDE.md"
-      ;;
-    copilot)
-      [[ -f "$TARGET/.github/copilot-instructions.md" ]] && \
-        mv "$TARGET/.github/copilot-instructions.md" "$stash_dir/copilot-instructions.md"
-      if [[ -d "$TARGET/.github/instructions" ]]; then
-        mkdir -p "$stash_dir/instructions"
-        find "$TARGET/.github/instructions" -name "*.instructions.md" | while read -r f; do
-          mv "$f" "$stash_dir/instructions/$(basename "$f")"
-        done
+      if [[ -f "$VENDOR_FILES_DIR/claude/CLAUDE.md" ]]; then
+        ln -sf ".agentic/vendor-files/claude/CLAUDE.md" "$TARGET/CLAUDE.md"
+        echo "    Linked: CLAUDE.md → .agentic/vendor-files/claude/CLAUDE.md"
+      fi
+      # Skills symlink
+      if [[ -d "$TARGET/.agentic/skills" ]]; then
+        mkdir -p "$TARGET/.claude"
+        ln -sf "../.agentic/skills" "$TARGET/.claude/skills"
+        echo "    Linked: .claude/skills → ../.agentic/skills"
       fi
       ;;
+    copilot)
+      if [[ -f "$VENDOR_FILES_DIR/copilot/copilot-instructions.md" ]]; then
+        mkdir -p "$TARGET/.github"
+        ln -sf "../.agentic/vendor-files/copilot/copilot-instructions.md" "$TARGET/.github/copilot-instructions.md"
+        echo "    Linked: .github/copilot-instructions.md"
+      fi
+      if [[ -d "$VENDOR_FILES_DIR/copilot/instructions" ]]; then
+        mkdir -p "$TARGET/.github"
+        ln -sfn "../../.agentic/vendor-files/copilot/instructions" "$TARGET/.github/instructions"
+        echo "    Linked: .github/instructions/"
+      fi
+      # Copilot uses prompt-injected skills, no symlink needed
+      ;;
     codex)
-      # AGENTS.md is the native format and shared — no-op
-      echo "  codex uses AGENTS.md natively — nothing to stash"
+      # Codex uses AGENTS.md natively - no file symlink needed
+      echo "    Codex reads AGENTS.md natively — no file symlink needed"
+      # Skills symlink
+      if [[ -d "$TARGET/.agentic/skills" ]]; then
+        mkdir -p "$TARGET/.agents"
+        ln -sf "../.agentic/skills" "$TARGET/.agents/skills"
+        echo "    Linked: .agents/skills → ../.agentic/skills"
+      fi
       ;;
     gemini)
-      [[ -f "$TARGET/.gemini/systemPrompt.md" ]] && \
-        mv "$TARGET/.gemini/systemPrompt.md" "$stash_dir/systemPrompt.md"
+      if [[ -f "$VENDOR_FILES_DIR/gemini/systemPrompt.md" ]]; then
+        mkdir -p "$TARGET/.gemini"
+        ln -sf "../.agentic/vendor-files/gemini/systemPrompt.md" "$TARGET/.gemini/systemPrompt.md"
+        echo "    Linked: .gemini/systemPrompt.md"
+      fi
+      # Gemini uses prompt-injected skills, no symlink needed
       ;;
     opencode)
-      [[ -f "$TARGET/opencode.json" ]] && mv "$TARGET/opencode.json" "$stash_dir/opencode.json"
+      if [[ -f "$VENDOR_FILES_DIR/opencode/opencode.json" ]]; then
+        ln -sf ".agentic/vendor-files/opencode/opencode.json" "$TARGET/opencode.json"
+        echo "    Linked: opencode.json → .agentic/vendor-files/opencode/opencode.json"
+      fi
+      # Skills symlink - OpenCode reads from .opencode/skills
+      if [[ -d "$TARGET/.agentic/skills" ]]; then
+        mkdir -p "$TARGET/.opencode"
+        ln -sf "../.agentic/skills" "$TARGET/.opencode/skills"
+        echo "    Linked: .opencode/skills → ../.agentic/skills"
+      fi
       ;;
   esac
 }
 
-if [[ -n "$CURRENT_VENDOR" && "$CURRENT_VENDOR" != "$VENDOR" ]]; then
-  stash_vendor "$CURRENT_VENDOR"
+# ── Check if vendor files exist ────────────────────────────────────────────────
+vendor_files_exist() {
+  local vendor="$1"
+  case "$vendor" in
+    claude)   [[ -f "$VENDOR_FILES_DIR/claude/CLAUDE.md" ]] ;;
+    copilot)  [[ -f "$VENDOR_FILES_DIR/copilot/copilot-instructions.md" ]] ;;
+    codex)    [[ -d "$VENDOR_FILES_DIR/codex" ]] ;;
+    gemini)   [[ -f "$VENDOR_FILES_DIR/gemini/systemPrompt.md" ]] ;;
+    opencode) [[ -f "$VENDOR_FILES_DIR/opencode/opencode.json" ]] ;;
+    *)        return 1 ;;
+  esac
+}
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+
+# Migrate from old stash system if present
+migrate_from_stash
+
+# Generate vendor files if they don't exist
+if ! vendor_files_exist "$VENDOR"; then
+  echo "Generating $VENDOR files..."
+  bash "$VENDOR_GEN" --library "$LIBRARY" --target "$TARGET" --vendors "$VENDOR"
 fi
 
-# ── Generate new vendor files ──────────────────────────────────────────────────
-echo "Generating $VENDOR files..."
-bash "$VENDOR_GEN" --library "$LIBRARY" --target "$TARGET" --vendors "$VENDOR"
+# Remove existing symlinks
+echo "Removing existing vendor symlinks..."
+remove_all_vendor_symlinks
+
+# Create new symlinks for the target vendor
+echo "Activating vendor: $VENDOR"
+create_vendor_symlinks "$VENDOR"
 
 # ── Update config.yaml ─────────────────────────────────────────────────────────
 if [[ -f "$CONFIG" ]]; then
@@ -116,5 +206,7 @@ fi
 echo ""
 echo "Switched to vendor: $VENDOR"
 if [[ -n "$CURRENT_VENDOR" && "$CURRENT_VENDOR" != "$VENDOR" ]]; then
-  echo "Previous vendor ($CURRENT_VENDOR) stashed to .agentic/vendor-stash/$CURRENT_VENDOR/"
+  echo "Previous vendor was: $CURRENT_VENDOR"
 fi
+echo ""
+echo "Note: Symlinks are gitignored. After cloning, run './agentic $VENDOR' to recreate them."

@@ -39,6 +39,7 @@ COMPOSE_MODE="lean"
 }
 
 FRAGS_DIR="$TARGET/.agentic/fragments"
+VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
 
 # ── Resolve which vendors to generate ─────────────────────────────────────────
 resolve_vendors() {
@@ -97,8 +98,10 @@ HDR
 # ── Claude adapter ────────────────────────────────────────────────────────────
 gen_claude() {
   echo "  Generating Claude adapter..."
+  local vendor_dir="$VENDOR_FILES_DIR/claude"
+  mkdir -p "$vendor_dir"
   local template="$LIBRARY/vendors/claude/template.CLAUDE.md"
-  local out_file="$TARGET/CLAUDE.md"
+  local out_file="$vendor_dir/CLAUDE.md"
 
   sed \
     -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
@@ -108,17 +111,18 @@ gen_claude() {
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" > "$out_file"
 
-  echo "  Created: CLAUDE.md"
+  echo "  Created: .agentic/vendor-files/claude/CLAUDE.md"
 }
 
 # ── Copilot adapter ───────────────────────────────────────────────────────────
 gen_copilot() {
   echo "  Generating Copilot adapter..."
+  local vendor_dir="$VENDOR_FILES_DIR/copilot"
+  local instructions_dir="$vendor_dir/instructions"
   local adapter="$LIBRARY/vendors/copilot/adapter.json"
-  local instructions_dir="$TARGET/.github/instructions"
-  local global_file="$TARGET/.github/copilot-instructions.md"
+  local global_file="$vendor_dir/copilot-instructions.md"
 
-  mkdir -p "$TARGET/.github" "$instructions_dir"
+  mkdir -p "$vendor_dir" "$instructions_dir"
 
   # Global instructions file (all always-on sections concatenated)
   {
@@ -132,7 +136,7 @@ gen_copilot() {
       [[ -n "$content" ]] && printf '\n## %s\n\n%s\n' "$heading" "$content"
     done
   } > "$global_file"
-  echo "  Created: .github/copilot-instructions.md"
+  echo "  Created: .agentic/vendor-files/copilot/copilot-instructions.md"
 
   # Per-language scoped instruction files
   jq -r '.section_mappings[] | select(.activation_mode == "glob-scoped") | [.agents_md_heading, .output_file, (.frontmatter.applyTo // "")] | @tsv' "$adapter" | \
@@ -141,8 +145,10 @@ gen_copilot() {
     content=$(get_section_content "$heading_text")
     [[ -z "$content" ]] && continue
 
-    out_path="$TARGET/.github/$out_file"
-    mkdir -p "$(dirname "$out_path")"
+    # Extract just the filename from output_file (e.g. instructions/typescript.instructions.md -> typescript.instructions.md)
+    local out_filename
+    out_filename=$(basename "$out_file")
+    local out_path="$instructions_dir/$out_filename"
     {
       echo "---"
       echo "applyTo: \"${glob}\""
@@ -151,7 +157,7 @@ gen_copilot() {
       autogen_header
       printf '## %s\n\n%s\n' "$heading_text" "$content"
     } > "$out_path"
-    echo "  Created: .github/$out_file"
+    echo "  Created: .agentic/vendor-files/copilot/instructions/$out_filename"
   done
 }
 
@@ -159,17 +165,18 @@ gen_copilot() {
 gen_codex() {
   echo "  Generating Codex adapter (passthrough — AGENTS.md is native)..."
   # Codex reads AGENTS.md natively. No transformation needed.
+  # We just create an empty marker directory to track that codex was generated
+  mkdir -p "$VENDOR_FILES_DIR/codex"
   echo "  AGENTS.md is already the Codex-compatible file."
 }
 
 # ── Gemini adapter ────────────────────────────────────────────────────────────
 gen_gemini() {
   echo "  Generating Gemini adapter..."
+  local vendor_dir="$VENDOR_FILES_DIR/gemini"
+  mkdir -p "$vendor_dir"
   local template="$LIBRARY/vendors/gemini/template.systemPrompt.md"
-  local gemini_dir="$TARGET/.gemini"
-  local out_file="$gemini_dir/systemPrompt.md"
-
-  mkdir -p "$gemini_dir"
+  local out_file="$vendor_dir/systemPrompt.md"
 
   sed \
     -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
@@ -191,14 +198,16 @@ gen_gemini() {
     echo "$ALL_SECTIONS" >> "$out_file"
   fi
 
-  echo "  Created: .gemini/systemPrompt.md"
+  echo "  Created: .agentic/vendor-files/gemini/systemPrompt.md"
 }
 
 # ── Opencode adapter ──────────────────────────────────────────────────────────
 gen_opencode() {
   echo "  Generating Opencode adapter..."
+  local vendor_dir="$VENDOR_FILES_DIR/opencode"
+  mkdir -p "$vendor_dir"
   local template="$LIBRARY/vendors/opencode/template.opencode.json"
-  local out_file="$TARGET/opencode.json"
+  local out_file="$vendor_dir/opencode.json"
 
   sed \
     -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
@@ -208,11 +217,13 @@ gen_opencode() {
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" > "$out_file"
 
-  echo "  Created: opencode.json"
+  echo "  Created: .agentic/vendor-files/opencode/opencode.json"
   echo "  Opencode reads AGENTS.md natively — AGENTS.md is already the Opencode-compatible file."
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+mkdir -p "$VENDOR_FILES_DIR"
+
 for vendor in $(resolve_vendors); do
   echo "Generating vendor files: $vendor"
   case "$vendor" in
@@ -226,4 +237,4 @@ for vendor in $(resolve_vendors); do
 done
 
 echo ""
-echo "Vendor files generated in: $TARGET"
+echo "Vendor files generated in: $TARGET/.agentic/vendor-files/"

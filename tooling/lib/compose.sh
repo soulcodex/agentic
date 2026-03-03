@@ -570,12 +570,28 @@ exec "${lib_abs}/tooling/lib/vendor-switch.sh" --library "${lib_abs}" --target "
 WRAPPER
   chmod +x "$wrapper"
 
+  # Gitignore entries for symlinks and wrapper
+  local gitignore_entries=(
+    "# Agentic library — vendor symlinks (recreated by ./agentic <vendor>)"
+    "agentic"
+    "CLAUDE.md"
+    "opencode.json"
+    ".github/copilot-instructions.md"
+    ".github/instructions/"
+    ".gemini/"
+    ".claude/skills"
+    ".opencode/skills"
+    ".agents/skills"
+  )
+
   if [[ -f "$gitignore" ]]; then
-    if ! grep -qxF 'agentic' "$gitignore"; then
-      echo 'agentic' >> "$gitignore"
-    fi
+    for entry in "${gitignore_entries[@]}"; do
+      if ! grep -qxF "$entry" "$gitignore"; then
+        echo "$entry" >> "$gitignore"
+      fi
+    done
   else
-    echo 'agentic' > "$gitignore"
+    printf '%s\n' "${gitignore_entries[@]}" > "$gitignore"
   fi
 }
 
