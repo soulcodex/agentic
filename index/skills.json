@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-03T17:57:39Z",
+  "generated_at": "2026-03-03T18:25:51Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -122,7 +122,7 @@
       "group": "backend",
       "path": "skills/backend/terraform-infrastructure/SKILL.md",
       "description": "Structures, writes, and reviews Terraform infrastructure code. Covers module layout, remote state, workspace strategy, v",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tags": [
         "devops",
         "terraform",
@@ -198,7 +198,7 @@
       "group": "development",
       "path": "skills/development/github-actions-workflow/SKILL.md",
       "description": "Scaffolds or audits a GitHub Actions CI/CD workflow for a project. Covers job structure, caching, secrets handling, conc",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tags": [
         "devops",
         "ci-cd",

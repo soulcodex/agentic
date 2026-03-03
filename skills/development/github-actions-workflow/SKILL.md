@@ -2,10 +2,11 @@
 name: github-actions-workflow
 description: >
   Scaffolds or audits a GitHub Actions CI/CD workflow for a project. Covers job
-  structure, caching, secrets handling, concurrency groups, and environment gates.
-  Invoked when the user asks to set up CI, add a GitHub Actions workflow, or
-  improve pipeline performance.
-version: 1.0.0
+  structure, caching, secrets handling, concurrency groups, environment gates,
+  and reusable workflows via workflow_call. Invoked when the user asks to set up
+  CI, add a GitHub Actions workflow, improve pipeline performance, or share
+  workflow logic across repositories.
+version: 1.1.0
 tags:
   - devops
   - ci-cd
@@ -157,6 +158,75 @@ deploy-production:
 Configure each environment in `Settings → Environments` with required reviewers
 and deployment branch restrictions.
 
+### Step 8 — Reusable Workflows (`workflow_call`)
+
+Extract repeated CI logic into a reusable workflow and call it from multiple consumers — within the same repo or across repos.
+
+**Define the reusable workflow** (prefix filename with `_` by convention to signal it is not directly triggered):
+
+```yaml
+# .github/workflows/_ci-node.yml
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        type: string
+        default: "20"
+        required: false
+    secrets:
+      NPM_TOKEN:
+        required: false
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+```
+
+**Call it from a consumer workflow** (same repo):
+
+```yaml
+# .github/workflows/ci.yml
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-node.yml
+    with:
+      node-version: "22"
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+**Cross-repo call** (call from a different repository):
+
+```yaml
+jobs:
+  ci:
+    uses: my-org/shared-workflows/.github/workflows/_ci-node.yml@main
+    with:
+      node-version: "22"
+    secrets: inherit   # forwards all caller secrets — simpler than listing each one
+```
+
+Rules:
+- Use `inputs` for configuration values and `secrets` (or `secrets: inherit`) for credentials.
+- A called workflow counts as a **single job** in the caller — access its outputs via `needs.<job>.outputs`.
+- Reusable workflows do not inherit the caller's environment variables — pass everything explicitly via `inputs` or `secrets`.
+- Pin the ref (`@main`, `@v1`, `@sha`) when calling cross-repo to prevent supply-chain drift.
+- Nesting is supported up to 4 levels deep.
+
 ### Verify
 
 - [ ] Workflow file passes `actionlint` with no errors.
@@ -164,3 +234,5 @@ and deployment branch restrictions.
 - [ ] Dependency cache hits on the second run (check Actions logs).
 - [ ] Secrets referenced via `${{ secrets.* }}` — no hardcoded values.
 - [ ] Concurrency group prevents duplicate runs on the same branch.
+- [ ] (Reusable) Called workflow declares all `inputs` and `secrets` it uses.
+- [ ] (Reusable) Cross-repo calls pin the workflow ref to a tag or SHA.
