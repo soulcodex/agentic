@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schemas/profile.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
   name: "Go Hexagonal + Vue/Vite SPA"
   description: >
