@@ -58,10 +58,11 @@ just vendor-gen /path/to/project
 # Generate for specific vendors only
 just vendor-gen /path/to/project claude,copilot
 
-# Switch the active vendor (stash current, generate new)
+# Switch active vendor(s) via symlinks
 just vendor-switch /path/to/project gemini
+just vendor-switch /path/to/project claude,copilot
 
-# List available vendors and which is active
+# List available vendors and which are active
 just vendor-switch /path/to/project list
 ```
 
@@ -70,17 +71,19 @@ just vendor-switch /path/to/project list
 After `just deploy`, an `agentic` wrapper script is placed in the target project root. From inside the project:
 
 ```bash
-./agentic list       # show all vendors, mark the active one
-./agentic gemini     # switch to Gemini (stashes Claude files, generates Gemini)
-./agentic claude     # switch back to Claude
+./agentic list              # show all vendors, mark active ones
+./agentic gemini            # activate only Gemini
+./agentic claude,copilot    # activate both Claude and Copilot
+./agentic claude            # activate only Claude (replaces previous set)
 ```
 
-The previous vendor's files are stashed to `.agentic/vendor-stash/{vendor}/` and can be restored by switching back.
+Vendor files are stored in `.agentic/vendor-files/{vendor}/` and activated via symlinks.
+Multiple vendors can be active simultaneously since their symlink paths don't conflict:
 
-| Vendor stash | What is moved |
-|---|---|
-| `claude` | `CLAUDE.md` |
-| `copilot` | `.github/copilot-instructions.md` + `.github/instructions/*.instructions.md` |
-| `codex` | Nothing — `AGENTS.md` is shared |
+| Vendor | Symlink locations |
+|--------|-------------------|
+| `claude` | `CLAUDE.md`, `.claude/skills` |
+| `copilot` | `.github/copilot-instructions.md`, `.github/instructions/` |
+| `codex` | `.agents/skills` (reads `AGENTS.md` natively) |
 | `gemini` | `.gemini/systemPrompt.md` |
-| `opencode` | `opencode.json` |
+| `opencode` | `opencode.json`, `.opencode/skills` |

@@ -82,8 +82,9 @@ vendor-gen target vendors="all":
         --target "{{target}}" \
         --vendors "{{vendors}}"
 
-# Switch the active AI vendor (stashes current vendor files, generates new)
+# Switch active AI vendor(s) via symlinks (supports multiple: claude,copilot)
 # Usage: just vendor-switch /path/to/project gemini
+# Usage: just vendor-switch /path/to/project claude,copilot
 # Usage: just vendor-switch /path/to/project list
 vendor-switch target vendor:
     @"{{LIBRARY_ROOT}}/tooling/lib/vendor-switch.sh" \
@@ -103,18 +104,18 @@ deploy-skills target skills="all" vendor="":
 
 # ─── Full Pipeline ────────────────────────────────────────────────────────────
 
-# Full deploy: compose (lean) + vendor-gen + deploy skills + activate first vendor
+# Full deploy: compose (lean) + vendor-gen + deploy skills + activate vendors
 # Usage: just deploy typescript-hexagonal-microservice /path/to/project claude
 # Usage: just deploy typescript-hexagonal-microservice /path/to/project claude,opencode code-review,write-adr
 deploy profile target vendors skills="all":
     @just compose "{{profile}}" "{{target}}"
     @just vendor-gen "{{target}}" "{{vendors}}"
     @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
-    @# Activate the first vendor from the list
-    @just vendor-switch "{{target}}" "$(echo '{{vendors}}' | cut -d',' -f1)"
+    @# Activate all specified vendors
+    @just vendor-switch "{{target}}" "{{vendors}}"
     @echo ""
     @echo "Deployed profile '{{profile}}' to {{target}}"
-    @echo "Active vendor: $(echo '{{vendors}}' | cut -d',' -f1)"
+    @echo "Active vendors: {{vendors}}"
 
 # Compose monolithic AGENTS.md with all fragment content inlined
 # Usage: just compose-full typescript-hexagonal-microservice /path/to/project
@@ -132,11 +133,11 @@ deploy-full profile target vendors skills="all":
     @just compose-full "{{profile}}" "{{target}}"
     @just vendor-gen "{{target}}" "{{vendors}}"
     @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
-    @# Activate the first vendor from the list
-    @just vendor-switch "{{target}}" "$(echo '{{vendors}}' | cut -d',' -f1)"
+    @# Activate all specified vendors
+    @just vendor-switch "{{target}}" "{{vendors}}"
     @echo ""
     @echo "Deployed profile '{{profile}}' (full mode) to {{target}}"
-    @echo "Active vendor: $(echo '{{vendors}}' | cut -d',' -f1)"
+    @echo "Active vendors: {{vendors}}"
 
 # ─── Index ────────────────────────────────────────────────────────────────────
 

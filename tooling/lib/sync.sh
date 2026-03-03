@@ -2,7 +2,7 @@
 # sync.sh — Regenerates target project from local profile
 # Called by: ./agentic sync
 # Uses: .agentic/profile.yaml (local customizable profile)
-#       .agentic/config.yaml (library_path, active_vendor)
+#       .agentic/config.yaml (library_path, active_vendors)
 set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
@@ -60,8 +60,12 @@ COMPOSE_SCRIPT="$LIBRARY/tooling/lib/compose.sh"
 }
 
 # ── Read current configuration ────────────────────────────────────────────────
-ACTIVE_VENDOR=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || echo "")
-[[ "$ACTIVE_VENDOR" == "null" ]] && ACTIVE_VENDOR=""
+# Try new array format first, fall back to old string format
+ACTIVE_VENDORS=$(yq '.active_vendors // [] | join(",")' "$CONFIG" 2>/dev/null || echo "")
+if [[ -z "$ACTIVE_VENDORS" || "$ACTIVE_VENDORS" == "null" ]]; then
+  ACTIVE_VENDORS=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || echo "")
+  [[ "$ACTIVE_VENDORS" == "null" ]] && ACTIVE_VENDORS=""
+fi
 
 MODE=$(yq '.mode // "lean"' "$CONFIG" 2>/dev/null || echo "lean")
 [[ "$MODE" == "null" ]] && MODE="lean"
@@ -70,7 +74,7 @@ MODE=$(yq '.mode // "lean"' "$CONFIG" 2>/dev/null || echo "lean")
 echo "Syncing from local profile: $LOCAL_PROFILE"
 echo "Library: $LIBRARY"
 echo "Mode: $MODE"
-[[ -n "$ACTIVE_VENDOR" ]] && echo "Active vendor: $ACTIVE_VENDOR"
+[[ -n "$ACTIVE_VENDORS" ]] && echo "Active vendors: $ACTIVE_VENDORS"
 echo ""
 
 # Build compose command
@@ -80,12 +84,12 @@ COMPOSE_CMD=("bash" "$COMPOSE_SCRIPT" "--library" "$LIBRARY" "--profile-file" "$
 # Run compose
 "${COMPOSE_CMD[@]}"
 
-# ── Restore active vendor if set ──────────────────────────────────────────────
-if [[ -n "$ACTIVE_VENDOR" ]]; then
+# ── Restore active vendors if set ─────────────────────────────────────────────
+if [[ -n "$ACTIVE_VENDORS" ]]; then
   echo ""
-  echo "Restoring vendor: $ACTIVE_VENDOR"
+  echo "Restoring vendors: $ACTIVE_VENDORS"
   VENDOR_SWITCH="$LIBRARY/tooling/lib/vendor-switch.sh"
-  bash "$VENDOR_SWITCH" --library "$LIBRARY" --target "$TARGET" "$ACTIVE_VENDOR"
+  bash "$VENDOR_SWITCH" --library "$LIBRARY" --target "$TARGET" "$ACTIVE_VENDORS"
 fi
 
 echo ""

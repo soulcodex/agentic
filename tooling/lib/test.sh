@@ -538,7 +538,8 @@ bash "$VENDOR_SWITCH" \
 # Claude should have CLAUDE.md symlink and .claude/skills symlink
 assert_file_exists     "$TMP/t28/CLAUDE.md"                                   "T28 claude"
 assert_file_exists     "$TMP/t28/.agentic/vendor-files/claude/CLAUDE.md"      "T28 claude"
-assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendor: claude" "T28 claude"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"      "T28 claude"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - claude"           "T28 claude"
 
 # Now switch to gemini
 bash "$VENDOR_SWITCH" \
@@ -551,7 +552,8 @@ bash "$VENDOR_SWITCH" \
 assert_file_exists     "$TMP/t28/.gemini/systemPrompt.md"                      "T28 gemini"
 assert_file_exists     "$TMP/t28/.agentic/vendor-files/gemini/systemPrompt.md" "T28 gemini"
 assert_file_not_exists "$TMP/t28/CLAUDE.md"                                    "T28 gemini (no claude)"
-assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendor: gemini" "T28 gemini"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"       "T28 gemini"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - gemini"            "T28 gemini"
 # Verify no stash directory exists (old system removed)
 assert_file_not_exists "$TMP/t28/.agentic/vendor-stash"                        "T28 no stash"
 
@@ -644,7 +646,8 @@ if [[ -L "$TMP/t32/.agents/skills" ]]; then
 else
   fail "T32 — .agents/skills should be a symlink for codex"
 fi
-assert_file_contains "$TMP/t32/.agentic/config.yaml" "active_vendor: codex" "T32"
+assert_file_contains "$TMP/t32/.agentic/config.yaml" "active_vendors:" "T32"
+assert_file_contains "$TMP/t32/.agentic/config.yaml" "  - codex" "T32"
 
 # T33 — vendor-switch: migration removes old stash directory
 run_test "T33 — vendor-switch: migrates from old stash system"
@@ -769,8 +772,9 @@ bash "$VENDOR_SWITCH" \
   > /dev/null 2>&1
 
 assert_file_contains "$TMP/t38/AGENTS.md" "v77.0.0" "T38"
-# Active vendor should be preserved
-assert_file_contains "$TMP/t38/.agentic/config.yaml" "active_vendor: claude" "T38"
+# Active vendors should be preserved
+assert_file_contains "$TMP/t38/.agentic/config.yaml" "active_vendors:" "T38"
+assert_file_contains "$TMP/t38/.agentic/config.yaml" "  - claude" "T38"
 
 # T39 — deploy-skills: project: prefix deploys project-local skills
 run_test "T39 — deploy-skills: project: prefix deploys project-local skills"
@@ -866,14 +870,60 @@ bash "$VENDOR_SWITCH" \
   opencode \
   > /dev/null 2>&1
 
-# active_vendor should be set
-assert_file_contains "$TMP/t42/.agentic/config.yaml" "active_vendor: opencode" "T42"
+# active_vendors should be set
+assert_file_contains "$TMP/t42/.agentic/config.yaml" "active_vendors:" "T42"
+assert_file_contains "$TMP/t42/.agentic/config.yaml" "  - opencode" "T42"
 # Symlink should exist
 if [[ -L "$TMP/t42/.opencode/skills" ]]; then
   pass "T42 — .opencode/skills symlink created"
 else
   fail "T42 — .opencode/skills symlink should be created"
 fi
+
+# T43 — vendor-switch: multi-vendor activation
+run_test "T43 — vendor-switch: multi-vendor activation"
+mkdir -p "$TMP/t43"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t43" \
+  > /dev/null 2>&1
+
+# Generate vendor files for both
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t43" \
+  --vendors claude,copilot \
+  > /dev/null 2>&1
+
+# Activate multiple vendors using comma-separated format
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t43" \
+  claude,copilot \
+  > /dev/null 2>&1
+
+# active_vendors should contain both
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "active_vendors:" "T43"
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - claude" "T43"
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - copilot" "T43"
+
+# Both vendor symlinks should exist
+assert_file_exists "$TMP/t43/CLAUDE.md" "T43 claude symlink"
+assert_file_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot symlink"
+
+# Now switch to single vendor - should replace the set
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t43" \
+  gemini \
+  > /dev/null 2>&1
+
+# Only gemini should be active now
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - gemini" "T43 replace"
+assert_file_not_exists "$TMP/t43/CLAUDE.md" "T43 claude removed"
+assert_file_not_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot removed"
+assert_file_exists "$TMP/t43/.gemini/systemPrompt.md" "T43 gemini active"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

@@ -1,26 +1,35 @@
 #!/bin/bash
-# vendor-switch.sh — Switches the active AI vendor in a target project
-# Called by: just vendor-switch <target> <vendor>
-#            TARGET/agentic <vendor|list|sync>
+# vendor-switch.sh — Switches the active AI vendor(s) in a target project
+# Called by: just vendor-switch <target> <vendors>
+#            TARGET/agentic <vendor[,vendor...]|list|sync>
+# Supports multiple vendors: ./agentic claude,copilot or ./agentic claude copilot
 set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 TARGET=""
-VENDOR=""
+VENDORS_INPUT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --library) LIBRARY="$2"; shift 2 ;;
     --target)  TARGET="$2";  shift 2 ;;
     -*)        echo "Unknown option: $1" >&2; exit 1 ;;
-    *)         VENDOR="$1";  shift ;;
+    *)         
+      # Accumulate all positional args (vendors)
+      if [[ -n "$VENDORS_INPUT" ]]; then
+        VENDORS_INPUT="$VENDORS_INPUT,$1"
+      else
+        VENDORS_INPUT="$1"
+      fi
+      shift 
+      ;;
   esac
 done
 
 [[ -z "$LIBRARY" ]] && { echo "Error: --library required" >&2; exit 1; }
 [[ -z "$TARGET"  ]] && { echo "Error: --target required" >&2; exit 1; }
-[[ -z "$VENDOR"  ]] && { echo "Error: vendor argument required (or 'list', 'sync')" >&2; exit 1; }
+[[ -z "$VENDORS_INPUT" ]] && { echo "Error: vendor argument required (or 'list', 'sync')" >&2; exit 1; }
 
 VENDOR_GEN="$LIBRARY/tooling/lib/vendor-gen.sh"
 DEPLOY_SKILLS="$LIBRARY/tooling/lib/deploy-skills.sh"
@@ -31,7 +40,7 @@ VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
 ALL_VENDORS="claude copilot codex gemini opencode"
 
 # ── Sync subcommand ────────────────────────────────────────────────────────────
-if [[ "$VENDOR" == "sync" ]]; then
+if [[ "$VENDORS_INPUT" == "sync" ]]; then
   if [[ ! -f "$SYNC_SCRIPT" ]]; then
     echo "Error: sync.sh not found at $SYNC_SCRIPT" >&2
     exit 1
@@ -40,15 +49,20 @@ if [[ "$VENDOR" == "sync" ]]; then
 fi
 
 # ── List subcommand ────────────────────────────────────────────────────────────
-if [[ "$VENDOR" == "list" ]]; then
-  ACTIVE=""
+if [[ "$VENDORS_INPUT" == "list" ]]; then
+  ACTIVE_VENDORS=""
   if [[ -f "$CONFIG" ]]; then
-    ACTIVE=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
-    [[ "$ACTIVE" == "null" ]] && ACTIVE=""
+    # Try new array format first, fall back to old string format
+    ACTIVE_VENDORS=$(yq '.active_vendors // [] | join(",")' "$CONFIG" 2>/dev/null || true)
+    if [[ -z "$ACTIVE_VENDORS" || "$ACTIVE_VENDORS" == "null" ]]; then
+      # Fallback to old format
+      ACTIVE_VENDORS=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
+      [[ "$ACTIVE_VENDORS" == "null" ]] && ACTIVE_VENDORS=""
+    fi
   fi
   echo "Available vendors:"
   for v in $ALL_VENDORS; do
-    if [[ -n "$ACTIVE" && "$v" == "$ACTIVE" ]]; then
+    if [[ ",$ACTIVE_VENDORS," == *",$v,"* ]]; then
       printf "  %-12s ← active\n" "$v"
     else
       printf "  %s\n" "$v"
@@ -57,31 +71,57 @@ if [[ "$VENDOR" == "list" ]]; then
   exit 0
 fi
 
-# ── Validate vendor ────────────────────────────────────────────────────────────
-valid=false
-for v in $ALL_VENDORS; do
-  [[ "$VENDOR" == "$v" ]] && valid=true && break
+# ── Parse vendors (comma or space separated) ───────────────────────────────────
+# Normalize: replace commas with spaces, then split
+VENDORS_INPUT="${VENDORS_INPUT//,/ }"
+read -ra VENDORS <<< "$VENDORS_INPUT"
+
+# ── Validate all vendors ───────────────────────────────────────────────────────
+for vendor in "${VENDORS[@]}"; do
+  valid=false
+  for v in $ALL_VENDORS; do
+    [[ "$vendor" == "$v" ]] && valid=true && break
+  done
+  if [[ "$valid" != "true" ]]; then
+    echo "Error: unknown vendor '$vendor'. Valid vendors: $ALL_VENDORS" >&2
+    exit 1
+  fi
 done
-if [[ "$valid" != "true" ]]; then
-  echo "Error: unknown vendor '$VENDOR'. Valid vendors: $ALL_VENDORS" >&2
-  exit 1
-fi
 
-# ── Read current active vendor ─────────────────────────────────────────────────
-CURRENT_VENDOR=""
+# ── Read current active vendors ────────────────────────────────────────────────
+CURRENT_VENDORS=""
 if [[ -f "$CONFIG" ]]; then
-  CURRENT_VENDOR=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
-  [[ "$CURRENT_VENDOR" == "null" ]] && CURRENT_VENDOR=""
+  # Try new array format first
+  CURRENT_VENDORS=$(yq '.active_vendors // [] | join(",")' "$CONFIG" 2>/dev/null || true)
+  if [[ -z "$CURRENT_VENDORS" || "$CURRENT_VENDORS" == "null" ]]; then
+    # Fallback to old string format
+    CURRENT_VENDORS=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
+    [[ "$CURRENT_VENDORS" == "null" ]] && CURRENT_VENDORS=""
+  fi
 fi
 
-# ── Migrate from old stash system ──────────────────────────────────────────────
+# ── Legacy migration: stash system ─────────────────────────────────────────────
 migrate_from_stash() {
   local stash_dir="$TARGET/.agentic/vendor-stash"
   if [[ -d "$stash_dir" ]]; then
     echo "Migrating from old stash system..."
-    # Remove stash directory - we'll regenerate vendor files fresh
     rm -rf "$stash_dir"
     echo "  Removed: .agentic/vendor-stash/"
+  fi
+}
+
+# ── Legacy migration: active_vendor string → active_vendors array ──────────────
+migrate_active_vendor_format() {
+  if [[ -f "$CONFIG" ]]; then
+    # Check if old format exists and new format doesn't
+    local old_vendor new_vendors
+    old_vendor=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
+    new_vendors=$(yq '.active_vendors // ""' "$CONFIG" 2>/dev/null || true)
+    
+    if [[ -n "$old_vendor" && "$old_vendor" != "null" && ( -z "$new_vendors" || "$new_vendors" == "null" ) ]]; then
+      echo "Migrating config: active_vendor → active_vendors..."
+      yq -i 'del(.active_vendor) | .active_vendors = ["'"$old_vendor"'"]' "$CONFIG"
+    fi
   fi
 }
 
@@ -187,36 +227,46 @@ vendor_files_exist() {
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
-# Migrate from old stash system if present
+# Run legacy migrations
 migrate_from_stash
+migrate_active_vendor_format
 
-# Generate vendor files if they don't exist
-if ! vendor_files_exist "$VENDOR"; then
-  echo "Generating $VENDOR files..."
-  bash "$VENDOR_GEN" --library "$LIBRARY" --target "$TARGET" --vendors "$VENDOR"
-fi
+# Generate vendor files for any vendors that don't have them
+for vendor in "${VENDORS[@]}"; do
+  if ! vendor_files_exist "$vendor"; then
+    echo "Generating $vendor files..."
+    bash "$VENDOR_GEN" --library "$LIBRARY" --target "$TARGET" --vendors "$vendor"
+  fi
+done
 
 # Remove existing symlinks
 echo "Removing existing vendor symlinks..."
 remove_all_vendor_symlinks
 
-# Create new symlinks for the target vendor
-echo "Activating vendor: $VENDOR"
-create_vendor_symlinks "$VENDOR"
+# Create symlinks for all requested vendors
+echo "Activating vendors: ${VENDORS[*]}"
+for vendor in "${VENDORS[@]}"; do
+  create_vendor_symlinks "$vendor"
+done
 
-# ── Update config.yaml ─────────────────────────────────────────────────────────
+# ── Update config.yaml with active_vendors array ──────────────────────────────
 if [[ -f "$CONFIG" ]]; then
-  _tmp_config=$(mktemp)
-  awk -v vendor="$VENDOR" \
-    '/^active_vendor:/{print "active_vendor: " vendor; next} {print}' \
-    "$CONFIG" > "$_tmp_config"
-  mv "$_tmp_config" "$CONFIG"
+  # Build YAML array string: ["claude", "copilot"]
+  yaml_array="["
+  for i in "${!VENDORS[@]}"; do
+    [[ $i -gt 0 ]] && yaml_array+=", "
+    yaml_array+="\"${VENDORS[$i]}\""
+  done
+  yaml_array+="]"
+  
+  # Remove old active_vendor if present, set active_vendors array
+  yq -i "del(.active_vendor) | .active_vendors = $yaml_array" "$CONFIG"
 fi
 
 echo ""
-echo "Switched to vendor: $VENDOR"
-if [[ -n "$CURRENT_VENDOR" && "$CURRENT_VENDOR" != "$VENDOR" ]]; then
-  echo "Previous vendor was: $CURRENT_VENDOR"
+echo "Activated vendors: ${VENDORS[*]}"
+if [[ -n "$CURRENT_VENDORS" && "$CURRENT_VENDORS" != "${VENDORS[*]}" ]]; then
+  echo "Previous vendors: $CURRENT_VENDORS"
 fi
 echo ""
-echo "Note: Symlinks are gitignored. After cloning, run './agentic $VENDOR' to recreate them."
+echo "Note: Symlinks are gitignored. After cloning, run './agentic ${VENDORS[*]}' to recreate them."

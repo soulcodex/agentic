@@ -363,7 +363,7 @@ profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: lean
 library_path: "${LIBRARY}"
-active_vendor: ""
+active_vendors: []
 LOCK
     else
       # Full mode: write lock with mode: full (no fragments copied)
@@ -376,7 +376,7 @@ profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: full
 library_path: "${LIBRARY}"
-active_vendor: ""
+active_vendors: []
 LOCK
     fi
 
@@ -580,7 +580,7 @@ compose_nested() {
     echo "composed_at: \"${GENERATED_AT}\""
     echo "mode: ${compose_mode}"
     echo "library_path: \"${LIBRARY}\""
-    echo "active_vendor: \"\""
+    echo "active_vendors: []"
     echo "structure: nested"
     echo "tiers:"
     for tier in "${tiers[@]+"${tiers[@]}"}"; do
