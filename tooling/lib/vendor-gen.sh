@@ -3,6 +3,15 @@
 # Called by: just vendor-gen <target> [vendors]
 set -euo pipefail
 
+# ── Markdown formatting helper ────────────────────────────────────────────────
+# Formats markdown files if mdformat is available (optional, silent if missing)
+format_markdown() {
+  local file="$1"
+  if command -v mdformat &>/dev/null; then
+    mdformat "$file" 2>/dev/null || true
+  fi
+}
+
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 TARGET=""
@@ -111,6 +120,7 @@ gen_claude() {
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" > "$out_file"
 
+  format_markdown "$out_file"
   echo "  Created: .agentic/vendor-files/claude/CLAUDE.md"
 }
 
@@ -136,6 +146,7 @@ gen_copilot() {
       [[ -n "$content" ]] && printf '\n## %s\n\n%s\n' "$heading" "$content"
     done
   } > "$global_file"
+  format_markdown "$global_file"
   echo "  Created: .agentic/vendor-files/copilot/copilot-instructions.md"
 
   # Per-language scoped instruction files
@@ -157,6 +168,7 @@ gen_copilot() {
       autogen_header
       printf '## %s\n\n%s\n' "$heading_text" "$content"
     } > "$out_path"
+    format_markdown "$out_path"
     echo "  Created: .agentic/vendor-files/copilot/instructions/$out_filename"
   done
 }
@@ -198,6 +210,7 @@ gen_gemini() {
     echo "$ALL_SECTIONS" >> "$out_file"
   fi
 
+  format_markdown "$out_file"
   echo "  Created: .agentic/vendor-files/gemini/systemPrompt.md"
 }
 

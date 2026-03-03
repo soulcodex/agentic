@@ -3,6 +3,15 @@
 # Called by: just compose <profile> <target>
 set -euo pipefail
 
+# ── Markdown formatting helper ────────────────────────────────────────────────
+# Formats markdown files if mdformat is available (optional, silent if missing)
+format_markdown() {
+  local file="$1"
+  if command -v mdformat &>/dev/null; then
+    mdformat "$file" 2>/dev/null || true
+  fi
+}
+
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 PROFILE=""
@@ -337,6 +346,7 @@ compose_flat() {
   else
     mkdir -p "$TARGET"
     echo "$OUTPUT" > "$TARGET/AGENTS.md"
+    format_markdown "$TARGET/AGENTS.md"
 
     LOCK_DIR="$TARGET/.agentic"
     mkdir -p "$LOCK_DIR"
@@ -496,6 +506,7 @@ compose_nested() {
 
   mkdir -p "$TARGET"
   printf '%s\n' "$root_out" > "$TARGET/AGENTS.md"
+  format_markdown "$TARGET/AGENTS.md"
 
   # ── Per-tier AGENTS.md ──────────────────────────────────────────────────────
   for tier in "${tiers[@]+"${tiers[@]}"}"; do
@@ -552,6 +563,7 @@ compose_nested() {
 
     mkdir -p "$TARGET/$tier"
     printf '%s\n' "$tier_out" > "$TARGET/$tier/AGENTS.md"
+    format_markdown "$TARGET/$tier/AGENTS.md"
     echo "Composed ${tier}/AGENTS.md → $TARGET/${tier}/AGENTS.md"
   done
 

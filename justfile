@@ -103,17 +103,18 @@ deploy-skills target skills="all" vendor="":
 
 # ─── Full Pipeline ────────────────────────────────────────────────────────────
 
-# Full deploy: compose (lean) + vendor-gen + deploy skills
+# Full deploy: compose (lean) + vendor-gen + deploy skills + activate first vendor
 # Usage: just deploy typescript-hexagonal-microservice /path/to/project claude
 # Usage: just deploy typescript-hexagonal-microservice /path/to/project claude,opencode code-review,write-adr
 deploy profile target vendors skills="all":
     @just compose "{{profile}}" "{{target}}"
     @just vendor-gen "{{target}}" "{{vendors}}"
     @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
+    @# Activate the first vendor from the list
+    @just vendor-switch "{{target}}" "$(echo '{{vendors}}' | cut -d',' -f1)"
     @echo ""
     @echo "Deployed profile '{{profile}}' to {{target}}"
-    @echo "Vendors: {{vendors}}"
-    @echo "Run './agentic <vendor>' in the target to switch between vendors."
+    @echo "Active vendor: $(echo '{{vendors}}' | cut -d',' -f1)"
 
 # Compose monolithic AGENTS.md with all fragment content inlined
 # Usage: just compose-full typescript-hexagonal-microservice /path/to/project
@@ -131,10 +132,11 @@ deploy-full profile target vendors skills="all":
     @just compose-full "{{profile}}" "{{target}}"
     @just vendor-gen "{{target}}" "{{vendors}}"
     @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
+    @# Activate the first vendor from the list
+    @just vendor-switch "{{target}}" "$(echo '{{vendors}}' | cut -d',' -f1)"
     @echo ""
     @echo "Deployed profile '{{profile}}' (full mode) to {{target}}"
-    @echo "Vendors: {{vendors}}"
-    @echo "Run './agentic <vendor>' in the target to switch between vendors."
+    @echo "Active vendor: $(echo '{{vendors}}' | cut -d',' -f1)"
 
 # ─── Index ────────────────────────────────────────────────────────────────────
 

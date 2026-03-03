@@ -836,6 +836,45 @@ fi
 assert_file_contains "$TMP/t41/agentic" "AGENTIC_REPO_ROOT" "T41"
 assert_file_contains "$TMP/t41/agentic" "library_path" "T41"
 
+# T42 — deploy: activates the first vendor automatically
+run_test "T42 — deploy: activates the first vendor automatically"
+mkdir -p "$TMP/t42"
+# Simulate what 'just deploy' does: compose + vendor-gen + deploy-skills + vendor-switch
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t42" \
+  > /dev/null 2>&1
+
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t42" \
+  --vendors opencode \
+  > /dev/null 2>&1
+
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t42" \
+  --skills code-review \
+  --vendor opencode \
+  > /dev/null 2>&1
+
+# Activate the vendor (simulating what justfile deploy does)
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t42" \
+  opencode \
+  > /dev/null 2>&1
+
+# active_vendor should be set
+assert_file_contains "$TMP/t42/.agentic/config.yaml" "active_vendor: opencode" "T42"
+# Symlink should exist
+if [[ -L "$TMP/t42/.opencode/skills" ]]; then
+  pass "T42 — .opencode/skills symlink created"
+else
+  fail "T42 — .opencode/skills symlink should be created"
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
