@@ -28,11 +28,16 @@ fragments:
     - api-design
     - observability
     - ci-cd
+    - go-standard-layout
 
   domains: []
 
 skills:
   - relational-database-design
+  - sql-query-optimization
+  - webhook-development
+  - health-check-endpoints
+  - microservices-architecture
 
 output:
   build_command: "go build ./..."

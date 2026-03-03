@@ -28,6 +28,7 @@ fragments:
     - tdd
     - observability
     - ci-cd
+    - go-standard-layout
 
   domains: []
 
@@ -45,6 +46,8 @@ skills:
   - write-adr
   - write-changelog
   - relational-database-design
+  - static-code-analysis
+  - github-actions-workflow
 
 output:
   build_command: "go build ./..."

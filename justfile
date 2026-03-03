@@ -76,6 +76,13 @@ vendor-gen target vendors="all":
         --target "{{target}}" \
         --vendors "{{vendors}}"
 
+# Switch the active AI vendor (stashes current vendor files, generates new)
+# Usage: just vendor-switch /path/to/project gemini
+# Usage: just vendor-switch /path/to/project list
+vendor-switch target vendor:
+    @"{{LIBRARY_ROOT}}/tooling/lib/vendor-switch.sh" \
+        --library "{{LIBRARY_ROOT}}" --target "{{target}}" "{{vendor}}"
+
 # ─── Skills ───────────────────────────────────────────────────────────────────
 
 # Deploy skills to a target project

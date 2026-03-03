@@ -84,6 +84,13 @@ skills:
   - write-adr
   - write-readme
   - relational-database-design
+  - vue-application-structure
+  - internationalization-i18n
+  - wireframe-prototyping
+  - static-code-analysis
+  - pull-request-automation
+  - github-actions-workflow
+  - monorepo-management
 
 output:
   build_command: "pnpm build"
