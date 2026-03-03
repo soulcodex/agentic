@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-02T17:56:55Z",
+  "generated_at": "2026-03-03T17:57:39Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -36,6 +36,111 @@
         "agentic",
         "meta",
         "deployment"
+      ]
+    },
+    {
+      "name": "health-check-endpoints",
+      "group": "backend",
+      "path": "skills/backend/health-check-endpoints/SKILL.md",
+      "description": "Implements liveness and readiness health check endpoints following Kubernetes probe conventions. Covers response schema,",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "health",
+        "kubernetes",
+        "observability"
+      ]
+    },
+    {
+      "name": "microservices-architecture",
+      "group": "backend",
+      "path": "skills/backend/microservices-architecture/SKILL.md",
+      "description": "Guides service boundary analysis, communication pattern selection, data consistency design, API contract strategy, and r",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "microservices",
+        "architecture",
+        "design"
+      ]
+    },
+    {
+      "name": "nosql-database-design",
+      "group": "backend",
+      "path": "skills/backend/nosql-database-design/SKILL.md",
+      "description": "Designs a NoSQL data model by leading with access pattern analysis. Covers DynamoDB single-table design (PK/SK/GSI) and ",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "nosql",
+        "database",
+        "dynamodb",
+        "mongodb"
+      ]
+    },
+    {
+      "name": "serverless-architecture",
+      "group": "backend",
+      "path": "skills/backend/serverless-architecture/SKILL.md",
+      "description": "Designs and implements serverless functions: function boundary design, runtime selection, event sources, IAM least privi",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "serverless",
+        "cloud",
+        "aws"
+      ]
+    },
+    {
+      "name": "sql-query-optimization",
+      "group": "backend",
+      "path": "skills/backend/sql-query-optimization/SKILL.md",
+      "description": "Diagnoses and optimises slow SQL queries using EXPLAIN ANALYZE. Covers identifying bottlenecks (sequential scans, bad es",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "database",
+        "sql",
+        "performance"
+      ]
+    },
+    {
+      "name": "technical-roadmap-planning",
+      "group": "backend",
+      "path": "skills/backend/technical-roadmap-planning/SKILL.md",
+      "description": "Gathers inputs, defines initiatives, prioritises with an impact/effort matrix, sequences dependencies, and produces a ro",
+      "version": "1.0.0",
+      "tags": [
+        "planning",
+        "roadmap",
+        "strategy",
+        "backend"
+      ]
+    },
+    {
+      "name": "terraform-infrastructure",
+      "group": "backend",
+      "path": "skills/backend/terraform-infrastructure/SKILL.md",
+      "description": "Structures, writes, and reviews Terraform infrastructure code. Covers module layout, remote state, workspace strategy, v",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "terraform",
+        "iac",
+        "cloud"
+      ]
+    },
+    {
+      "name": "webhook-development",
+      "group": "backend",
+      "path": "skills/backend/webhook-development/SKILL.md",
+      "description": "Implements reliable webhook receiving and sending with HMAC signature verification, idempotent processing, retry-with-ba",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "webhook",
+        "reliability",
+        "integration"
       ]
     },
     {
@@ -89,6 +194,44 @@
       ]
     },
     {
+      "name": "github-actions-workflow",
+      "group": "development",
+      "path": "skills/development/github-actions-workflow/SKILL.md",
+      "description": "Scaffolds or audits a GitHub Actions CI/CD workflow for a project. Covers job structure, caching, secrets handling, conc",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "ci-cd",
+        "github-actions"
+      ]
+    },
+    {
+      "name": "monorepo-management",
+      "group": "development",
+      "path": "skills/development/monorepo-management/SKILL.md",
+      "description": "Sets up or audits a monorepo workspace: tool selection, package naming, shared tooling, inter-package dependencies, sele",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "monorepo",
+        "workspace",
+        "build"
+      ]
+    },
+    {
+      "name": "pull-request-automation",
+      "group": "development",
+      "path": "skills/development/pull-request-automation/SKILL.md",
+      "description": "Audits and improves the pull request workflow for a GitHub repository. Covers PR description templates, auto-labelling, ",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "pull-request",
+        "automation",
+        "github"
+      ]
+    },
+    {
       "name": "refactor",
       "group": "development",
       "path": "skills/development/refactor/SKILL.md",
@@ -98,6 +241,18 @@
         "refactoring",
         "quality",
         "design"
+      ]
+    },
+    {
+      "name": "static-code-analysis",
+      "group": "development",
+      "path": "skills/development/static-code-analysis/SKILL.md",
+      "description": "Selects, configures, and integrates a static analysis tool for the project's language. Covers tool selection, rule confi",
+      "version": "1.0.0",
+      "tags": [
+        "quality",
+        "linting",
+        "static-analysis"
       ]
     },
     {
@@ -145,6 +300,45 @@
       "tags": [
         "documentation",
         "readme"
+      ]
+    },
+    {
+      "name": "internationalization-i18n",
+      "group": "ui",
+      "path": "skills/ui/internationalization-i18n/SKILL.md",
+      "description": "Audits and implements internationalization (i18n) and localization (l10n) for a frontend application. Covers message for",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "i18n",
+        "l10n",
+        "frontend"
+      ]
+    },
+    {
+      "name": "vue-application-structure",
+      "group": "ui",
+      "path": "skills/ui/vue-application-structure/SKILL.md",
+      "description": "Establishes or reviews the directory layout, component conventions, composable design, Pinia store structure, and Vue Ro",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "vue",
+        "typescript",
+        "pinia"
+      ]
+    },
+    {
+      "name": "wireframe-prototyping",
+      "group": "ui",
+      "path": "skills/ui/wireframe-prototyping/SKILL.md",
+      "description": "Creates low-fidelity wireframes and interaction annotations for a feature or screen. Covers user flow identification, AS",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "design",
+        "wireframe",
+        "prototype"
       ]
     }
   ]

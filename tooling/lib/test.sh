@@ -19,6 +19,7 @@ done
 COMPOSE="$LIBRARY/tooling/lib/compose.sh"
 VALIDATE="$LIBRARY/tooling/lib/validate.sh"
 VENDOR_GEN="$LIBRARY/tooling/lib/vendor-gen.sh"
+VENDOR_SWITCH="$LIBRARY/tooling/lib/vendor-switch.sh"
 DEPLOY_SKILLS="$LIBRARY/tooling/lib/deploy-skills.sh"
 LINT="$LIBRARY/tooling/lib/lint.sh"
 INDEX="$LIBRARY/tooling/lib/index.sh"
@@ -510,6 +511,46 @@ assert_file_contains      "$TMP/t27/backend/AGENTS.md" "docs.acme.internal"     
 assert_file_contains      "$TMP/t27/ui/AGENTS.md"      "@acme/ui-tokens"         "T27"
 assert_file_not_contains  "$TMP/t27/AGENTS.md"         "@acme/domain-kit"        "T27"
 assert_file_not_contains  "$TMP/t27/AGENTS.md"         "@acme/ui-tokens"         "T27"
+
+# T28 — vendor-switch: stash claude files, generate gemini
+run_test "T28 — vendor-switch: stash claude + generate gemini"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t28" \
+  > /dev/null 2>&1
+
+# Use vendor-switch for initial claude setup (sets active_vendor in config.yaml)
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t28" \
+  claude \
+  > /dev/null 2>&1
+
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t28" \
+  gemini \
+  > /dev/null 2>&1
+
+assert_file_exists     "$TMP/t28/.gemini/systemPrompt.md"              "T28"
+assert_file_exists     "$TMP/t28/.agentic/vendor-stash/claude/CLAUDE.md" "T28"
+assert_file_not_exists "$TMP/t28/CLAUDE.md"                            "T28"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendor: gemini" "T28"
+
+# T29 — vendor-switch: list subcommand shows all vendors
+run_test "T29 — vendor-switch: list subcommand shows all vendors"
+T29_TMPFILE=$(mktemp "$TMP/t29-XXXXXX")
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t28" \
+  list > "$T29_TMPFILE" 2>&1 || true
+
+assert_file_contains "$T29_TMPFILE" "claude"   "T29"
+assert_file_contains "$T29_TMPFILE" "copilot"  "T29"
+assert_file_contains "$T29_TMPFILE" "codex"    "T29"
+assert_file_contains "$T29_TMPFILE" "gemini"   "T29"
+assert_file_contains "$T29_TMPFILE" "opencode" "T29"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

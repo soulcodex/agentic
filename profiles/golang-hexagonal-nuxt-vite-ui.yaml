@@ -25,6 +25,7 @@ fragments:
     - api-design
     - observability
     - ci-cd
+    - go-standard-layout
 
   domains: []
 
@@ -73,6 +74,13 @@ skills:
   - write-adr
   - write-readme
   - relational-database-design
+  - vue-application-structure
+  - internationalization-i18n
+  - sql-query-optimization
+  - health-check-endpoints
+  - static-code-analysis
+  - github-actions-workflow
+  - monorepo-management
 
 output:
   build_command: "go build ./... && pnpm build"
