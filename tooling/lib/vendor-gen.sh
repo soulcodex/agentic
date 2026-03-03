@@ -113,10 +113,10 @@ gen_claude() {
   local out_file="$vendor_dir/CLAUDE.md"
 
   sed \
-    -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
-    -e "s/{{PROFILE_NAME}}/${PROFILE}/g" \
-    -e "s/{{PROFILE_VERSION}}/${PROFILE_VER}/g" \
-    -e "s/{{GENERATED_AT}}/${GENERATED_AT}/g" \
+    -e "s|{{PROJECT_NAME}}|${PROJECT_NAME}|g" \
+    -e "s|{{PROFILE_NAME}}|${PROFILE}|g" \
+    -e "s|{{PROFILE_VERSION}}|${PROFILE_VER}|g" \
+    -e "s|{{GENERATED_AT}}|${GENERATED_AT}|g" \
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" > "$out_file"
 
@@ -191,10 +191,10 @@ gen_gemini() {
   local out_file="$vendor_dir/systemPrompt.md"
 
   sed \
-    -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
-    -e "s/{{PROFILE_NAME}}/${PROFILE}/g" \
-    -e "s/{{PROFILE_VERSION}}/${PROFILE_VER}/g" \
-    -e "s/{{GENERATED_AT}}/${GENERATED_AT}/g" \
+    -e "s|{{PROJECT_NAME}}|${PROJECT_NAME}|g" \
+    -e "s|{{PROFILE_NAME}}|${PROFILE}|g" \
+    -e "s|{{PROFILE_VERSION}}|${PROFILE_VER}|g" \
+    -e "s|{{GENERATED_AT}}|${GENERATED_AT}|g" \
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" | sed "s|{{ALL_SECTIONS}}||" > "$out_file"
 
@@ -223,10 +223,10 @@ gen_opencode() {
   local out_file="$vendor_dir/opencode.json"
 
   sed \
-    -e "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" \
-    -e "s/{{PROFILE_NAME}}/${PROFILE}/g" \
-    -e "s/{{PROFILE_VERSION}}/${PROFILE_VER}/g" \
-    -e "s/{{GENERATED_AT}}/${GENERATED_AT}/g" \
+    -e "s|{{PROJECT_NAME}}|${PROJECT_NAME}|g" \
+    -e "s|{{PROFILE_NAME}}|${PROFILE}|g" \
+    -e "s|{{PROFILE_VERSION}}|${PROFILE_VER}|g" \
+    -e "s|{{GENERATED_AT}}|${GENERATED_AT}|g" \
     -e "s|{{TARGET_PATH}}|${TARGET}|g" \
     "$template" > "$out_file"
 
