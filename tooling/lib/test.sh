@@ -221,8 +221,8 @@ bash "$VALIDATE" \
 
 assert_exit_code 1 "$T07_EXIT" "T07"
 
-# T08 — vendor-gen: claude creates CLAUDE.md
-run_test "T08 — vendor-gen: claude creates CLAUDE.md"
+# T08 — vendor-gen: claude creates CLAUDE.md in vendor-files
+run_test "T08 — vendor-gen: claude creates CLAUDE.md in vendor-files"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
@@ -235,10 +235,10 @@ bash "$VENDOR_GEN" \
   --vendors claude \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t08/CLAUDE.md" "T08"
+assert_file_exists "$TMP/t08/.agentic/vendor-files/claude/CLAUDE.md" "T08"
 
-# T09 — vendor-gen: copilot creates copilot-instructions.md
-run_test "T09 — vendor-gen: copilot creates copilot-instructions.md"
+# T09 — vendor-gen: copilot creates copilot-instructions.md in vendor-files
+run_test "T09 — vendor-gen: copilot creates copilot-instructions.md in vendor-files"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
@@ -251,10 +251,10 @@ bash "$VENDOR_GEN" \
   --vendors copilot \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t09/.github/copilot-instructions.md" "T09"
+assert_file_exists "$TMP/t09/.agentic/vendor-files/copilot/copilot-instructions.md" "T09"
 
-# T10 — vendor-gen: gemini creates systemPrompt.md
-run_test "T10 — vendor-gen: gemini creates systemPrompt.md"
+# T10 — vendor-gen: gemini creates systemPrompt.md in vendor-files
+run_test "T10 — vendor-gen: gemini creates systemPrompt.md in vendor-files"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
@@ -267,7 +267,7 @@ bash "$VENDOR_GEN" \
   --vendors gemini \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t10/.gemini/systemPrompt.md" "T10"
+assert_file_exists "$TMP/t10/.agentic/vendor-files/gemini/systemPrompt.md" "T10"
 
 # T11 — vendor-gen: fails without AGENTS.md
 run_test "T11 — vendor-gen: fails without AGENTS.md"
@@ -281,8 +281,8 @@ bash "$VENDOR_GEN" \
 
 assert_exit_code 1 "$T11_EXIT" "T11"
 
-# T12 — deploy-skills: all skills deployed
-run_test "T12 — deploy-skills: all skills deployed to .claude/skills/"
+# T12 — deploy-skills: all skills deployed to canonical .agentic/skills/
+run_test "T12 — deploy-skills: all skills deployed to .agentic/skills/"
 mkdir -p "$TMP/t12"
 bash "$DEPLOY_SKILLS" \
   --library "$LIBRARY" \
@@ -290,10 +290,11 @@ bash "$DEPLOY_SKILLS" \
   --skills all \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t12/.claude/skills/code-review/SKILL.md" "T12"
-assert_file_exists "$TMP/t12/.claude/skills/add-tests/SKILL.md" "T12"
+assert_file_exists "$TMP/t12/.agentic/skills/code-review/SKILL.md" "T12"
+assert_file_exists "$TMP/t12/.agentic/skills/add-tests/SKILL.md" "T12"
+assert_file_exists "$TMP/t12/.agentic/skills/README.md" "T12"
 
-# T13 — deploy-skills: selective deployment
+# T13 — deploy-skills: selective deployment to .agentic/skills/
 run_test "T13 — deploy-skills: selective deployment"
 mkdir -p "$TMP/t13"
 bash "$DEPLOY_SKILLS" \
@@ -302,9 +303,9 @@ bash "$DEPLOY_SKILLS" \
   --skills code-review,write-adr \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t13/.claude/skills/code-review/SKILL.md" "T13"
-assert_file_exists "$TMP/t13/.claude/skills/write-adr/SKILL.md" "T13"
-assert_file_not_exists "$TMP/t13/.claude/skills/fix-bug" "T13"
+assert_file_exists "$TMP/t13/.agentic/skills/code-review/SKILL.md" "T13"
+assert_file_exists "$TMP/t13/.agentic/skills/write-adr/SKILL.md" "T13"
+assert_file_not_exists "$TMP/t13/.agentic/skills/fix-bug" "T13"
 
 # T14 — lint: passes on the library itself
 run_test "T14 — lint: passes on the library itself"
@@ -433,9 +434,9 @@ bash "$VENDOR_GEN" \
   --vendors copilot \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t23/.github/copilot-instructions.md" "T23"
-assert_file_contains "$TMP/t23/.github/copilot-instructions.md" "Conventional Commits" "T23"
-assert_file_contains "$TMP/t23/.github/copilot-instructions.md" "Git Conventions" "T23"
+assert_file_exists "$TMP/t23/.agentic/vendor-files/copilot/copilot-instructions.md" "T23"
+assert_file_contains "$TMP/t23/.agentic/vendor-files/copilot/copilot-instructions.md" "Conventional Commits" "T23"
+assert_file_contains "$TMP/t23/.agentic/vendor-files/copilot/copilot-instructions.md" "Git Conventions" "T23"
 
 # T24 — compose: nested mode produces root AGENTS.md with tier table
 run_test "T24 — compose: nested mode root AGENTS.md has Tiers section"
@@ -512,31 +513,49 @@ assert_file_contains      "$TMP/t27/ui/AGENTS.md"      "@acme/ui-tokens"        
 assert_file_not_contains  "$TMP/t27/AGENTS.md"         "@acme/domain-kit"        "T27"
 assert_file_not_contains  "$TMP/t27/AGENTS.md"         "@acme/ui-tokens"         "T27"
 
-# T28 — vendor-switch: stash claude files, generate gemini
-run_test "T28 — vendor-switch: stash claude + generate gemini"
+# T28 — vendor-switch: creates symlinks for the active vendor
+run_test "T28 — vendor-switch: symlink-based switching from claude to gemini"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t28" \
   > /dev/null 2>&1
 
-# Use vendor-switch for initial claude setup (sets active_vendor in config.yaml)
+# Deploy skills so we can test skill symlinks
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t28" \
+  --skills code-review \
+  > /dev/null 2>&1
+
+# Activate claude vendor
 bash "$VENDOR_SWITCH" \
   --library "$LIBRARY" \
   --target "$TMP/t28" \
   claude \
   > /dev/null 2>&1
 
+# Claude should have CLAUDE.md symlink and .claude/skills symlink
+assert_file_exists     "$TMP/t28/CLAUDE.md"                                   "T28 claude"
+assert_file_exists     "$TMP/t28/.agentic/vendor-files/claude/CLAUDE.md"      "T28 claude"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"      "T28 claude"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - claude"           "T28 claude"
+
+# Now switch to gemini
 bash "$VENDOR_SWITCH" \
   --library "$LIBRARY" \
   --target "$TMP/t28" \
   gemini \
   > /dev/null 2>&1
 
-assert_file_exists     "$TMP/t28/.gemini/systemPrompt.md"              "T28"
-assert_file_exists     "$TMP/t28/.agentic/vendor-stash/claude/CLAUDE.md" "T28"
-assert_file_not_exists "$TMP/t28/CLAUDE.md"                            "T28"
-assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendor: gemini" "T28"
+# Gemini should have symlink, claude symlinks should be gone
+assert_file_exists     "$TMP/t28/.gemini/systemPrompt.md"                      "T28 gemini"
+assert_file_exists     "$TMP/t28/.agentic/vendor-files/gemini/systemPrompt.md" "T28 gemini"
+assert_file_not_exists "$TMP/t28/CLAUDE.md"                                    "T28 gemini (no claude)"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"       "T28 gemini"
+assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - gemini"            "T28 gemini"
+# Verify no stash directory exists (old system removed)
+assert_file_not_exists "$TMP/t28/.agentic/vendor-stash"                        "T28 no stash"
 
 # T29 — vendor-switch: list subcommand shows all vendors
 run_test "T29 — vendor-switch: list subcommand shows all vendors"
@@ -551,6 +570,360 @@ assert_file_contains "$T29_TMPFILE" "copilot"  "T29"
 assert_file_contains "$T29_TMPFILE" "codex"    "T29"
 assert_file_contains "$T29_TMPFILE" "gemini"   "T29"
 assert_file_contains "$T29_TMPFILE" "opencode" "T29"
+
+# T30 — deploy-skills: creates vendor skill symlinks when --vendor is specified
+run_test "T30 — deploy-skills: creates vendor skill symlinks"
+mkdir -p "$TMP/t30"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t30" \
+  --skills code-review \
+  --vendor claude \
+  > /dev/null 2>&1
+
+# Should have canonical location and symlink
+assert_file_exists "$TMP/t30/.agentic/skills/code-review/SKILL.md" "T30"
+# Check .claude/skills is a symlink pointing to ../.agentic/skills
+if [[ -L "$TMP/t30/.claude/skills" ]]; then
+  pass "T30 — .claude/skills is a symlink"
+else
+  fail "T30 — .claude/skills should be a symlink"
+fi
+
+# T31 — deploy-skills: creates multiple vendor symlinks
+run_test "T31 — deploy-skills: creates symlinks for multiple vendors"
+mkdir -p "$TMP/t31"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t31" \
+  --skills code-review \
+  --vendor claude,codex,opencode \
+  > /dev/null 2>&1
+
+# Check all three vendor symlinks
+if [[ -L "$TMP/t31/.claude/skills" ]]; then
+  pass "T31 — .claude/skills is a symlink"
+else
+  fail "T31 — .claude/skills should be a symlink"
+fi
+if [[ -L "$TMP/t31/.agents/skills" ]]; then
+  pass "T31 — .agents/skills is a symlink (codex)"
+else
+  fail "T31 — .agents/skills should be a symlink"
+fi
+if [[ -L "$TMP/t31/.opencode/skills" ]]; then
+  pass "T31 — .opencode/skills is a symlink"
+else
+  fail "T31 — .opencode/skills should be a symlink"
+fi
+
+# T32 — vendor-switch: creates skill symlinks automatically
+run_test "T32 — vendor-switch: creates skill symlinks for codex"
+mkdir -p "$TMP/t32"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t32" \
+  > /dev/null 2>&1
+
+# Deploy skills first
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t32" \
+  --skills code-review \
+  > /dev/null 2>&1
+
+# Switch to codex
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t32" \
+  codex \
+  > /dev/null 2>&1
+
+# Codex should have .agents/skills symlink
+if [[ -L "$TMP/t32/.agents/skills" ]]; then
+  pass "T32 — .agents/skills symlink created for codex"
+else
+  fail "T32 — .agents/skills should be a symlink for codex"
+fi
+assert_file_contains "$TMP/t32/.agentic/config.yaml" "active_vendors:" "T32"
+assert_file_contains "$TMP/t32/.agentic/config.yaml" "  - codex" "T32"
+
+# T33 — vendor-switch: migration removes old stash directory
+run_test "T33 — vendor-switch: migrates from old stash system"
+mkdir -p "$TMP/t33"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t33" \
+  > /dev/null 2>&1
+
+# Simulate old stash directory
+mkdir -p "$TMP/t33/.agentic/vendor-stash/claude"
+echo "old file" > "$TMP/t33/.agentic/vendor-stash/claude/CLAUDE.md"
+
+# Run vendor-switch
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t33" \
+  claude \
+  > /dev/null 2>&1
+
+# Old stash should be removed
+assert_file_not_exists "$TMP/t33/.agentic/vendor-stash" "T33"
+# New vendor-files should exist
+assert_file_exists "$TMP/t33/.agentic/vendor-files/claude/CLAUDE.md" "T33"
+
+# T34 — skills README contains vendor compatibility table
+run_test "T34 — deploy-skills: README contains vendor compatibility info"
+mkdir -p "$TMP/t34"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t34" \
+  --skills code-review \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t34/.agentic/skills/README.md" "T34"
+assert_file_contains "$TMP/t34/.agentic/skills/README.md" "Vendor Compatibility" "T34"
+assert_file_contains "$TMP/t34/.agentic/skills/README.md" ".claude/skills" "T34"
+assert_file_contains "$TMP/t34/.agentic/skills/README.md" ".agents/skills" "T34"
+assert_file_contains "$TMP/t34/.agentic/skills/README.md" "code-review" "T34"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LOCAL PROFILE SUPPORT TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T35 — compose: copies profile to .agentic/profile.yaml
+run_test "T35 — compose: copies profile to .agentic/profile.yaml"
+mkdir -p "$TMP/t35"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t35" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t35/.agentic/profile.yaml" "T35"
+assert_file_contains "$TMP/t35/.agentic/profile.yaml" "meta:" "T35"
+
+# T36 — compose: --profile-file flag works with local profile
+run_test "T36 — compose: --profile-file flag works with local profile"
+mkdir -p "$TMP/t36"
+# First compose to get a profile
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t36" \
+  > /dev/null 2>&1
+
+# Modify the local profile
+sed -i.bak 's/version: .*/version: "99.0.0"/' "$TMP/t36/.agentic/profile.yaml"
+
+# Re-compose using local profile
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t36/.agentic/profile.yaml" \
+  --target "$TMP/t36" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t36/AGENTS.md" "v99.0.0" "T36"
+
+# T37 — sync.sh: regenerates from local profile
+run_test "T37 — sync.sh: regenerates from local profile"
+SYNC="$LIBRARY/tooling/lib/sync.sh"
+mkdir -p "$TMP/t37"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t37" \
+  > /dev/null 2>&1
+
+# Modify the local profile version
+sed -i.bak 's/version: .*/version: "88.0.0"/' "$TMP/t37/.agentic/profile.yaml"
+
+# Run sync
+bash "$SYNC" --target "$TMP/t37" > /dev/null 2>&1
+
+assert_file_contains "$TMP/t37/AGENTS.md" "v88.0.0" "T37"
+
+# T38 — vendor-switch: sync subcommand works
+run_test "T38 — vendor-switch: sync subcommand works"
+mkdir -p "$TMP/t38"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t38" \
+  > /dev/null 2>&1
+
+# Activate a vendor first
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t38" \
+  claude \
+  > /dev/null 2>&1
+
+# Modify the local profile version
+sed -i.bak 's/version: .*/version: "77.0.0"/' "$TMP/t38/.agentic/profile.yaml"
+
+# Run sync via vendor-switch
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t38" \
+  sync \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t38/AGENTS.md" "v77.0.0" "T38"
+# Active vendors should be preserved
+assert_file_contains "$TMP/t38/.agentic/config.yaml" "active_vendors:" "T38"
+assert_file_contains "$TMP/t38/.agentic/config.yaml" "  - claude" "T38"
+
+# T39 — deploy-skills: project: prefix deploys project-local skills
+run_test "T39 — deploy-skills: project: prefix deploys project-local skills"
+mkdir -p "$TMP/t39/.agentic/project-skills/my-custom-skill"
+cat > "$TMP/t39/.agentic/project-skills/my-custom-skill/SKILL.md" <<'EOF'
+---
+name: my-custom-skill
+description: A project-specific custom skill
+version: 1.0.0
+tags: [custom]
+vendor_support: [claude, opencode]
+---
+# My Custom Skill
+
+This is a custom project-local skill.
+EOF
+
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t39" \
+  --skills "project:my-custom-skill" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t39/.agentic/skills/my-custom-skill/SKILL.md" "T39"
+
+# T40 — deploy-skills: missing project: skill warns but does not fail
+run_test "T40 — deploy-skills: missing project: skill warns but does not fail"
+mkdir -p "$TMP/t40"
+
+# Deploy a missing project skill - should warn but exit 0
+OUTPUT=$(bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t40" \
+  --skills "project:nonexistent-skill" \
+  2>&1) || true
+
+if echo "$OUTPUT" | grep -q "Warning:.*nonexistent-skill"; then
+  pass "T40 — warns about missing project skill"
+else
+  fail "T40 — should warn about missing project skill"
+fi
+
+# Should NOT have created the skill directory
+assert_file_not_exists "$TMP/t40/.agentic/skills/nonexistent-skill" "T40"
+
+# T41 — agentic wrapper: supports dynamic library resolution
+run_test "T41 — agentic wrapper: supports dynamic library resolution"
+mkdir -p "$TMP/t41"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t41" \
+  > /dev/null 2>&1
+
+# Wrapper should exist and be executable
+assert_file_exists "$TMP/t41/agentic" "T41"
+if [[ -x "$TMP/t41/agentic" ]]; then
+  pass "T41 — agentic wrapper is executable"
+else
+  fail "T41 — agentic wrapper should be executable"
+fi
+# Wrapper should contain dynamic resolution logic
+assert_file_contains "$TMP/t41/agentic" "AGENTIC_REPO_ROOT" "T41"
+assert_file_contains "$TMP/t41/agentic" "library_path" "T41"
+
+# T42 — deploy: activates the first vendor automatically
+run_test "T42 — deploy: activates the first vendor automatically"
+mkdir -p "$TMP/t42"
+# Simulate what 'just deploy' does: compose + vendor-gen + deploy-skills + vendor-switch
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t42" \
+  > /dev/null 2>&1
+
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t42" \
+  --vendors opencode \
+  > /dev/null 2>&1
+
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t42" \
+  --skills code-review \
+  --vendor opencode \
+  > /dev/null 2>&1
+
+# Activate the vendor (simulating what justfile deploy does)
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t42" \
+  opencode \
+  > /dev/null 2>&1
+
+# active_vendors should be set
+assert_file_contains "$TMP/t42/.agentic/config.yaml" "active_vendors:" "T42"
+assert_file_contains "$TMP/t42/.agentic/config.yaml" "  - opencode" "T42"
+# Symlink should exist
+if [[ -L "$TMP/t42/.opencode/skills" ]]; then
+  pass "T42 — .opencode/skills symlink created"
+else
+  fail "T42 — .opencode/skills symlink should be created"
+fi
+
+# T43 — vendor-switch: multi-vendor activation
+run_test "T43 — vendor-switch: multi-vendor activation"
+mkdir -p "$TMP/t43"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t43" \
+  > /dev/null 2>&1
+
+# Generate vendor files for both
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t43" \
+  --vendors claude,copilot \
+  > /dev/null 2>&1
+
+# Activate multiple vendors using comma-separated format
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t43" \
+  claude,copilot \
+  > /dev/null 2>&1
+
+# active_vendors should contain both
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "active_vendors:" "T43"
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - claude" "T43"
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - copilot" "T43"
+
+# Both vendor symlinks should exist
+assert_file_exists "$TMP/t43/CLAUDE.md" "T43 claude symlink"
+assert_file_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot symlink"
+
+# Now switch to single vendor - should replace the set
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t43" \
+  gemini \
+  > /dev/null 2>&1
+
+# Only gemini should be active now
+assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - gemini" "T43 replace"
+assert_file_not_exists "$TMP/t43/CLAUDE.md" "T43 claude removed"
+assert_file_not_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot removed"
+assert_file_exists "$TMP/t43/.gemini/systemPrompt.md" "T43 gemini active"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

@@ -52,8 +52,9 @@ just vendor-gen TARGET claude,copilot              # specific vendors only
 just deploy-skills TARGET all
 just deploy-skills TARGET code-review,write-adr
 
-# Switch the active AI vendor (stash current, generate new)
+# Switch active AI vendor(s) via symlinks
 just vendor-switch TARGET gemini
+just vendor-switch TARGET claude,copilot           # activate multiple vendors
 just vendor-switch TARGET list                     # show all vendors
 ```
 
@@ -88,9 +89,11 @@ profile_version: "1.0.0"
 composed_at: "2026-03-03T12:00:00Z"
 mode: lean
 library_path: "/Users/you/agentic"
-active_vendor: "claude"
+active_vendors:
+  - claude
+  - copilot
 structure: nested          # only for nested profiles
 tiers: [backend, ui]       # only for nested profiles
 ```
 
-The `library_path` and `active_vendor` fields power the `agentic` wrapper script placed in the target project root.
+The `library_path` and `active_vendors` fields power the `agentic` wrapper script placed in the target project root.

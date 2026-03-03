@@ -35,6 +35,15 @@ echo ""
 if [[ ${#MISSING[@]} -eq 0 ]]; then
     echo "All prerequisites are installed. You're ready to go."
     echo ""
+    # Check for optional tools
+    echo "Optional tools (for better output formatting):"
+    if command -v mdformat >/dev/null 2>&1; then
+        ok "mdformat  ($(command -v mdformat))"
+    else
+        warn "mdformat  — not installed (markdown tables won't be auto-formatted)"
+        info "Install with: pip3 install mdformat mdformat-tables"
+    fi
+    echo ""
     exit 0
 fi
 

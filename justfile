@@ -65,6 +65,12 @@ sync-check target:
         --library "{{LIBRARY_ROOT}}" \
         --target "{{target}}"
 
+# Regenerate a project from its local profile (.agentic/profile.yaml)
+# Usage: just sync /path/to/project
+sync target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/sync.sh" \
+        --target "{{target}}"
+
 # ─── Vendor Generation ────────────────────────────────────────────────────────
 
 # Generate vendor-specific files from a target project's AGENTS.md
@@ -76,8 +82,9 @@ vendor-gen target vendors="all":
         --target "{{target}}" \
         --vendors "{{vendors}}"
 
-# Switch the active AI vendor (stashes current vendor files, generates new)
+# Switch active AI vendor(s) via symlinks (supports multiple: claude,copilot)
 # Usage: just vendor-switch /path/to/project gemini
+# Usage: just vendor-switch /path/to/project claude,copilot
 # Usage: just vendor-switch /path/to/project list
 vendor-switch target vendor:
     @"{{LIBRARY_ROOT}}/tooling/lib/vendor-switch.sh" \
@@ -86,26 +93,29 @@ vendor-switch target vendor:
 # ─── Skills ───────────────────────────────────────────────────────────────────
 
 # Deploy skills to a target project
-# Usage: just deploy-skills /path/to/project code-review,add-tests
-# Usage: just deploy-skills /path/to/project all
-deploy-skills target skills="all":
+# Usage: just deploy-skills /path/to/project code-review,add-tests claude
+# Usage: just deploy-skills /path/to/project all opencode
+deploy-skills target skills="all" vendor="":
     @"{{LIBRARY_ROOT}}/tooling/lib/deploy-skills.sh" \
         --library "{{LIBRARY_ROOT}}" \
         --target "{{target}}" \
-        --skills "{{skills}}"
+        --skills "{{skills}}" \
+        --vendor "{{vendor}}"
 
 # ─── Full Pipeline ────────────────────────────────────────────────────────────
 
-# Full deploy: compose (lean) + vendor-gen + deploy skills
-# Usage: just deploy typescript-hexagonal-microservice /path/to/project
-# Usage: just deploy typescript-hexagonal-microservice /path/to/project code-review,write-adr
-deploy profile target skills="all":
+# Full deploy: compose (lean) + vendor-gen + deploy skills + activate vendors
+# Usage: just deploy typescript-hexagonal-microservice /path/to/project claude
+# Usage: just deploy typescript-hexagonal-microservice /path/to/project claude,opencode code-review,write-adr
+deploy profile target vendors skills="all":
     @just compose "{{profile}}" "{{target}}"
-    @just vendor-gen "{{target}}"
-    @just deploy-skills "{{target}}" "{{skills}}"
+    @just vendor-gen "{{target}}" "{{vendors}}"
+    @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
+    @# Activate all specified vendors
+    @just vendor-switch "{{target}}" "{{vendors}}"
     @echo ""
     @echo "Deployed profile '{{profile}}' to {{target}}"
-    @echo "Run 'just validate {{target}}' to verify the config."
+    @echo "Active vendors: {{vendors}}"
 
 # Compose monolithic AGENTS.md with all fragment content inlined
 # Usage: just compose-full typescript-hexagonal-microservice /path/to/project
@@ -117,14 +127,17 @@ compose-full profile target:
         --full
 
 # Full deploy with monolithic AGENTS.md (all fragment content inlined)
-# Usage: just deploy-full typescript-hexagonal-microservice /path/to/project
-deploy-full profile target skills="all":
+# Usage: just deploy-full typescript-hexagonal-microservice /path/to/project claude
+# Usage: just deploy-full typescript-hexagonal-microservice /path/to/project claude,opencode code-review,write-adr
+deploy-full profile target vendors skills="all":
     @just compose-full "{{profile}}" "{{target}}"
-    @just vendor-gen "{{target}}"
-    @just deploy-skills "{{target}}" "{{skills}}"
+    @just vendor-gen "{{target}}" "{{vendors}}"
+    @just deploy-skills "{{target}}" "{{skills}}" "{{vendors}}"
+    @# Activate all specified vendors
+    @just vendor-switch "{{target}}" "{{vendors}}"
     @echo ""
     @echo "Deployed profile '{{profile}}' (full mode) to {{target}}"
-    @echo "Run 'just validate {{target}}' to verify the config."
+    @echo "Active vendors: {{vendors}}"
 
 # ─── Index ────────────────────────────────────────────────────────────────────
 

@@ -3,35 +3,56 @@
 # Called by: just compose <profile> <target>
 set -euo pipefail
 
+# ── Markdown formatting helper ────────────────────────────────────────────────
+# Formats markdown files if mdformat is available (optional, silent if missing)
+format_markdown() {
+  local file="$1"
+  if command -v mdformat &>/dev/null; then
+    mdformat "$file" 2>/dev/null || true
+  fi
+}
+
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 PROFILE=""
+PROFILE_FILE=""
 TARGET=""
 DRY_RUN=false
 FULL_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library)  LIBRARY="$2";  shift 2 ;;
-    --profile)  PROFILE="$2";  shift 2 ;;
-    --target)   TARGET="$2";   shift 2 ;;
-    --dry-run)  DRY_RUN=true;  shift   ;;
-    --full)     FULL_MODE=true; shift  ;;
+    --library)      LIBRARY="$2";      shift 2 ;;
+    --profile)      PROFILE="$2";      shift 2 ;;
+    --profile-file) PROFILE_FILE="$2"; shift 2 ;;
+    --target)       TARGET="$2";       shift 2 ;;
+    --dry-run)      DRY_RUN=true;      shift   ;;
+    --full)         FULL_MODE=true;    shift  ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 
 [[ -z "$LIBRARY" ]] && { echo "Error: --library required" >&2; exit 1; }
-[[ -z "$PROFILE" ]] && { echo "Error: --profile required" >&2; exit 1; }
+[[ -z "$PROFILE" && -z "$PROFILE_FILE" ]] && { echo "Error: --profile or --profile-file required" >&2; exit 1; }
 [[ -z "$TARGET"  ]] && { echo "Error: --target required" >&2; exit 1; }
 
 # ── Profile resolution ────────────────────────────────────────────────────────
-PROFILE_FILE="$LIBRARY/profiles/$PROFILE.yaml"
-[[ ! -f "$PROFILE_FILE" ]] && {
-  echo "Error: profile '$PROFILE' not found at $PROFILE_FILE" >&2
-  echo "Run 'just list-profiles' to see available profiles." >&2
-  exit 1
-}
+# If --profile-file is provided, use it directly; otherwise lookup by name
+if [[ -n "$PROFILE_FILE" ]]; then
+  [[ ! -f "$PROFILE_FILE" ]] && {
+    echo "Error: profile file not found at $PROFILE_FILE" >&2
+    exit 1
+  }
+  # Derive profile name from file for lock metadata
+  PROFILE=$(yq '.meta.name // "local"' "$PROFILE_FILE" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+else
+  PROFILE_FILE="$LIBRARY/profiles/$PROFILE.yaml"
+  [[ ! -f "$PROFILE_FILE" ]] && {
+    echo "Error: profile '$PROFILE' not found at $PROFILE_FILE" >&2
+    echo "Run 'just list-profiles' to see available profiles." >&2
+    exit 1
+  }
+fi
 
 PROFILE_NAME=$(yq '.meta.name'        "$PROFILE_FILE")
 PROFILE_VER=$(yq  '.meta.version'     "$PROFILE_FILE")
@@ -325,6 +346,7 @@ compose_flat() {
   else
     mkdir -p "$TARGET"
     echo "$OUTPUT" > "$TARGET/AGENTS.md"
+    format_markdown "$TARGET/AGENTS.md"
 
     LOCK_DIR="$TARGET/.agentic"
     mkdir -p "$LOCK_DIR"
@@ -341,7 +363,7 @@ profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: lean
 library_path: "${LIBRARY}"
-active_vendor: ""
+active_vendors: []
 LOCK
     else
       # Full mode: write lock with mode: full (no fragments copied)
@@ -354,8 +376,22 @@ profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: full
 library_path: "${LIBRARY}"
-active_vendor: ""
+active_vendors: []
 LOCK
+    fi
+
+    # Copy profile to .agentic/profile.yaml for local customization
+    # (skip if already using the local profile as source)
+    local profile_dst="$LOCK_DIR/profile.yaml"
+    local profile_src_real profile_dst_real
+    profile_src_real="$(cd "$(dirname "$PROFILE_FILE")" && pwd)/$(basename "$PROFILE_FILE")"
+    if [[ -f "$profile_dst" ]]; then
+      profile_dst_real="$(cd "$(dirname "$profile_dst")" && pwd)/$(basename "$profile_dst")"
+    else
+      profile_dst_real="$profile_dst"
+    fi
+    if [[ "$profile_src_real" != "$profile_dst_real" ]]; then
+      cp "$PROFILE_FILE" "$profile_dst"
     fi
 
     deploy_vendor_switch_wrapper
@@ -470,6 +506,7 @@ compose_nested() {
 
   mkdir -p "$TARGET"
   printf '%s\n' "$root_out" > "$TARGET/AGENTS.md"
+  format_markdown "$TARGET/AGENTS.md"
 
   # ── Per-tier AGENTS.md ──────────────────────────────────────────────────────
   for tier in "${tiers[@]+"${tiers[@]}"}"; do
@@ -526,6 +563,7 @@ compose_nested() {
 
     mkdir -p "$TARGET/$tier"
     printf '%s\n' "$tier_out" > "$TARGET/$tier/AGENTS.md"
+    format_markdown "$TARGET/$tier/AGENTS.md"
     echo "Composed ${tier}/AGENTS.md → $TARGET/${tier}/AGENTS.md"
   done
 
@@ -542,13 +580,27 @@ compose_nested() {
     echo "composed_at: \"${GENERATED_AT}\""
     echo "mode: ${compose_mode}"
     echo "library_path: \"${LIBRARY}\""
-    echo "active_vendor: \"\""
+    echo "active_vendors: []"
     echo "structure: nested"
     echo "tiers:"
     for tier in "${tiers[@]+"${tiers[@]}"}"; do
       echo "  - ${tier}"
     done
   } > "$TARGET/.agentic/config.yaml"
+
+  # Copy profile to .agentic/profile.yaml for local customization
+  # (skip if already using the local profile as source)
+  local profile_dst="$TARGET/.agentic/profile.yaml"
+  local profile_src_real profile_dst_real
+  profile_src_real="$(cd "$(dirname "$PROFILE_FILE")" && pwd)/$(basename "$PROFILE_FILE")"
+  if [[ -f "$profile_dst" ]]; then
+    profile_dst_real="$(cd "$(dirname "$profile_dst")" && pwd)/$(basename "$profile_dst")"
+  else
+    profile_dst_real="$profile_dst"
+  fi
+  if [[ "$profile_src_real" != "$profile_dst_real" ]]; then
+    cp "$PROFILE_FILE" "$profile_dst"
+  fi
 
   deploy_vendor_switch_wrapper
   echo "Composed AGENTS.md → $TARGET/AGENTS.md"
@@ -562,20 +614,84 @@ deploy_vendor_switch_wrapper() {
   lib_abs="$(cd "$LIBRARY" && pwd)"
   target_abs="$(cd "$TARGET" && pwd)"
 
-  cat > "$wrapper" <<WRAPPER
+  # Generate a smart wrapper that:
+  # 1. Uses config.yaml library_path if available
+  # 2. Falls back to AGENTIC_REPO_ROOT env var
+  # 3. Falls back to hardcoded path (original deployment location)
+  cat > "$wrapper" <<'WRAPPER_HEAD'
 #!/bin/bash
 # Auto-generated by agentic library — do not edit manually
-# Regenerate with: just compose ${PROFILE} ${TARGET}
-exec "${lib_abs}/tooling/lib/vendor-switch.sh" --library "${lib_abs}" --target "${target_abs}" "\$@"
-WRAPPER
+# Usage: ./agentic <vendor|list|sync>
+set -euo pipefail
+
+TARGET_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG="$TARGET_DIR/.agentic/config.yaml"
+
+# Resolve library path dynamically
+LIBRARY=""
+if [[ -f "$CONFIG" ]]; then
+  LIBRARY=$(yq '.library_path // ""' "$CONFIG" 2>/dev/null || echo "")
+  [[ "$LIBRARY" == "null" ]] && LIBRARY=""
+fi
+
+if [[ -z "$LIBRARY" || ! -d "$LIBRARY" ]]; then
+  if [[ -n "${AGENTIC_REPO_ROOT:-}" && -d "$AGENTIC_REPO_ROOT" ]]; then
+    LIBRARY="$AGENTIC_REPO_ROOT"
+  fi
+fi
+
+WRAPPER_HEAD
+
+  # Add the hardcoded fallback
+  cat >> "$wrapper" <<WRAPPER_FALLBACK
+# Fallback to original deployment location
+if [[ -z "\$LIBRARY" || ! -d "\$LIBRARY" ]]; then
+  LIBRARY="${lib_abs}"
+fi
+
+WRAPPER_FALLBACK
+
+  cat >> "$wrapper" <<'WRAPPER_TAIL'
+# Validate library exists
+if [[ ! -d "$LIBRARY" ]]; then
+  echo "Error: agentic library not found" >&2
+  echo "Set AGENTIC_REPO_ROOT or update library_path in .agentic/config.yaml" >&2
+  exit 1
+fi
+
+VENDOR_SWITCH="$LIBRARY/tooling/lib/vendor-switch.sh"
+if [[ ! -f "$VENDOR_SWITCH" ]]; then
+  echo "Error: vendor-switch.sh not found at $VENDOR_SWITCH" >&2
+  exit 1
+fi
+
+exec bash "$VENDOR_SWITCH" --library "$LIBRARY" --target "$TARGET_DIR" "$@"
+WRAPPER_TAIL
+
   chmod +x "$wrapper"
 
+  # Gitignore entries for symlinks and wrapper
+  local gitignore_entries=(
+    "# Agentic library — vendor symlinks (recreated by ./agentic <vendor>)"
+    "agentic"
+    "CLAUDE.md"
+    "opencode.json"
+    ".github/copilot-instructions.md"
+    ".github/instructions/"
+    ".gemini/"
+    ".claude/skills"
+    ".opencode/skills"
+    ".agents/skills"
+  )
+
   if [[ -f "$gitignore" ]]; then
-    if ! grep -qxF 'agentic' "$gitignore"; then
-      echo 'agentic' >> "$gitignore"
-    fi
+    for entry in "${gitignore_entries[@]}"; do
+      if ! grep -qxF "$entry" "$gitignore"; then
+        echo "$entry" >> "$gitignore"
+      fi
+    done
   else
-    echo 'agentic' > "$gitignore"
+    printf '%s\n' "${gitignore_entries[@]}" > "$gitignore"
   fi
 }
 

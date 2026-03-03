@@ -3,7 +3,8 @@
   "vendor": "codex",
   "version": "1.0.0",
   "output_paths": {
-    "base": "."
+    "base": ".",
+    "skills": ".agents/skills"
   },
   "section_mappings": [
     {
@@ -40,5 +41,5 @@
   "unsupported_sections": [],
   "character_limit_per_file": null,
   "total_character_limit": null,
-  "notes": "OpenAI Codex reads AGENTS.md natively and hierarchically (root + subdirectory AGENTS.md files are merged). This adapter is a passthrough — the composed AGENTS.md is the output. No transformation needed. Codex also supports placing AGENTS.md in subdirectories for monorepo scoping."
+  "notes": "OpenAI Codex reads AGENTS.md natively and hierarchically (root + subdirectory AGENTS.md files are merged). This adapter is a passthrough — the composed AGENTS.md is the output. Skills are deployed canonically to .agentic/skills/ and symlinked to .agents/skills/ per OpenAI specification. Codex supports placing AGENTS.md in subdirectories for monorepo scoping."
 }

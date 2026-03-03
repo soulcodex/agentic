@@ -41,5 +41,5 @@
   "unsupported_sections": [],
   "character_limit_per_file": null,
   "total_character_limit": null,
-  "notes": "Claude reads AGENTS.md natively. The adapter is a passthrough — all sections land in the single AGENTS.md file. CLAUDE.md is created as a symlink. Skills are deployed to .claude/skills/ where Claude Code can discover them."
+  "notes": "Claude reads AGENTS.md natively. The adapter is a passthrough — all sections land in the single AGENTS.md file. CLAUDE.md is created as a symlink to .agentic/vendor-files/claude/CLAUDE.md. Skills are deployed canonically to .agentic/skills/ and symlinked to .claude/skills/ for Claude Code discovery."
 }

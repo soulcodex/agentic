@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
   name: "TypeScript Hexagonal + Vue/Vite SPA"
   description: >
