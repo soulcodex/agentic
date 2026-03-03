@@ -109,6 +109,59 @@ skills:
   - my-skill
 ```
 
+## Add Project-Local Skills
+
+For skills that are specific to a single project and shouldn't live in the shared library,
+create them in the project's `.agentic/project-skills/` directory:
+
+```bash
+# In your target project
+mkdir -p .agentic/project-skills/my-custom-workflow
+
+# Create the skill file
+cat > .agentic/project-skills/my-custom-workflow/SKILL.md << 'EOF'
+---
+name: my-custom-workflow
+description: >
+  Project-specific deployment workflow for this repo.
+version: 1.0.0
+tags: [deployment, internal]
+resources: []
+vendor_support:
+  claude: native
+  opencode: native
+  copilot: prompt-inject
+  codex: prompt-inject
+  gemini: prompt-inject
+---
+
+## Steps
+
+1. Run pre-deploy checks: `make verify`
+2. Build the artifact: `make build`
+3. Deploy to staging: `make deploy-staging`
+4. Run smoke tests: `make smoke-test`
+EOF
+```
+
+Then reference it in your profile or deploy command with the `project:` prefix:
+
+```yaml
+# In .agentic/profile.yaml
+skills:
+  - code-review           # from library
+  - project:my-custom-workflow  # from .agentic/project-skills/
+```
+
+Or deploy directly:
+
+```bash
+just deploy-skills /path/to/project project:my-custom-workflow claude
+```
+
+Project skills are copied to `.agentic/skills/` alongside library skills and symlinked
+to vendor-specific paths just like regular skills.
+
 ## Declare Proprietary Libraries
 
 List internal packages that agents need to be aware of. Agents are told to load

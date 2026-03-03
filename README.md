@@ -14,13 +14,20 @@ One library. One deploy. All your AI tools stay in sync.
 Without agentic              With agentic
 ─────────────────────────    ────────────────────────────────────
 my-project/                  my-project/
-├── CLAUDE.md                ├── AGENTS.md       ← one source
-├── .github/                 ├── CLAUDE.md       ← generated
-│   └── copilot-instr.md     ├── .github/        ← generated
-├── .cursor/rules/           │   └── copilot-instr.md
-│   └── *.mdc                ├── .gemini/        ← generated
-└── .gemini/                 │   └── systemPrompt.md
-    └── systemPrompt.md      └── .agentic/config.yaml ← locked
+├── CLAUDE.md                ├── AGENTS.md               ← source of truth
+├── .github/                 ├── CLAUDE.md               ← symlink
+│   └── copilot-instr.md     ├── .github/
+├── .cursor/rules/           │   └── copilot-instr.md    ← symlink
+│   └── *.mdc                ├── .gemini/
+└── .gemini/                 │   └── systemPrompt.md     ← symlink
+    └── systemPrompt.md      └── .agentic/
+                                 ├── config.yaml         ← locked config
+                                 ├── fragments/          ← on-demand context
+                                 ├── skills/             ← canonical location
+                                 └── vendor-files/       ← generated once
+                                     ├── claude/
+                                     ├── copilot/
+                                     └── gemini/
 ```
 
 Instructions drift and contradict each other. Every new project starts from scratch. Adding a new AI tool means updating N files manually.
@@ -100,6 +107,8 @@ See [docs/commands.md](docs/commands.md) for the complete reference including di
 ## Extending
 
 Add a fragment, profile, skill, or vendor adapter — all in plain Markdown and YAML.
+
+**Project-local skills**: Create project-specific skills in `.agentic/project-skills/` and reference them with the `project:` prefix. See the extending guide for details.
 
 [Extending guide →](docs/extending.md)
 
