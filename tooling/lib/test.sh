@@ -925,6 +925,30 @@ assert_file_not_exists "$TMP/t43/CLAUDE.md" "T43 claude removed"
 assert_file_not_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot removed"
 assert_file_exists "$TMP/t43/.gemini/systemPrompt.md" "T43 gemini active"
 
+# ── T44 — init: deploy only agentic wrapper ───────────────────────────────────
+run_test "T44 — init: deploy only agentic wrapper"
+INIT="$LIBRARY/tooling/lib/init.sh"
+
+mkdir -p "$TMP/t44"
+
+bash "$INIT" \
+  --library "$LIBRARY" \
+  --target "$TMP/t44" \
+  > /dev/null 2>&1
+
+# Wrapper should exist and be executable
+assert_file_exists "$TMP/t44/agentic" "T44 wrapper"
+[[ -x "$TMP/t44/agentic" ]] && pass "T44 — wrapper is executable" || fail "T44 — wrapper is executable"
+
+# Config should exist with library_path
+assert_file_exists "$TMP/t44/.agentic/config.yaml" "T44 config"
+assert_file_contains "$TMP/t44/.agentic/config.yaml" "library_path:" "T44"
+assert_file_contains "$TMP/t44/.agentic/config.yaml" "active_vendors:" "T44"
+
+# Gitignore should have agentic entries
+assert_file_exists "$TMP/t44/.gitignore" "T44 gitignore"
+assert_file_contains "$TMP/t44/.gitignore" "agentic" "T44 gitignore entry"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"

@@ -165,6 +165,13 @@ test:
 
 # ─── Utilities ────────────────────────────────────────────────────────────────
 
+# Deploy only the ./agentic wrapper script to a target project
+# Usage: just init /path/to/project
+init target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/init.sh" \
+        --library "{{LIBRARY_ROOT}}" \
+        --target "{{target}}"
+
 # Show what would be composed for a profile without writing any files (dry run)
 # Usage: just dry-run typescript-hexagonal-microservice
 dry-run profile:
