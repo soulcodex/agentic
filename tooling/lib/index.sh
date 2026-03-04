@@ -1,6 +1,9 @@
 #!/bin/bash
 # index.sh — Rebuilds index/skills.json and index/fragments.json
 # Called by: just index
+#
+# Only updates files when content actually changes (ignoring generated_at timestamp)
+# to avoid noise in git diffs.
 set -euo pipefail
 
 LIBRARY=""
@@ -16,11 +19,39 @@ done
 
 INDEX_DIR="$LIBRARY/index"
 mkdir -p "$INDEX_DIR"
-GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+# Writes JSON to file only if content (excluding generated_at) has changed.
+# If content changed, updates generated_at to current time.
+# If content unchanged, leaves file untouched.
+write_if_changed() {
+  local file="$1"
+  local new_json="$2"
+
+  if [[ -f "$file" ]]; then
+    # Extract existing content without generated_at for comparison
+    local existing_content
+    existing_content=$(jq 'del(.generated_at)' "$file" 2>/dev/null || echo "{}")
+    local new_content
+    new_content=$(echo "$new_json" | jq 'del(.generated_at)')
+
+    if [[ "$existing_content" == "$new_content" ]]; then
+      # Content unchanged, don't update file
+      return 1
+    fi
+  fi
+
+  # Content changed (or new file), write with current timestamp
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  echo "$new_json" | jq --arg ts "$timestamp" '.generated_at = $ts' > "$file"
+  return 0
+}
 
 # ── Skills index ──────────────────────────────────────────────────────────────
 build_skills_index() {
-  local skills_json='{"version":"1.0.0","generated_at":"'"$GENERATED_AT"'","skills":['
+  local skills_json='{"version":"1.0.0","generated_at":"","skills":['
   local first=true
 
   while IFS= read -r skill_file; do
@@ -49,13 +80,20 @@ build_skills_index() {
   done < <(find "$LIBRARY/skills" -name "SKILL.md" | sort)
 
   skills_json+="]}"
-  echo "$skills_json" | jq . > "$INDEX_DIR/skills.json"
-  echo "  Built: index/skills.json ($(find "$LIBRARY/skills" -name "SKILL.md" | wc -l | tr -d ' ') skills)"
+
+  local count
+  count=$(find "$LIBRARY/skills" -name "SKILL.md" | wc -l | tr -d ' ')
+
+  if write_if_changed "$INDEX_DIR/skills.json" "$skills_json"; then
+    echo "  Updated: index/skills.json ($count skills)"
+  else
+    echo "  Unchanged: index/skills.json ($count skills)"
+  fi
 }
 
 # ── Fragments index ───────────────────────────────────────────────────────────
 build_fragments_index() {
-  local frags_json='{"version":"1.0.0","generated_at":"'"$GENERATED_AT"'","fragments":['
+  local frags_json='{"version":"1.0.0","generated_at":"","fragments":['
   local first=true
 
   while IFS= read -r frag_file; do
@@ -76,8 +114,15 @@ build_fragments_index() {
   done < <(find "$LIBRARY/agents" -name "*.md" | sort)
 
   frags_json+="]}"
-  echo "$frags_json" | jq . > "$INDEX_DIR/fragments.json"
-  echo "  Built: index/fragments.json ($(find "$LIBRARY/agents" -name "*.md" | wc -l | tr -d ' ') fragments)"
+
+  local count
+  count=$(find "$LIBRARY/agents" -name "*.md" | wc -l | tr -d ' ')
+
+  if write_if_changed "$INDEX_DIR/fragments.json" "$frags_json"; then
+    echo "  Updated: index/fragments.json ($count fragments)"
+  else
+    echo "  Unchanged: index/fragments.json ($count fragments)"
+  fi
 }
 
 echo "Rebuilding indexes..."
