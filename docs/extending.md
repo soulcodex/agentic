@@ -111,6 +111,8 @@ skills:
 
 ## Add Project-Local Skills
 
+> See also: [customization.md](customization.md) for a quick overview of all project customization options.
+
 For skills that are specific to a single project and shouldn't live in the shared library,
 create them in the project's `.agentic/project-skills/` directory:
 

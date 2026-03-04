@@ -22,8 +22,10 @@ my-project/                  my-project/
 └── .gemini/                 │   └── systemPrompt.md     ← symlink
     └── systemPrompt.md      └── .agentic/
                                  ├── config.yaml         ← locked config
+                                 ├── profile.yaml        ← customize per-project
+                                 ├── project-skills/     ← your custom skills
                                  ├── fragments/          ← on-demand context
-                                 ├── skills/             ← canonical location
+                                 ├── skills/             ← deployed skills
                                  └── vendor-files/       ← generated once
                                      ├── claude/
                                      ├── copilot/
@@ -31,6 +33,8 @@ my-project/                  my-project/
 ```
 
 Instructions drift and contradict each other. Every new project starts from scratch. Adding a new AI tool means updating N files manually.
+
+Customize per-project with local profiles and project-specific skills → [docs/customization.md](docs/customization.md)
 
 ---
 
