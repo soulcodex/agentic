@@ -1,6 +1,6 @@
 # Profiles
 
-A profile is a named YAML preset that selects which fragments, tech stack details, and skills to include. Pick one, run `just deploy`, done.
+A profile is a named YAML preset that selects which fragments, tech stack details, and skills to include. Pick one, run `agentic deploy`, done.
 
 ## Available Profiles
 

@@ -19,7 +19,7 @@ When you deploy a profile, a copy is saved to `.agentic/profile.yaml`. This is y
 After editing `.agentic/profile.yaml`, regenerate your project:
 
 ```bash
-./agentic sync
+agentic sync
 ```
 
 This re-runs compose with your local profile, regenerates vendor files, and preserves your active vendors.
@@ -46,6 +46,6 @@ See [extending.md](extending.md) for the full skill format and frontmatter requi
 
 | Need | Solution |
 |------|----------|
-| Customize one project | Edit `.agentic/profile.yaml`, run `./agentic sync` |
+| Customize one project | Edit `.agentic/profile.yaml`, run `agentic sync` |
 | Reusable skill for one project | Create in `.agentic/project-skills/` |
 | Shared across all projects | Add to library (see [extending.md](extending.md)) |

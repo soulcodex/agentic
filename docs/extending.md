@@ -158,6 +158,9 @@ skills:
 Or deploy directly:
 
 ```bash
+agentic deploy my-profile ./project claude --skills project:my-custom-workflow
+
+# Or using just (from library directory)
 just deploy-skills /path/to/project project:my-custom-workflow claude
 ```
 

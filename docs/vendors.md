@@ -49,35 +49,41 @@ Gemini reads a single system prompt from `.gemini/systemPrompt.md`. The vendor a
 
 Opencode reads `AGENTS.md` natively. The `opencode.json` file configures the project name and model settings. Skills work the same way as Claude (`.claude/skills/`).
 
-## Vendor Generation Commands
+## Vendor Commands
+
+### Generate Vendor Files
 
 ```bash
-# Generate all enabled vendors (reads vendors.enabled from profile)
+# Using global CLI (from anywhere)
+agentic deploy <profile> [target] <vendors>
+
+# Using just (from library directory)
 just vendor-gen /path/to/project
+just vendor-gen /path/to/project claude,copilot   # specific vendors
+```
 
-# Generate for specific vendors only
-just vendor-gen /path/to/project claude,copilot
+### Switch Active Vendors
 
-# Switch active vendor(s) via symlinks
+Switch which vendors are active via symlinks. Vendor files are stored in
+`.agentic/vendor-files/{vendor}/` and activated by symlinking to their
+expected locations.
+
+```bash
+# Using global CLI (from anywhere)
+agentic switch claude                # Activate only Claude
+agentic switch gemini                # Activate only Gemini
+agentic switch claude,copilot        # Activate multiple vendors
+agentic switch list                  # Show all vendors
+
+# With explicit target
+agentic switch /path/to/project gemini
+
+# Using just (from library directory)
 just vendor-switch /path/to/project gemini
 just vendor-switch /path/to/project claude,copilot
-
-# List available vendors and which are active
 just vendor-switch /path/to/project list
 ```
 
-## Vendor-Switch
-
-After `just deploy`, an `agentic` wrapper script is placed in the target project root. From inside the project:
-
-```bash
-./agentic list              # show all vendors, mark active ones
-./agentic gemini            # activate only Gemini
-./agentic claude,copilot    # activate both Claude and Copilot
-./agentic claude            # activate only Claude (replaces previous set)
-```
-
-Vendor files are stored in `.agentic/vendor-files/{vendor}/` and activated via symlinks.
 Multiple vendors can be active simultaneously since their symlink paths don't conflict:
 
 | Vendor | Symlink locations |
