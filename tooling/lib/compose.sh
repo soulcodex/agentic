@@ -362,7 +362,7 @@ profile: "${PROFILE}"
 profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: lean
-library_path: "${LIBRARY}"
+agentic_root: "${LIBRARY}"
 active_vendors: []
 LOCK
     else
@@ -375,7 +375,7 @@ profile: "${PROFILE}"
 profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: full
-library_path: "${LIBRARY}"
+agentic_root: "${LIBRARY}"
 active_vendors: []
 LOCK
     fi
@@ -579,7 +579,7 @@ compose_nested() {
     echo "profile_version: \"${PROFILE_VER}\""
     echo "composed_at: \"${GENERATED_AT}\""
     echo "mode: ${compose_mode}"
-    echo "library_path: \"${LIBRARY}\""
+    echo "agentic_root: \"${LIBRARY}\""
     echo "active_vendors: []"
     echo "structure: nested"
     echo "tiers:"

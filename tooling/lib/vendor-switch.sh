@@ -1,8 +1,8 @@
 #!/bin/bash
 # vendor-switch.sh — Switches the active AI vendor(s) in a target project
 # Called by: just vendor-switch <target> <vendors>
-#            TARGET/agentic <vendor[,vendor...]|list|sync>
-# Supports multiple vendors: ./agentic claude,copilot or ./agentic claude copilot
+#            agentic switch <vendor[,vendor...]|list|sync>
+# Supports multiple vendors: agentic switch claude,copilot or agentic switch claude copilot
 set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
 #!/bin/bash
 # sync.sh — Regenerates target project from local profile
-# Called by: ./agentic sync
+# Called by: agentic sync
 # Uses: .agentic/profile.yaml (local customizable profile)
-#       .agentic/config.yaml (library_path, active_vendors)
+#       .agentic/config.yaml (agentic_root, active_vendors)
 set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────

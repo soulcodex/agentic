@@ -100,7 +100,7 @@ symlinks are created when you switch vendors:
 .agents/skills   → ../.agentic/skills   (Codex)
 ```
 
-Run `./agentic <vendor>` to switch vendors and update symlinks.
+Run `agentic switch <vendor>` to switch vendors and update symlinks.
 
 ## Available Skills
 
