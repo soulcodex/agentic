@@ -29,7 +29,8 @@ When you run `agentic` from any directory, it finds the library using this prior
 1. `AGENTIC_REPO_ROOT` environment variable
 2. `AGENTIC_ROOT` environment variable (alias)
 3. `agentic_root` key in `.agentic/config.yaml` (walks up from current directory)
-4. Error with instructions
+4. Install-time `LIBRARY_ROOT` (embedded by installer)
+5. Error with instructions
 
 ### Target Auto-detection
 

@@ -25,7 +25,8 @@ info() {
 # 1. AGENTIC_REPO_ROOT env var
 # 2. AGENTIC_ROOT env var (alias)
 # 3. agentic_root from .agentic/config.yaml in current/parent directories
-# 4. Fail with helpful error
+# 4. LIBRARY_ROOT (set at install time by install.sh)
+# 5. Fail with helpful error
 discover_library() {
   # 1. AGENTIC_REPO_ROOT env var
   if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
@@ -67,7 +68,13 @@ discover_library() {
     fi
   fi
 
-  # 4. Fail with helpful error
+  # 4. LIBRARY_ROOT from install-time embedding (set by install.sh)
+  if [[ -n "${LIBRARY_ROOT:-}" && -d "$LIBRARY_ROOT" ]]; then
+    echo "$LIBRARY_ROOT"
+    return 0
+  fi
+
+  # 5. Fail with helpful error
   die "Cannot find agentic library. Set AGENTIC_REPO_ROOT environment variable or add 'agentic_root' to .agentic/config.yaml"
 }
 
@@ -127,7 +134,8 @@ Library Discovery:
   1. AGENTIC_REPO_ROOT environment variable
   2. AGENTIC_ROOT environment variable (alias)
   3. 'agentic_root' key in .agentic/config.yaml
-  4. Error with instructions
+  4. Install-time LIBRARY_ROOT (embedded by installer)
+  5. Error with instructions
 
 Examples:
   agentic deploy typescript-hexagonal-microservice ./my-project claude
