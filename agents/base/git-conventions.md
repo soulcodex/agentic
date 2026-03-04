@@ -44,6 +44,14 @@ test(orders): add edge case for zero-amount orders
 - Squash merge to keep history clean; preserve the PR title as the commit message.
 - Delete the branch after merge.
 
+### PR Workflow
+
+- Always branch from an updated `main` for new work.
+- Each logical change should result in a single PR ready for review.
+- Keep PRs small and focused — one PR = one logical change.
+- Avoid mixing unrelated changes to reduce review fatigue.
+- Prefer completing and merging smaller PRs over accumulating large diffs.
+
 ### Tagging & Releases
 
 - Use SemVer: `MAJOR.MINOR.PATCH`
