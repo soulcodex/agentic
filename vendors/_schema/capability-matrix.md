@@ -74,7 +74,7 @@ The agentic library uses a symlink-based vendor switching system:
 2. **Skills**: Deployed once to `.agentic/skills/`, symlinked to vendor-specific paths
 3. **Entrypoints**: Vendor config files (CLAUDE.md, opencode.json, etc.) are symlinks
 4. **Switching**: Only symlinks change — no file movement or copying
-5. **Git**: Symlinks are gitignored; recreate locally via `./agentic <vendor>`
+5. **Git**: Symlinks are gitignored; recreate locally via `agentic switch <vendor>`
 
 ## Update Log
 

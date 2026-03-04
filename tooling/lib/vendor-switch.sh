@@ -269,4 +269,4 @@ if [[ -n "$CURRENT_VENDORS" && "$CURRENT_VENDORS" != "${VENDORS[*]}" ]]; then
   echo "Previous vendors: $CURRENT_VENDORS"
 fi
 echo ""
-echo "Note: Symlinks are gitignored. After cloning, run './agentic ${VENDORS[*]}' to recreate them."
+echo "Note: Symlinks are gitignored. After cloning, run 'agentic switch ${VENDORS[*]}' to recreate them."
