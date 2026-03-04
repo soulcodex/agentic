@@ -991,9 +991,14 @@ assert_stdout_contains "$T50_OUTPUT" "Supported vendors:" "T50"
 run_test "T51 — CLI: fails when no library found"
 mkdir -p "$TMP/t51"
 
-# Run without any env vars or config
+# Test discover_library() directly with all discovery methods disabled
+# (unset LIBRARY_ROOT, no env vars, no config file)
 T51_EXIT=0
-T51_OUTPUT=$(cd "$TMP/t51" && "$CLI" list profiles 2>&1) || T51_EXIT=$?
+T51_OUTPUT=$(cd "$TMP/t51" && unset LIBRARY_ROOT && bash -c '
+  unset AGENTIC_REPO_ROOT AGENTIC_ROOT LIBRARY_ROOT
+  source "'"$LIBRARY"'/tooling/lib/cli.sh"
+  discover_library
+' 2>&1) || T51_EXIT=$?
 
 assert_exit_code 1 "$T51_EXIT" "T51"
 assert_stdout_contains "$T51_OUTPUT" "AGENTIC_REPO_ROOT" "T51"
@@ -1098,6 +1103,13 @@ T58_OUTPUT=$(bash "$INDEX" --library "$LIBRARY" 2>&1)
 
 assert_stdout_contains "$T58_OUTPUT" "Unchanged: index/skills.json" "T58"
 assert_stdout_contains "$T58_OUTPUT" "Unchanged: index/fragments.json" "T58"
+
+# T59 — CLI: LIBRARY_ROOT fallback discovery
+run_test "T59 — CLI: LIBRARY_ROOT fallback discovery"
+# Simulate installed CLI by setting LIBRARY_ROOT and NOT setting env vars or config
+T59_OUTPUT=$(cd "$TMP" && LIBRARY_ROOT="$LIBRARY" bash -c 'source "$1/tooling/lib/cli.sh"; discover_library' -- "$LIBRARY" 2>&1)
+
+assert_stdout_contains "$T59_OUTPUT" "$LIBRARY" "T59"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
