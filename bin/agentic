@@ -1,0 +1,33 @@
+#!/bin/bash
+# agentic — Global CLI for the agentic library
+# Install: just install (installs to ~/.local/bin)
+# Usage: agentic <command> [options]
+set -euo pipefail
+
+# Resolve the actual script location (follow symlinks)
+resolve_script_path() {
+  local source="$1"
+  while [[ -L "$source" ]]; do
+    local dir
+    dir="$(cd -P "$(dirname "$source")" && pwd)"
+    source="$(readlink "$source")"
+    [[ "$source" != /* ]] && source="$dir/$source"
+  done
+  cd -P "$(dirname "$source")" && pwd
+}
+
+SCRIPT_DIR="$(resolve_script_path "${BASH_SOURCE[0]}")"
+LIBRARY_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Source the CLI logic
+CLI_LIB="$LIBRARY_ROOT/tooling/lib/cli.sh"
+if [[ ! -f "$CLI_LIB" ]]; then
+  echo "Error: CLI library not found at $CLI_LIB" >&2
+  echo "The agentic binary may have been moved from its installation location." >&2
+  exit 1
+fi
+
+source "$CLI_LIB"
+
+# Run the CLI
+main "$@"

@@ -42,16 +42,21 @@ Customize per-project with local profiles and project-specific skills → [docs/
 
 ```bash
 # 1. Fork this repo — it becomes your team's instruction library
-git clone https://github.com/your-org/agentic ~/agentic
+git clone https://github.com/your-org/agentic ~/agentic-library
 
-# 2. Pick a profile
-just list-profiles
+# 2. Install the global CLI
+cd ~/agentic-library
+just install
+# (installs to ~/.local/bin — add to PATH if needed)
 
-# 3. Deploy to your project
-just deploy typescript-hexagonal-microservice ~/code/my-api
+# 3. Pick a profile
+agentic list profiles
+
+# 4. Deploy to your project
+agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 ```
 
-Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/systemPrompt.md`, `opencode.json`, and `.agentic/config.yaml` into `~/code/my-api`. Run `just deploy` again after updating a fragment to sync all projects.
+Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/systemPrompt.md`, `opencode.json`, and `.agentic/config.yaml` into `~/code/my-api`. Run `agentic sync` from within any project to regenerate from local profile.
 
 ---
 
@@ -92,11 +97,17 @@ Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/sys
 ## Key Commands
 
 ```bash
-just deploy PROFILE TARGET          # compose + vendor-gen + deploy skills
-just dry-run PROFILE                # preview without writing files
-just vendor-switch TARGET list      # show available vendors
-just vendor-switch TARGET gemini    # switch active vendor
-just lint && just test              # validate the library
+# Global CLI (install with: just install)
+agentic deploy PROFILE TARGET VENDORS    # compose + vendor-gen + deploy skills
+agentic compose PROFILE [TARGET]         # assemble AGENTS.md from profile
+agentic switch [TARGET] VENDORS          # switch active vendor(s)
+agentic sync [TARGET]                    # regenerate from local profile
+agentic list profiles|skills|vendors     # list available resources
+
+# Legacy just recipes (still work from library dir)
+just deploy PROFILE TARGET VENDORS       # same as agentic deploy
+just dry-run PROFILE                     # preview without writing files
+just lint && just test                   # validate the library
 ```
 
 <details>

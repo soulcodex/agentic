@@ -32,20 +32,35 @@ LOCAL_PROFILE="$TARGET/.agentic/profile.yaml"
 }
 
 # ── Resolve library path ──────────────────────────────────────────────────────
-# Priority: 1. config.yaml library_path  2. AGENTIC_REPO_ROOT env var
-LIBRARY=$(yq '.library_path // ""' "$CONFIG" 2>/dev/null || echo "")
-[[ "$LIBRARY" == "null" ]] && LIBRARY=""
+# Priority: 1. AGENTIC_REPO_ROOT env var  2. AGENTIC_ROOT env var  3. config.yaml agentic_root  4. config.yaml library_path (legacy)
+LIBRARY=""
+
+# 1. AGENTIC_REPO_ROOT env var
+if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
+  LIBRARY="$AGENTIC_REPO_ROOT"
+fi
+
+# 2. AGENTIC_ROOT env var
+if [[ -z "$LIBRARY" && -n "${AGENTIC_ROOT:-}" ]]; then
+  LIBRARY="$AGENTIC_ROOT"
+fi
+
+# 3. config.yaml agentic_root
+if [[ -z "$LIBRARY" ]]; then
+  LIBRARY=$(yq '.agentic_root // ""' "$CONFIG" 2>/dev/null || echo "")
+  [[ "$LIBRARY" == "null" || "$LIBRARY" == '""' ]] && LIBRARY=""
+fi
+
+# 4. config.yaml library_path (legacy)
+if [[ -z "$LIBRARY" ]]; then
+  LIBRARY=$(yq '.library_path // ""' "$CONFIG" 2>/dev/null || echo "")
+  [[ "$LIBRARY" == "null" || "$LIBRARY" == '""' ]] && LIBRARY=""
+fi
 
 if [[ -z "$LIBRARY" ]]; then
-  if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
-    LIBRARY="$AGENTIC_REPO_ROOT"
-    echo "Using AGENTIC_REPO_ROOT: $LIBRARY"
-  else
-    echo "Error: library_path not in config.yaml and AGENTIC_REPO_ROOT not set" >&2
-    echo "Set AGENTIC_REPO_ROOT to the agentic library path, e.g.:" >&2
-    echo "  export AGENTIC_REPO_ROOT=\$HOME/Code/agentic" >&2
-    exit 1
-  fi
+  echo "Error: Cannot find agentic library." >&2
+  echo "Set AGENTIC_REPO_ROOT environment variable or add 'agentic_root' to .agentic/config.yaml" >&2
+  exit 1
 fi
 
 [[ ! -d "$LIBRARY" ]] && {

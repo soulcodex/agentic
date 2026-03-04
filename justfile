@@ -163,14 +163,21 @@ test:
     @"{{LIBRARY_ROOT}}/tooling/lib/test.sh" \
         --library "{{LIBRARY_ROOT}}"
 
-# ─── Utilities ────────────────────────────────────────────────────────────────
+# ─── Installation ─────────────────────────────────────────────────────────────
 
-# Deploy only the ./agentic wrapper script to a target project
-# Usage: just init /path/to/project
-init target:
-    @"{{LIBRARY_ROOT}}/tooling/lib/init.sh" \
-        --library "{{LIBRARY_ROOT}}" \
-        --target "{{target}}"
+# Install the global agentic CLI
+# Usage: just install (default: ~/.local/bin)
+# Usage: just install global (installs to /usr/local/bin with sudo)
+install target="local":
+    @"{{LIBRARY_ROOT}}/tooling/lib/install.sh" install "{{target}}"
+
+# Uninstall the global agentic CLI
+# Usage: just uninstall (default: ~/.local/bin)
+# Usage: just uninstall global (removes from /usr/local/bin)
+uninstall target="local":
+    @"{{LIBRARY_ROOT}}/tooling/lib/install.sh" uninstall "{{target}}"
+
+# ─── Utilities ────────────────────────────────────────────────────────────────
 
 # Show what would be composed for a profile without writing any files (dry run)
 # Usage: just dry-run typescript-hexagonal-microservice

@@ -820,8 +820,8 @@ fi
 # Should NOT have created the skill directory
 assert_file_not_exists "$TMP/t40/.agentic/skills/nonexistent-skill" "T40"
 
-# T41 — agentic wrapper: supports dynamic library resolution
-run_test "T41 — agentic wrapper: supports dynamic library resolution"
+# T41 — compose: gitignore entries are added for vendor symlinks
+run_test "T41 — compose: gitignore entries for vendor symlinks"
 mkdir -p "$TMP/t41"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -829,16 +829,11 @@ bash "$COMPOSE" \
   --target "$TMP/t41" \
   > /dev/null 2>&1
 
-# Wrapper should exist and be executable
-assert_file_exists "$TMP/t41/agentic" "T41"
-if [[ -x "$TMP/t41/agentic" ]]; then
-  pass "T41 — agentic wrapper is executable"
-else
-  fail "T41 — agentic wrapper should be executable"
-fi
-# Wrapper should contain dynamic resolution logic
-assert_file_contains "$TMP/t41/agentic" "AGENTIC_REPO_ROOT" "T41"
-assert_file_contains "$TMP/t41/agentic" "library_path" "T41"
+# Gitignore should exist with vendor symlink entries
+assert_file_exists "$TMP/t41/.gitignore" "T41"
+assert_file_contains "$TMP/t41/.gitignore" "CLAUDE.md" "T41"
+assert_file_contains "$TMP/t41/.gitignore" ".gemini/" "T41"
+assert_file_contains "$TMP/t41/.gitignore" ".github/copilot-instructions.md" "T41"
 
 # T42 — deploy: activates the first vendor automatically
 run_test "T42 — deploy: activates the first vendor automatically"
@@ -925,29 +920,163 @@ assert_file_not_exists "$TMP/t43/CLAUDE.md" "T43 claude removed"
 assert_file_not_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot removed"
 assert_file_exists "$TMP/t43/.gemini/systemPrompt.md" "T43 gemini active"
 
-# ── T44 — init: deploy only agentic wrapper ───────────────────────────────────
-run_test "T44 — init: deploy only agentic wrapper"
-INIT="$LIBRARY/tooling/lib/init.sh"
+# ══════════════════════════════════════════════════════════════════════════════
+# GLOBAL CLI TESTS
+# ══════════════════════════════════════════════════════════════════════════════
 
-mkdir -p "$TMP/t44"
+# T44 — CLI: --help shows usage
+run_test "T44 — CLI: --help shows usage"
+CLI="$LIBRARY/bin/agentic"
+T44_OUTPUT=$("$CLI" --help 2>&1) || true
 
-bash "$INIT" \
-  --library "$LIBRARY" \
-  --target "$TMP/t44" \
-  > /dev/null 2>&1
+assert_stdout_contains "$T44_OUTPUT" "agentic" "T44"
+assert_stdout_contains "$T44_OUTPUT" "Usage:" "T44"
+assert_stdout_contains "$T44_OUTPUT" "deploy" "T44"
+assert_stdout_contains "$T44_OUTPUT" "compose" "T44"
+assert_stdout_contains "$T44_OUTPUT" "switch" "T44"
+assert_stdout_contains "$T44_OUTPUT" "sync" "T44"
 
-# Wrapper should exist and be executable
-assert_file_exists "$TMP/t44/agentic" "T44 wrapper"
-[[ -x "$TMP/t44/agentic" ]] && pass "T44 — wrapper is executable" || fail "T44 — wrapper is executable"
+# T45 — CLI: version command works
+run_test "T45 — CLI: version command works"
+T45_OUTPUT=$("$CLI" version 2>&1) || true
 
-# Config should exist with library_path
-assert_file_exists "$TMP/t44/.agentic/config.yaml" "T44 config"
-assert_file_contains "$TMP/t44/.agentic/config.yaml" "library_path:" "T44"
-assert_file_contains "$TMP/t44/.agentic/config.yaml" "active_vendors:" "T44"
+assert_stdout_contains "$T45_OUTPUT" "agentic version" "T45"
 
-# Gitignore should have agentic entries
-assert_file_exists "$TMP/t44/.gitignore" "T44 gitignore"
-assert_file_contains "$TMP/t44/.gitignore" "agentic" "T44 gitignore entry"
+# T46 — CLI: list profiles works
+run_test "T46 — CLI: list profiles works"
+T46_OUTPUT=$(AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" list profiles 2>&1) || true
+
+assert_stdout_contains "$T46_OUTPUT" "Available profiles:" "T46"
+assert_stdout_contains "$T46_OUTPUT" "golang-hexagonal-cobra-cli" "T46"
+
+# T47 — CLI: list vendors works
+run_test "T47 — CLI: list vendors works"
+T47_OUTPUT=$(AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" list vendors 2>&1) || true
+
+assert_stdout_contains "$T47_OUTPUT" "Supported vendors:" "T47"
+assert_stdout_contains "$T47_OUTPUT" "claude" "T47"
+assert_stdout_contains "$T47_OUTPUT" "copilot" "T47"
+assert_stdout_contains "$T47_OUTPUT" "gemini" "T47"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LIBRARY DISCOVERY TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T48 — CLI: AGENTIC_REPO_ROOT env var is used for library discovery
+run_test "T48 — CLI: AGENTIC_REPO_ROOT env var discovery"
+T48_OUTPUT=$(AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" list vendors 2>&1) || true
+
+assert_stdout_contains "$T48_OUTPUT" "Supported vendors:" "T48"
+
+# T49 — CLI: AGENTIC_ROOT env var is used as fallback
+run_test "T49 — CLI: AGENTIC_ROOT env var fallback"
+T49_OUTPUT=$(AGENTIC_ROOT="$LIBRARY" "$CLI" list vendors 2>&1) || true
+
+assert_stdout_contains "$T49_OUTPUT" "Supported vendors:" "T49"
+
+# T50 — CLI: agentic_root from config.yaml is used when no env var
+run_test "T50 — CLI: agentic_root from config.yaml discovery"
+mkdir -p "$TMP/t50/.agentic"
+cat > "$TMP/t50/.agentic/config.yaml" <<CONFIG
+agentic_root: "$LIBRARY"
+active_vendors: []
+CONFIG
+
+# Run from within the target directory
+T50_OUTPUT=$(cd "$TMP/t50" && "$CLI" list vendors 2>&1) || true
+
+assert_stdout_contains "$T50_OUTPUT" "Supported vendors:" "T50"
+
+# T51 — CLI: fails with helpful error when no library found
+run_test "T51 — CLI: fails when no library found"
+mkdir -p "$TMP/t51"
+
+# Run without any env vars or config
+T51_EXIT=0
+T51_OUTPUT=$(cd "$TMP/t51" && "$CLI" list profiles 2>&1) || T51_EXIT=$?
+
+assert_exit_code 1 "$T51_EXIT" "T51"
+assert_stdout_contains "$T51_OUTPUT" "AGENTIC_REPO_ROOT" "T51"
+
+# T52 — CLI: fails when library path doesn't exist
+run_test "T52 — CLI: fails when library path doesn't exist"
+T52_EXIT=0
+T52_OUTPUT=$(AGENTIC_REPO_ROOT="/nonexistent/path" "$CLI" list profiles 2>&1) || T52_EXIT=$?
+
+assert_exit_code 1 "$T52_EXIT" "T52"
+assert_stdout_contains "$T52_OUTPUT" "does not exist" "T52"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TARGET AUTO-DETECTION TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T53 — CLI: auto-detects target from current directory
+run_test "T53 — CLI: auto-detects target from current directory"
+mkdir -p "$TMP/t53/.agentic"
+cat > "$TMP/t53/.agentic/config.yaml" <<CONFIG
+agentic_root: "$LIBRARY"
+profile: "golang-hexagonal-cobra-cli"
+active_vendors: []
+CONFIG
+cat > "$TMP/t53/.agentic/profile.yaml" <<PROFILE
+meta:
+  name: Test Profile
+  version: "1.0.0"
+  description: Test
+fragments:
+  base:
+    - git-conventions
+PROFILE
+
+# Run sync from within the directory (should auto-detect)
+T53_OUTPUT=$(cd "$TMP/t53" && "$CLI" sync 2>&1) || true
+
+assert_stdout_contains "$T53_OUTPUT" "Composed" "T53"
+
+# T54 — CLI: auto-detects target from subdirectory
+run_test "T54 — CLI: auto-detects target from subdirectory"
+mkdir -p "$TMP/t54/.agentic"
+mkdir -p "$TMP/t54/src/deep/nested"
+cat > "$TMP/t54/.agentic/config.yaml" <<CONFIG
+agentic_root: "$LIBRARY"
+profile: "golang-hexagonal-cobra-cli"
+active_vendors: []
+CONFIG
+cat > "$TMP/t54/.agentic/profile.yaml" <<PROFILE
+meta:
+  name: Test Profile
+  version: "1.0.0"
+  description: Test
+fragments:
+  base:
+    - git-conventions
+PROFILE
+
+# Run sync from a subdirectory (should find config in parent)
+T54_OUTPUT=$(cd "$TMP/t54/src/deep/nested" && "$CLI" sync 2>&1) || true
+
+assert_stdout_contains "$T54_OUTPUT" "Composed" "T54"
+
+# T55 — CLI: fails when outside project and no target given
+run_test "T55 — CLI: fails when no target and outside project"
+T55_EXIT=0
+T55_OUTPUT=$(cd "$TMP" && AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" sync 2>&1) || T55_EXIT=$?
+
+assert_exit_code 1 "$T55_EXIT" "T55"
+assert_stdout_contains "$T55_OUTPUT" "Cannot auto-detect target" "T55"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INSTALL SCRIPT TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T56 — install.sh: shows usage without arguments
+run_test "T56 — install.sh: shows usage without arguments"
+INSTALL="$LIBRARY/tooling/lib/install.sh"
+T56_OUTPUT=$("$INSTALL" 2>&1) || true
+
+assert_stdout_contains "$T56_OUTPUT" "Usage:" "T56"
+assert_stdout_contains "$T56_OUTPUT" "install" "T56"
+assert_stdout_contains "$T56_OUTPUT" "uninstall" "T56"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
