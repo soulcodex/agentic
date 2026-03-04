@@ -81,7 +81,7 @@ assert_exit_code() {
 
 assert_stdout_contains() {
   local output="$1" pattern="$2" label="$3"
-  if echo "$output" | grep -qF "$pattern"; then
+  if echo "$output" | grep -qF -- "$pattern"; then
     pass "$label — stdout contains: $pattern"
   else
     fail "$label — stdout missing: $pattern"
@@ -1077,6 +1077,27 @@ T56_OUTPUT=$("$INSTALL" 2>&1) || true
 assert_stdout_contains "$T56_OUTPUT" "Usage:" "T56"
 assert_stdout_contains "$T56_OUTPUT" "install" "T56"
 assert_stdout_contains "$T56_OUTPUT" "uninstall" "T56"
+
+# T57 — remote install.sh: shows help
+run_test "T57 — remote install.sh: shows help"
+REMOTE_INSTALL="$LIBRARY/install.sh"
+T57_OUTPUT=$("$REMOTE_INSTALL" --help 2>&1) || true
+
+assert_stdout_contains "$T57_OUTPUT" "agentic installer" "T57"
+assert_stdout_contains "$T57_OUTPUT" "--dir" "T57"
+assert_stdout_contains "$T57_OUTPUT" "--global" "T57"
+assert_stdout_contains "$T57_OUTPUT" "--branch" "T57"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INDEX STABILITY TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T58 — index.sh: does not update unchanged content
+run_test "T58 — index.sh: does not update unchanged content"
+T58_OUTPUT=$(bash "$INDEX" --library "$LIBRARY" 2>&1)
+
+assert_stdout_contains "$T58_OUTPUT" "Unchanged: index/skills.json" "T58"
+assert_stdout_contains "$T58_OUTPUT" "Unchanged: index/fragments.json" "T58"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

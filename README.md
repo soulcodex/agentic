@@ -40,6 +40,16 @@ Customize per-project with local profiles and project-specific skills → [docs/
 
 ## Quickstart
 
+### One-line Install
+
+```bash
+curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | bash
+```
+
+This clones the library to `~/.local/share/agentic` and installs the `agentic` CLI to `~/.local/bin`.
+
+### Manual Install (for forking)
+
 ```bash
 # 1. Fork this repo — it becomes your team's instruction library
 git clone https://github.com/your-org/agentic ~/agentic-library
@@ -48,11 +58,15 @@ git clone https://github.com/your-org/agentic ~/agentic-library
 cd ~/agentic-library
 just install
 # (installs to ~/.local/bin — add to PATH if needed)
+```
 
-# 3. Pick a profile
+### Deploy to a Project
+
+```bash
+# List available profiles
 agentic list profiles
 
-# 4. Deploy to your project
+# Deploy to your project
 agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 ```
 
