@@ -81,7 +81,7 @@ Then re-run this installer."
 # ── Help ──────────────────────────────────────────────────────────────────────
 show_help() {
   cat <<'EOF'
-agentic installer — Install the agentic library and CLI
+agentic installer — One library. One deploy. All your AI tools stay in sync.
 
 Usage:
   curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | bash

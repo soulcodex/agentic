@@ -1083,7 +1083,7 @@ run_test "T57 — remote install.sh: shows help"
 REMOTE_INSTALL="$LIBRARY/install.sh"
 T57_OUTPUT=$("$REMOTE_INSTALL" --help 2>&1) || true
 
-assert_stdout_contains "$T57_OUTPUT" "agentic installer" "T57"
+assert_stdout_contains "$T57_OUTPUT" "One library. One deploy." "T57"
 assert_stdout_contains "$T57_OUTPUT" "--dir" "T57"
 assert_stdout_contains "$T57_OUTPUT" "--global" "T57"
 assert_stdout_contains "$T57_OUTPUT" "--branch" "T57"

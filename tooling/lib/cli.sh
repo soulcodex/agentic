@@ -99,7 +99,7 @@ discover_target() {
 # ── Help system ───────────────────────────────────────────────────────────────
 show_help() {
   cat <<'EOF'
-agentic — Global CLI for the agentic library
+agentic — One library. One deploy. All your AI tools stay in sync.
 
 Usage:
   agentic <command> [options]
