@@ -77,3 +77,18 @@ src/
    with pure unit tests — no database, no HTTP, no time.
 4. **One adapter per port per deployment**: a port may have multiple adapters (real + test stub),
    but a running application wires exactly one adapter per port.
+5. **Wiring happens in exactly one place**: infrastructure components are only instantiated at
+   the composition root (e.g., `main`, `cmd/wire`, `AppModule`). No other layer creates concrete
+   adapters. This makes the dependency graph explicit and replaceable.
+6. **No circular dependencies**: before introducing a new import, verify the dependency graph
+   stays acyclic (tools: `madge`, `go mod graph`, `deptrac`, `import-cycles`). When the
+   direction is unclear, prefer events or DTO hand-offs over direct calls.
+7. **Package names express purpose, not implementation**: name packages by what they do
+   (`authorization`, `messaging`, `storage`), not by the technology behind them (`openfga`,
+   `kafka`, `postgres`). Place concrete implementations in subpackages named after the
+   technology (`authorization/openfga`, `storage/postgres`). This keeps the application layer
+   decoupled from infrastructure choices.
+8. **Application-layer errors are infrastructure-agnostic**: define meaningful error types at
+   the application boundary (e.g., `ErrNotFound`, `ErrPermissionDenied`). Never let
+   infrastructure-specific errors (SQL errors, HTTP status codes, driver errors) leak upward
+   through the port interface.

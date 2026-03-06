@@ -79,6 +79,25 @@ The bus also provides a hook point for middleware: logging, validation, transact
   the write model's schema.
 - A stale read model is acceptable. The write model is the source of truth.
 
+### Contract & Schema Parity
+
+Every command or query that crosses a service boundary must have a versioned,
+machine-readable contract:
+
+- **Commands that enter via HTTP/gRPC/message queue** must have a corresponding request schema
+  (OpenAPI, Protobuf, JSON Schema). The schema is the single source of truth — generated code
+  is derived from it, not the reverse.
+- **Query responses that cross service boundaries** must have a versioned response schema.
+  Query handlers return DTOs whose shape is governed by the contract.
+- Validate generated artifacts (e.g., `oapi-codegen`, `protoc`, `spectral lint`) before
+  shipping. Document the generation command in the project's README or `Makefile`/`justfile`
+  so any contributor can reproduce it.
+- **Schema drift is a breaking change**: removing or renaming a field in a command or query
+  DTO that is part of a published contract requires a migration plan (version the route or
+  message type, run old and new in parallel, retire old after consumers migrate).
+- Stale contracts are worse than no contracts. Update the schema in the same commit as the
+  handler change — never after.
+
 ### File Layout
 
 ```

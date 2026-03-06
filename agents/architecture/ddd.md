@@ -58,6 +58,49 @@ A bounded context defines the boundary within which a domain model applies.
 - Input validation (format, required fields) happens at the boundary (controller/handler),
   not in the domain.
 
+### Pre-Modeling Checklist
+
+Answer these questions **before** writing any model, aggregate, or handler. Capture the
+answers in the PR description or a short design note so the reasoning stays discoverable.
+
+1. **Context ownership** — which bounded context owns this change? Where do the invariants
+   naturally live?
+2. **Business capabilities** — which capabilities are affected? Sketch a one-paragraph
+   use-case narrative referencing existing application services.
+3. **Aggregate boundaries** — what are the aggregates, their invariants, and their consistency
+   boundaries? Does the change require a new aggregate root or extend an existing one?
+4. **Cross-context interactions** — are there cross-context collaborations? If so, can they be
+   expressed via domain events or read models instead of synchronous imports? Prefer async
+   event hand-offs over direct cross-context calls.
+5. **Policy placement** — which policies belong to the domain layer (pure business rules) vs.
+   the application layer (orchestration, authorization, validation)? Document the decision.
+
+### Authorization Boundary
+
+Authorization is a cross-cutting concern — keep it entirely out of the domain:
+
+- Domain models must stay **ignorant of permissions and roles** so business invariants remain
+  pure and independently testable.
+- Define authorization interfaces and errors in an **infrastructure-agnostic shared package**
+  (e.g., `pkg/authorization`) — never inside domain packages.
+- Module-specific permissions and authorizers belong in the **application layer**; the domain
+  layer never calls them.
+- Concrete authorization adapters (e.g., OpenFGA, OPA, Casbin) live in infrastructure and
+  implement the interfaces — never imported directly by application services.
+- Permission-to-relation mappings are registered once at the **composition root** (wiring), not
+  scattered across handlers.
+
+### Shared Module Discipline
+
+A shared/common module must stay lean:
+
+- Limit it to truly cross-cutting primitives: base value objects, shared DTOs, error types, and
+  cross-context interface definitions.
+- If accepting a dependency would force the shared module to know about a specific bounded
+  context, push the abstraction down to that context instead.
+- Never place bounded-context business logic in a shared module to avoid duplication — duplication
+  is preferable to the wrong coupling.
+
 ### Anti-Patterns to Avoid
 
 - **Anemic Domain Model**: entities with only getters/setters and no behavior. Behavior belongs
@@ -66,3 +109,7 @@ A bounded context defines the boundary within which a domain model applies.
   the whole domain. Breaks transactional boundaries.
 - **Repository for every entity**: only aggregate roots have repositories. Child entities are
   accessed through the root.
+- **Authorization in domain**: checking permissions inside aggregate methods or domain services
+  couples business rules to infrastructure concerns and breaks testability.
+- **Cross-context direct imports**: importing another bounded context's domain or infrastructure
+  package directly. Use well-defined ports, shared DTOs, or domain events instead.

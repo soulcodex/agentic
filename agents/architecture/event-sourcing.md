@@ -74,6 +74,33 @@ Event handlers and projection updates must be idempotent:
 - Track processed event IDs to prevent double-processing.
 - Use database transactions to atomically update the projection and mark the event as processed.
 
+### Concurrency Safety
+
+Optimistic concurrency in the event store (version checks) is necessary but not sufficient:
+
+- **Test under race conditions**: append and projection-update paths must be exercised with
+  a race-condition detector (e.g., Go's `-race` flag, ThreadSanitizer, or equivalent). A
+  passing test suite without race detection does not qualify as validation for event-sourced
+  aggregates.
+- Use atomic database transactions to update a projection and mark its checkpoint in a single
+  operation — never two separate writes. A crash between them causes double-processing or
+  silent data loss.
+- Competing consumers reading the same stream partition must use optimistic locking or
+  upsert semantics; assume concurrent execution is the default, not the exception.
+
+### Event Schema as a Public Contract
+
+Events that cross service boundaries (published to a broker or event store consumed by
+external systems) are public contracts — treat them with the same discipline as API schemas:
+
+- **Define a versioned schema** (JSON Schema, Protobuf, Avro) for every published event type.
+  The schema is the source of truth; generated serialization code is derived from it.
+- **Breaking changes require a migration plan**: add a `v2` event type, run both versions in
+  parallel until all consumers have migrated, then retire `v1`. Never silently change the
+  shape of an existing event type.
+- **Internal events** (never leaving the service boundary) are lower risk, but still benefit
+  from schema definitions — they become external the moment a second consumer appears.
+
 ### When to Use Event Sourcing
 
 Good fit:
