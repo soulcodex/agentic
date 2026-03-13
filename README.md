@@ -149,4 +149,12 @@ Run `just setup` to check (and install on macOS) all required tools: `just`, `ba
 
 Contributions welcome — new fragments, profiles, vendor adapters, and skills. Run `just lint && just test` before opening a PR.
 
-MIT
+## Contributing
+
+Contributions are welcome! Please see our [Contributing Guide](.github/CONTRIBUTING.md) for details on how to set up the development environment, run quality checks, and submit pull requests.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

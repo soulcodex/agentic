@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-04T13:02:20Z",
+  "generated_at": "2026-03-06T18:21:18Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -36,6 +36,19 @@
         "agentic",
         "meta",
         "deployment"
+      ]
+    },
+    {
+      "name": "persist-plan",
+      "group": "agentic",
+      "path": "skills/agentic/persist-plan/SKILL.md",
+      "description": "Persists the current or completed plan as a structured Markdown file under .agentic/plans/ with a datestamped, slugged f",
+      "version": "1.0.0",
+      "tags": [
+        "agentic",
+        "planning",
+        "architecture",
+        "multi-agent"
       ]
     },
     {

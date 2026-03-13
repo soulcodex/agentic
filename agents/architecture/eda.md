@@ -124,3 +124,35 @@ Event schemas are public contracts; breaking changes break consumers without war
 - Emit a metric for **processing duration** per event type and **error rate** per consumer.
 - Log the event `id`, `type`, and `correlation_id` at the start and end of every consumer
   handler — never lose the ability to trace an event through the system.
+
+### Dependency & Local Parity
+
+- Only adopt a message broker or external event store if it **publishes a Docker image**
+  (official or community). This ensures integration tests can spin up the dependency
+  deterministically without mocks and without relying on shared/remote environments.
+- For SaaS brokers that lack a Docker image, build a lightweight stub/mock container and
+  treat it as the canonical local and CI target.
+- Document broker startup, teardown, and any required seeding in the project's compose file
+  and README so any contributor can reproduce a full local environment with a single command.
+
+### Intentional Planning Before Implementation
+
+Before writing any producer or consumer, capture and communicate:
+
+1. **Which events are produced and consumed** — name them explicitly in past tense.
+2. **Which bounded contexts or services are affected** — map ownership of each event type.
+3. **Correlation and tracing strategy** — how will `correlation_id` flow from the originating
+   request through every downstream handler?
+4. **Failure and retry contract** — what is the retry policy, DLQ owner, and replay mechanism?
+
+Skipping this step leads to undocumented event flows that are expensive to debug and nearly
+impossible to hand off to other agents or team members.
+
+### Document Flows When They Change
+
+When event flows, choreography boundaries, consumer ownership, or schema contracts change:
+
+- Update the relevant architecture diagrams or flow documentation in the same PR.
+- Update the schema registry or contract files alongside the code change.
+- Stale EDA documentation is the most dangerous kind of drift: a consumer reading an outdated
+  flow diagram may silently process events incorrectly.

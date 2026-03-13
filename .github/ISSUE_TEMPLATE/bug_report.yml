@@ -1,0 +1,65 @@
+---
+name: Bug Report
+description: Report something that isn't working correctly
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the issue
+      placeholder: Describe what's broken or not working
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce the issue
+      placeholder: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen
+      placeholder: Describe what you expected to happen
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happens
+      placeholder: Describe what actually happened
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      description: Your operating system (e.g., macOS 14.0, Ubuntu 22.04, Windows 11)
+      placeholder: macOS 14.0
+  - type: input
+    id: just-version
+    attributes:
+      label: just version
+      description: Run `just --version` to get this
+      placeholder: 1.x.x
+  - type: input
+    id: yq-version
+    attributes:
+      label: yq version
+      description: Run `yq --version` to get this
+      placeholder: 4.x.x
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem (error messages, screenshots, etc.)
+      placeholder: Add any other relevant information here
