@@ -147,11 +147,7 @@ Add a fragment, profile, skill, or vendor adapter — all in plain Markdown and 
 
 Run `just setup` to check (and install on macOS) all required tools: `just`, `bash`, `yq`, `jq`.
 
-Contributions welcome — new fragments, profiles, vendor adapters, and skills. Run `just lint && just test` before opening a PR.
-
-## Contributing
-
-Contributions are welcome! Please see our [Contributing Guide](.github/CONTRIBUTING.md) for details on how to set up the development environment, run quality checks, and submit pull requests.
+Contributions are welcome — new fragments, profiles, vendor adapters, and skills. Please see our [Contributing Guide](.github/CONTRIBUTING.md) for details on how to set up the development environment, run quality checks, and submit pull requests. Run `just lint && just test` before opening a PR.
 
 ---
 
