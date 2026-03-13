@@ -15,7 +15,7 @@ If you discover a security vulnerability, please report it responsibly:
 
 1. **Private disclosure** — Do not open a public GitHub issue
 2. **GitHub Security Advisories** — Use [GitHub's private vulnerability reporting](https://github.com/soulcodex/agentic/security/advisories/new)
-3. **Email** — Alternatively, email security concerns to `security@example.com` (placeholder)
+3. **Email** — Alternatively, email security concerns to `info@soulcodex.es`
 
 Please include:
 - Description of the vulnerability
