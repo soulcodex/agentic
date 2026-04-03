@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-03T22:46:22Z",
+  "generated_at": "2026-04-03T23:19:35Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -181,6 +181,20 @@
         "webhook",
         "reliability",
         "integration"
+      ]
+    },
+    {
+      "name": "json-to-toon",
+      "group": "data",
+      "path": "skills/data/json-to-toon/SKILL.md",
+      "description": "Transforms JSON input into Token-Oriented Object Notation (TOON) to reduce token consumption in LLM prompts and context ",
+      "version": "1.0.0",
+      "tags": [
+        "data",
+        "token-optimization",
+        "toon",
+        "json",
+        "llm"
       ]
     },
     {
