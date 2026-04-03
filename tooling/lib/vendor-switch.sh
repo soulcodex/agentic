@@ -129,7 +129,7 @@ migrate_active_vendor_format() {
 remove_all_vendor_symlinks() {
   # Remove vendor entrypoint symlinks (check if symlink before removing)
   [[ -L "$TARGET/CLAUDE.md" ]] && rm "$TARGET/CLAUDE.md"
-  [[ -L "$TARGET/opencode.json" ]] && rm "$TARGET/opencode.json"
+
   [[ -L "$TARGET/.github/copilot-instructions.md" ]] && rm "$TARGET/.github/copilot-instructions.md"
   [[ -L "$TARGET/.github/instructions" ]] && rm "$TARGET/.github/instructions"
   [[ -L "$TARGET/.gemini/systemPrompt.md" ]] && rm "$TARGET/.gemini/systemPrompt.md"
@@ -198,10 +198,7 @@ create_vendor_symlinks() {
       # Gemini uses prompt-injected skills, no symlink needed
       ;;
     opencode)
-      if [[ -f "$VENDOR_FILES_DIR/opencode/opencode.json" ]]; then
-        ln -sf ".agentic/vendor-files/opencode/opencode.json" "$TARGET/opencode.json"
-        echo "    Linked: opencode.json → .agentic/vendor-files/opencode/opencode.json"
-      fi
+      # NOTE: opencode.json is intentionally not generated — users manage their own config.
       # Skills symlink - OpenCode reads from .opencode/skills
       if [[ -d "$TARGET/.agentic/skills" ]]; then
         mkdir -p "$TARGET/.opencode"
@@ -220,7 +217,7 @@ vendor_files_exist() {
     copilot)  [[ -f "$VENDOR_FILES_DIR/copilot/copilot-instructions.md" ]] ;;
     codex)    [[ -d "$VENDOR_FILES_DIR/codex" ]] ;;
     gemini)   [[ -f "$VENDOR_FILES_DIR/gemini/systemPrompt.md" ]] ;;
-    opencode) [[ -f "$VENDOR_FILES_DIR/opencode/opencode.json" ]] ;;
+    opencode) [[ -d "$VENDOR_FILES_DIR/opencode" ]] ;;
     *)        return 1 ;;
   esac
 }
@@ -230,6 +227,17 @@ vendor_files_exist() {
 # Run legacy migrations
 migrate_from_stash
 migrate_active_vendor_format
+
+# Guard: if link mode and agentic_root is missing, fail clearly
+if [[ -f "$CONFIG" ]]; then
+  DEPLOY_MODE=$(yq '.deploy_mode // "copy"' "$CONFIG" 2>/dev/null || echo "copy")
+  AGENTIC_ROOT=$(yq '.agentic_root // ""' "$CONFIG" 2>/dev/null || echo "")
+  if [[ "$DEPLOY_MODE" == "link" && -n "$AGENTIC_ROOT" && ! -d "$AGENTIC_ROOT" ]]; then
+    echo "Error: deploy_mode is 'link' but agentic_root '$AGENTIC_ROOT' does not exist." >&2
+    echo "Run 'just sync-links $TARGET' after restoring the library." >&2
+    exit 1
+  fi
+fi
 
 # Generate vendor files for any vendors that don't have them
 for vendor in "${VENDORS[@]}"; do

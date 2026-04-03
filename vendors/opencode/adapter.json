@@ -41,5 +41,5 @@
   "unsupported_sections": [],
   "character_limit_per_file": null,
   "total_character_limit": null,
-  "notes": "OpenCode reads AGENTS.md natively. gen_opencode() generates a starter opencode.json (symlinked from .agentic/vendor-files/opencode/). Skills are deployed canonically to .agentic/skills/ and symlinked to .opencode/skills/. OpenCode also reads from .claude/skills/ and .agents/skills/ paths."
+  "notes": "OpenCode reads AGENTS.md natively — no opencode.json is generated. Users manage their own opencode.json. Skills are deployed canonically to .agentic/skills/ and symlinked to .opencode/skills/."
 }

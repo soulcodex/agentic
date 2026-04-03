@@ -16,12 +16,14 @@ format_markdown() {
 LIBRARY=""
 TARGET=""
 VENDORS="all"
+LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --library) LIBRARY="$2"; shift 2 ;;
     --target)  TARGET="$2";  shift 2 ;;
     --vendors) VENDORS="$2"; shift 2 ;;
+    --link)    LINK_MODE=true; shift ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -217,21 +219,9 @@ gen_gemini() {
 # ── Opencode adapter ──────────────────────────────────────────────────────────
 gen_opencode() {
   echo "  Generating Opencode adapter..."
-  local vendor_dir="$VENDOR_FILES_DIR/opencode"
-  mkdir -p "$vendor_dir"
-  local template="$LIBRARY/vendors/opencode/template.opencode.json"
-  local out_file="$vendor_dir/opencode.json"
-
-  sed \
-    -e "s|{{PROJECT_NAME}}|${PROJECT_NAME}|g" \
-    -e "s|{{PROFILE_NAME}}|${PROFILE}|g" \
-    -e "s|{{PROFILE_VERSION}}|${PROFILE_VER}|g" \
-    -e "s|{{GENERATED_AT}}|${GENERATED_AT}|g" \
-    -e "s|{{TARGET_PATH}}|${TARGET}|g" \
-    "$template" > "$out_file"
-
-  echo "  Created: .agentic/vendor-files/opencode/opencode.json"
-  echo "  Opencode reads AGENTS.md natively — AGENTS.md is already the Opencode-compatible file."
+  echo "  OpenCode reads AGENTS.md natively — no opencode.json generated."
+  echo "  Users manage their own opencode.json configuration."
+  mkdir -p "$VENDOR_FILES_DIR/opencode"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -251,3 +241,14 @@ done
 
 echo ""
 echo "Vendor files generated in: $TARGET/.agentic/vendor-files/"
+
+# ── Link mode: move generated files to library _generated dir and symlink ───
+if [[ "$LINK_MODE" == "true" ]]; then
+  PROJECT_NAME=$(basename "$TARGET")
+  GENERATED_DIR="$LIBRARY/_generated/$PROJECT_NAME/vendor-files"
+  mkdir -p "$GENERATED_DIR"
+  cp -r "$VENDOR_FILES_DIR/." "$GENERATED_DIR/"
+  rm -rf "$VENDOR_FILES_DIR"
+  ln -sf "$GENERATED_DIR" "$VENDOR_FILES_DIR"
+  echo "Linked .agentic/vendor-files → $GENERATED_DIR (link mode)"
+fi
