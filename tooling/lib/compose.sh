@@ -19,6 +19,7 @@ PROFILE_FILE=""
 TARGET=""
 DRY_RUN=false
 FULL_MODE=false
+LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -27,7 +28,8 @@ while [[ $# -gt 0 ]]; do
     --profile-file) PROFILE_FILE="$2"; shift 2 ;;
     --target)       TARGET="$2";       shift 2 ;;
     --dry-run)      DRY_RUN=true;      shift   ;;
-    --full)         FULL_MODE=true;    shift  ;;
+    --full)         FULL_MODE=true;    shift   ;;
+    --link)         LINK_MODE=true;    shift   ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -118,6 +120,14 @@ copy_fragments_to_target() {
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
     cp "$frag" "$dest/$(basename "$frag")"
   done
+}
+
+# ── Fragment symlink (used in --link mode) ────────────────────────────────────
+link_fragments_to_library() {
+  local dest="$TARGET/.agentic/fragments"
+  # Remove any existing copy or symlink
+  rm -rf "$dest"
+  ln -sf "$LIBRARY/agents" "$dest"
 }
 
 # ── Fragment reference table (lean mode) ──────────────────────────────────────
@@ -352,8 +362,14 @@ compose_flat() {
     mkdir -p "$LOCK_DIR"
 
     if [[ "$FULL_MODE" == "false" ]]; then
-      # Lean mode: copy fragments and write lock with mode: lean
-      copy_fragments_to_target
+      # Lean mode: link or copy fragments and write lock with mode: lean
+      if [[ "$LINK_MODE" == "true" ]]; then
+        link_fragments_to_library
+      else
+        copy_fragments_to_target
+      fi
+      local deploy_mode_str="copy"
+      [[ "$LINK_MODE" == "true" ]] && deploy_mode_str="link"
       cat > "$LOCK_DIR/config.yaml" <<LOCK
 # Managed by agentic library — do not edit manually
 # Regenerate with: just compose ${PROFILE} ${TARGET}
@@ -363,6 +379,7 @@ profile_version: "${PROFILE_VER}"
 composed_at: "${GENERATED_AT}"
 mode: lean
 agentic_root: "${LIBRARY}"
+deploy_mode: ${deploy_mode_str}
 active_vendors: []
 LOCK
     else
@@ -631,6 +648,22 @@ update_gitignore() {
     done
   else
     printf '%s\n' "${gitignore_entries[@]}" > "$gitignore"
+  fi
+
+  # In --link mode, also ignore the canonical symlinked directories
+  if [[ "$LINK_MODE" == "true" ]]; then
+    local link_entries=(
+      ".agentic/fragments"
+      ".agentic/skills"
+      ".agentic/vendor-files"
+    )
+    if [[ -f "$gitignore" ]]; then
+      for entry in "${link_entries[@]}"; do
+        if ! grep -qxF "$entry" "$gitignore"; then
+          echo "$entry" >> "$gitignore"
+        fi
+      done
+    fi
   fi
 }
 

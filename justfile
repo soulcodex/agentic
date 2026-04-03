@@ -71,6 +71,38 @@ sync target:
     @"{{LIBRARY_ROOT}}/tooling/lib/sync.sh" \
         --target "{{target}}"
 
+# Compose with symlinks instead of copying files (POSIX only — not supported on Windows)
+# Usage: just compose-linked typescript-hexagonal-microservice /path/to/project
+compose-linked profile target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/compose.sh" \
+        --library "{{LIBRARY_ROOT}}" \
+        --profile "{{profile}}" \
+        --target "{{target}}" \
+        --link
+
+# Full deploy using symlinks (POSIX only)
+# Usage: just deploy-linked typescript-hexagonal-microservice /path/to/project claude
+deploy-linked profile target vendors skills="all":
+    @just compose-linked "{{profile}}" "{{target}}"
+    @"{{LIBRARY_ROOT}}/tooling/lib/vendor-gen.sh" \
+        --library "{{LIBRARY_ROOT}}" \
+        --target "{{target}}" \
+        --vendors "{{vendors}}" \
+        --link
+    @"{{LIBRARY_ROOT}}/tooling/lib/deploy-skills.sh" \
+        --library "{{LIBRARY_ROOT}}" \
+        --target "{{target}}" \
+        --skills "{{skills}}" \
+        --vendor "{{vendors}}" \
+        --link
+    @just vendor-switch "{{target}}" "{{vendors}}"
+
+# Re-create broken symlinks from agentic_root stored in .agentic/config.yaml
+# Usage: just sync-links /path/to/project
+sync-links target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/sync-links.sh" \
+        --target "{{target}}"
+
 # ─── Vendor Generation ────────────────────────────────────────────────────────
 
 # Generate vendor-specific files from a target project's AGENTS.md
