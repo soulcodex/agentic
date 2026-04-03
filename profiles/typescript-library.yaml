@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "TypeScript Library"
+  description: >
+    TypeScript reusable library/package for publishing to npm or a private registry.
+    Prioritises strict typing, ESM-first output, tree-shakability, zero framework
+    dependencies, and semantic versioning discipline.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+  languages:
+    - typescript
+  frameworks: []
+  architecture: []
+  practices:
+    - tdd
+    - ci-cd
+  domains: []
+
+tech_stack:
+  language_runtime: "Node.js 20+ / browser-compatible"
+  package_manager: "pnpm"
+  test_framework: "Vitest"
+  build_tool: "tsup / tsc"
+
+skills:
+  - add-tests
+  - code-review
+  - refactor
+  - write-changelog
+  - write-readme
+  - github-actions-workflow
+  - static-code-analysis
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test --run"
+  lint_command: "pnpm lint"
+  project_header: |
+    This is a TypeScript reusable library. The public API (everything exported
+    from the package entry points declared in package.json#exports) is a contract.
+    Breaking changes require a major semver bump.
+    Target ESM-first. Do not introduce runtime framework dependencies —
+    the consumer chooses the framework.
+    Keep the dependency tree minimal: every prod dependency in package.json is
+    a cost imposed on every consumer.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode
