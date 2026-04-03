@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "Go Library"
+  description: >
+    Go reusable library/package intended to be imported by other modules.
+    Prioritises stable public API, backward compatibility, minimal transitive
+    dependencies, and idiomatic Go interface design.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+  languages:
+    - go
+  frameworks: []
+  architecture: []
+  practices:
+    - tdd
+    - go-standard-layout
+    - ci-cd
+  domains: []
+
+tech_stack:
+  language_runtime: "Go 1.23+"
+  package_manager: "Go modules"
+  test_framework: "testify / stdlib testing"
+
+skills:
+  - add-tests
+  - code-review
+  - refactor
+  - write-changelog
+  - write-readme
+  - github-actions-workflow
+  - static-code-analysis
+
+output:
+  build_command: "go build ./..."
+  test_command: "go test ./... -race -cover"
+  lint_command: "golangci-lint run"
+  project_header: |
+    This is a Go reusable library. The public API (all exported symbols) is a
+    contract — breaking changes require a major version bump (vN module path).
+    Keep transitive dependencies minimal: every new `require` in go.mod is a
+    cost imposed on every consumer.
+    /pkg/ contains the public API. /internal/ contains implementation details
+    that must never be imported externally.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode
