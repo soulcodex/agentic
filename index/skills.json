@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-06T18:21:18Z",
+  "generated_at": "2026-04-03T21:10:50Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -49,6 +49,20 @@
         "planning",
         "architecture",
         "multi-agent"
+      ]
+    },
+    {
+      "name": "golang-manual-di",
+      "group": "backend",
+      "path": "skills/backend/golang-manual-di/SKILL.md",
+      "description": "Guides manual dependency injection wiring for Go services: Must-pattern entrypoints, OS-signal-driven context lifecycle,",
+      "version": "1.0.0",
+      "tags": [
+        "golang",
+        "dependency-injection",
+        "architecture",
+        "backend",
+        "solid"
       ]
     },
     {
