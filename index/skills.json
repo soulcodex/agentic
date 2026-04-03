@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-03T21:10:50Z",
+  "generated_at": "2026-04-03T22:46:22Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -43,6 +43,19 @@
       "group": "agentic",
       "path": "skills/agentic/persist-plan/SKILL.md",
       "description": "Persists the current or completed plan as a structured Markdown file under .agentic/plans/ with a datestamped, slugged f",
+      "version": "1.0.0",
+      "tags": [
+        "agentic",
+        "planning",
+        "architecture",
+        "multi-agent"
+      ]
+    },
+    {
+      "name": "write-plan",
+      "group": "agentic",
+      "path": "skills/agentic/write-plan/SKILL.md",
+      "description": "Automatically persists every plan produced by the agent as a structured Markdown file under .agentic/plans/ with a dates",
       "version": "1.0.0",
       "tags": [
         "agentic",
