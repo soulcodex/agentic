@@ -17,6 +17,7 @@ LIBRARY=""
 TARGET=""
 SKILLS="all"
 VENDOR=""
+LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,6 +25,7 @@ while [[ $# -gt 0 ]]; do
     --target)  TARGET="$2";  shift 2 ;;
     --skills)  SKILLS="$2";  shift 2 ;;
     --vendor)  VENDOR="$2";  shift 2 ;;
+    --link)    LINK_MODE=true; shift ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -34,6 +36,29 @@ done
 # Canonical skill location
 SKILLS_DST="$TARGET/.agentic/skills"
 mkdir -p "$SKILLS_DST"
+
+# ── Link mode ────────────────────────────────────────────────────────────────
+if [[ "$LINK_MODE" == "true" ]]; then
+  echo "Deploying skills (link mode) to $TARGET..."
+  # Remove any existing copy or symlink
+  rm -rf "$SKILLS_DST"
+  ln -sf "$LIBRARY/skills" "$SKILLS_DST"
+  echo "Linked .agentic/skills → $LIBRARY/skills (link mode)"
+
+  # Still create vendor skill symlinks if vendor specified
+  if [[ -n "$VENDOR" ]]; then
+    IFS=',' read -ra VENDOR_LIST <<< "$VENDOR"
+    for v in "${VENDOR_LIST[@]}"; do
+      v=$(echo "$v" | tr -d ' ')
+      create_skill_symlinks "$v"
+    done
+  fi
+
+  generate_skills_readme
+  echo ""
+  echo "Skills deployed (symlinked) to $TARGET/.agentic/skills/"
+  exit 0
+fi
 
 # ── Skill resolution ──────────────────────────────────────────────────────────
 deploy_skill() {

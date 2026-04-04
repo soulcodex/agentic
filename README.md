@@ -70,7 +70,7 @@ agentic list profiles
 agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 ```
 
-Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/systemPrompt.md`, `opencode.json`, and `.agentic/config.yaml` into `~/code/my-api`. Run `agentic sync` from within any project to regenerate from local profile.
+Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/systemPrompt.md`, and `.agentic/config.yaml` into `~/code/my-api`. Run `agentic sync` from within any project to regenerate from local profile.
 
 ---
 
@@ -102,13 +102,20 @@ Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/sys
 | **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` |
 | **OpenAI Codex** | `AGENTS.md` |
 | **Gemini CLI** | `.gemini/systemPrompt.md` |
-| **Opencode** | `AGENTS.md`, `opencode.json` |
+| **Opencode** | `AGENTS.md` (native), `.opencode/skills/` |
 
 [Vendor details, glob mechanism, and vendor-switch →](docs/vendors.md)
 
 ---
 
 ## Key Commands
+
+### Platform Notes
+
+The `--link` / `compose-linked` / `deploy-linked` commands use POSIX symlinks and are
+**not supported on Windows** (without WSL). On non-POSIX systems these commands will
+fail with a clear error. Use the standard `compose` / `deploy` commands instead, which
+copy files and work on all platforms.
 
 ```bash
 # Global CLI (install with: just install)
