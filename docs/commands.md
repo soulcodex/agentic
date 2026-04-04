@@ -175,10 +175,14 @@ just sync TARGET                      # Re-sync configuration
 
 ### Link Mode (POSIX only)
 
-> **Not supported on Windows** (without WSL). These commands create POSIX symlinks
-> instead of copying files. The target repo stays minimal — only `config.yaml`,
-> `profile.yaml`, and `project-skills/` are committed; fragments, skills, and
-> vendor-files are live symlinks back to the library.
+> **Platform note:** The `--link` / `compose-linked` / `deploy-linked` commands use
+> POSIX symlinks and are **not supported on Windows** (without WSL). On non-POSIX
+> systems these commands will fail with a clear error. Use the standard `compose` /
+> `deploy` commands instead, which copy files and work on all platforms.
+>
+> These commands create POSIX symlinks instead of copying files. The target repo stays
+> minimal — only `config.yaml`, `profile.yaml`, and `project-skills/` are committed;
+> fragments, skills, and vendor-files are live symlinks back to the library.
 
 ```bash
 just compose-linked PROFILE TARGET          # Compose using symlinks

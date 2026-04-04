@@ -112,13 +112,6 @@ Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/sys
 
 ## Key Commands
 
-### Platform Notes
-
-The `--link` / `compose-linked` / `deploy-linked` commands use POSIX symlinks and are
-**not supported on Windows** (without WSL). On non-POSIX systems these commands will
-fail with a clear error. Use the standard `compose` / `deploy` commands instead, which
-copy files and work on all platforms.
-
 ```bash
 # Global CLI (install with: just install)
 agentic deploy PROFILE TARGET VENDORS    # compose + vendor-gen + deploy skills
@@ -136,7 +129,7 @@ just lint && just test                   # validate the library
 <details>
 <summary>Full command reference</summary>
 
-See [docs/commands.md](docs/commands.md) for the complete reference including discovery, composition, deployment, maintenance, and MCP server commands.
+See [docs/commands.md](docs/commands.md) for the complete reference including discovery, composition, deployment, maintenance, MCP server commands, and platform notes on link mode.
 
 </details>
 
