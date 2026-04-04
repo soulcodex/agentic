@@ -17,6 +17,8 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 | `python-fastapi-microservice` | FastAPI service with uv + Pydantic, hexagonal | Python |
 | `python-hexagonal-typer-cli` | Python CLI tool with Typer + Rich, hexagonal | Python |
 | `php-hexagonal-ddd` | PHP 8.3+ Symfony application, hexagonal + DDD + CQRS | PHP |
+| `go-library` | Go reusable library/package with stable public API and minimal transitive dependencies | Go |
+| `typescript-library` | TypeScript reusable library for npm/private registry, ESM-first, zero framework dependencies | TypeScript |
 
 ## Nested Output Mode
 
