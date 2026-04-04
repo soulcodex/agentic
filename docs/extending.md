@@ -77,6 +77,7 @@ Skills are reusable agent task definitions in `skills/{group}/{name}/SKILL.md`.
 
 ```bash
 mkdir -p skills/development/my-skill
+# Groups: development, agentic, data, quality, architecture, or any custom name
 # Write skills/development/my-skill/SKILL.md with frontmatter + steps
 just index
 just lint

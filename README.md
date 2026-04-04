@@ -89,6 +89,8 @@ Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/sys
 | `python-fastapi-microservice` | FastAPI service with uv + Pydantic | Python |
 | `python-hexagonal-typer-cli` | Python CLI tool with Typer + Rich | Python |
 | `php-hexagonal-ddd` | PHP 8.3+ Symfony application | PHP |
+| `go-library` | Go reusable library/package with stable public API | Go |
+| `typescript-library` | TypeScript reusable library for npm/private registry | TypeScript |
 
 [Full profile details, nested mode, and tier config →](docs/profiles.md)
 

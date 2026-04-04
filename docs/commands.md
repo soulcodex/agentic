@@ -65,6 +65,7 @@ agentic deploy <profile> [target] <vendors> [options]
 
 **Options:**
 - `--full` — Inline all fragment content (monolithic AGENTS.md)
+- `--link` — Use symlinks instead of file copies (POSIX only; see Link Mode section below)
 - `--skills LIST` — Deploy specific skills (default: all from profile)
 
 **Examples:**
@@ -84,6 +85,7 @@ agentic compose <profile> [target] [options]
 
 **Options:**
 - `--full` — Inline all fragment content
+- `--link` — Use symlinks instead of file copies (POSIX only)
 
 **Examples:**
 ```bash
@@ -168,6 +170,20 @@ just compose-full PROFILE TARGET      # Compose AGENTS.md (full mode)
 just dry-run PROFILE                  # Preview without writing files
 just validate TARGET                  # Validate AGENTS.md in a project
 just sync-check TARGET                # Check for config drift
+just sync TARGET                      # Re-sync configuration
+```
+
+### Link Mode (POSIX only)
+
+> **Not supported on Windows** (without WSL). These commands create POSIX symlinks
+> instead of copying files. The target repo stays minimal — only `config.yaml`,
+> `profile.yaml`, and `project-skills/` are committed; fragments, skills, and
+> vendor-files are live symlinks back to the library.
+
+```bash
+just compose-linked PROFILE TARGET          # Compose using symlinks
+just deploy-linked PROFILE TARGET VENDORS   # Full pipeline using symlinks
+just sync-links TARGET                      # Re-create broken symlinks from config
 ```
 
 ### Deployment
