@@ -196,6 +196,34 @@
           "description": "Which vendor adapter files to generate"
         }
       }
+    },
+    "mcp": {
+      "type": "object",
+      "description": "Optional MCP server declarations. Written to all present vendor MCP config files on compose/sync.",
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["merge", "replace"],
+          "default": "merge",
+          "description": "merge: profile servers are added without removing existing ones. replace: all vendor MCP files are fully replaced by the profile declaration."
+        },
+        "servers": {
+          "type": "object",
+          "description": "MCP server entries. Keys are server names; values follow the .mcp.json entry shape.",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type":    { "type": "string", "enum": ["stdio", "http"] },
+              "command": { "type": "string" },
+              "args":    { "type": "array", "items": { "type": "string" } },
+              "url":     { "type": "string" },
+              "env":     { "type": "object", "additionalProperties": { "type": "string" } }
+            }
+          }
+        }
+      }
     }
   }
 }
