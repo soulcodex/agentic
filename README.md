@@ -1,6 +1,6 @@
 # 🧩 agentic
 
-A centralized, vendor-agnostic library for composing AI agent instructions — fork it, pick a profile, run one command, and every AI tool in your project reads the same source of truth.
+A centralized, vendor-agnostic library for composing AI agent instructions — pick a profile, run one command, and every AI tool in your project reads the same source of truth.
 
 ![CI](https://github.com/soulcodex/agentic/actions/workflows/validate.yml/badge.svg)
 
@@ -48,11 +48,11 @@ curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | 
 
 This clones the library to `~/.local/share/agentic` and installs the `agentic` CLI to `~/.local/bin`.
 
-### Manual Install (for forking)
+### Manual Install
 
 ```bash
-# 1. Fork this repo — it becomes your team's instruction library
-git clone https://github.com/your-org/agentic ~/agentic-library
+# 1. Clone the library
+git clone https://github.com/soulcodex/agentic ~/agentic-library
 
 # 2. Install the global CLI
 cd ~/agentic-library
