@@ -1096,6 +1096,249 @@ assert_stdout_contains "$T57_OUTPUT" "--global" "T57"
 assert_stdout_contains "$T57_OUTPUT" "--branch" "T57"
 
 # ══════════════════════════════════════════════════════════════════════════════
+# MCP SERVER SEEDING TESTS (profile mcp: key)
+# ══════════════════════════════════════════════════════════════════════════════
+
+MCP="$LIBRARY/tooling/lib/mcp.sh"
+
+# T67 — compose: MCP seed creates .mcp.json with correct keys
+run_test "T67 — compose: MCP seed creates .mcp.json"
+# Create a profile with mcp.servers
+mkdir -p "$TMP/t67"
+cat > "$TMP/t67-profile.yaml" <<'EOF'
+meta:
+  name: Test MCP Profile
+  description: Test profile with MCP servers
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+mcp:
+  strategy: merge
+  servers:
+    github:
+      type: stdio
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-github"]
+    postgres:
+      type: stdio
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-postgres"]
+      env:
+        DATABASE_URL: "postgresql://localhost:5432"
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t67-profile.yaml" \
+  --target "$TMP/t67" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t67/.mcp.json" "T67"
+assert_json_valid "$TMP/t67/.mcp.json" "T67"
+assert_file_contains "$TMP/t67/.mcp.json" "github" "T67"
+assert_file_contains "$TMP/t67/.mcp.json" "postgres" "T67"
+assert_file_contains "$TMP/t67/.mcp.json" '"command": "npx"' "T67"
+
+# T68 — compose: MCP seed writes to opencode.json with translations
+run_test "T68 — compose: MCP seed translates for opencode.json"
+mkdir -p "$TMP/t68"
+# Create opencode.json first (simulating existing vendor)
+echo '{"mcp":{}}' > "$TMP/t68/opencode.json"
+
+cat > "$TMP/t68-profile.yaml" <<'EOF'
+meta:
+  name: Test MCP Opencode
+  description: Test profile with MCP servers for opencode
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+mcp:
+  servers:
+    test-server:
+      type: stdio
+      command: npx
+      args: ["-y", "some-server"]
+      env:
+        MY_TOKEN: "${MY_TOKEN}"
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t68-profile.yaml" \
+  --target "$TMP/t68" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t68/opencode.json" "T68"
+assert_file_contains "$TMP/t68/opencode.json" '"local"' "T68"
+assert_file_contains "$TMP/t68/opencode.json" '"environment"' "T68"
+
+# T69 — compose: MCP seed writes to .gemini/settings.json without type field
+run_test "T69 — compose: MCP seed translates for .gemini/settings.json"
+mkdir -p "$TMP/t69/.gemini"
+echo '{"mcpServers":{}}' > "$TMP/t69/.gemini/settings.json"
+
+cat > "$TMP/t69-profile.yaml" <<'EOF'
+meta:
+  name: Test MCP Gemini
+  description: Test profile with MCP servers for gemini
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+mcp:
+  servers:
+    http-server:
+      type: http
+      url: "http://localhost:3000"
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t69-profile.yaml" \
+  --target "$TMP/t69" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t69/.gemini/settings.json" "T69"
+assert_file_contains "$TMP/t69/.gemini/settings.json" "http-server" "T69"
+assert_file_contains "$TMP/t69/.gemini/settings.json" "httpUrl" "T69"
+# Should NOT contain 'type' field
+assert_file_not_contains "$TMP/t69/.gemini/settings.json" '"type"' "T69"
+
+# T70 — compose: MCP merge strategy preserves existing servers
+run_test "T70 — compose: MCP merge preserves existing servers"
+mkdir -p "$TMP/t70"
+# Pre-existing .mcp.json with a server
+echo '{"mcpServers":{"existing-server":{"type":"stdio","command":"echo","args":["hello"]}}}' > "$TMP/t70/.mcp.json"
+
+cat > "$TMP/t70-profile.yaml" <<'EOF'
+meta:
+  name: Test MCP Merge
+  description: Test profile with MCP servers merge
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+mcp:
+  strategy: merge
+  servers:
+    new-server:
+      type: stdio
+      command: echo
+      args: ["new"]
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t70-profile.yaml" \
+  --target "$TMP/t70" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t70/.mcp.json" "existing-server" "T70"
+assert_file_contains "$TMP/t70/.mcp.json" "new-server" "T70"
+
+# T71 — compose: MCP replace strategy removes old servers
+run_test "T71 — compose: MCP replace removes old servers"
+mkdir -p "$TMP/t71"
+echo '{"mcpServers":{"old-server":{"type":"stdio","command":"old","args":["old"]}}}' > "$TMP/t71/.mcp.json"
+
+cat > "$TMP/t71-profile.yaml" <<'EOF'
+meta:
+  name: Test MCP Replace
+  description: Test profile with MCP servers replace
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+mcp:
+  strategy: replace
+  servers:
+    brand-new:
+      type: http
+      url: "http://localhost:8080"
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t71-profile.yaml" \
+  --target "$TMP/t71" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t71/.mcp.json" "brand-new" "T71"
+assert_file_not_contains "$TMP/t71/.mcp.json" "old-server" "T71"
+
+# T72 — compose: profile without mcp key produces no MCP files
+run_test "T72 — compose: profile without mcp key is no-op"
+mkdir -p "$TMP/t72"
+
+cat > "$TMP/t72-profile.yaml" <<'EOF'
+meta:
+  name: Test No MCP
+  description: Test profile without MCP servers
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t72-profile.yaml" \
+  --target "$TMP/t72" \
+  > /dev/null 2>&1
+
+# Should not touch vendor MCP files (none should exist)
+assert_file_not_exists "$TMP/t72/.mcp.json" "T72"
+assert_file_not_exists "$TMP/t72/opencode.json" "T72"
+assert_file_not_exists "$TMP/t72/.gemini/settings.json" "T72"
+
+# T73 — lint: schema validation passes with mcp key
+run_test "T73 — lint: schema validation passes with mcp key"
+T73_EXIT=0
+bash "$LINT" \
+  --library "$LIBRARY" \
+  > /dev/null 2>&1 || T73_EXIT=$?
+
+assert_exit_code 0 "$T73_EXIT" "T73"
+
+# ══════════════════════════════════════════════════════════════════════════════
 # INDEX STABILITY TESTS
 # ══════════════════════════════════════════════════════════════════════════════
 

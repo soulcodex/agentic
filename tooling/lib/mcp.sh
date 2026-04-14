@@ -6,12 +6,16 @@ set -euo pipefail
 ACTION=""
 TARGET=""
 NAME=""
+PROFILE_FILE=""
+STRATEGY="merge"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --action) ACTION="$2"; shift 2 ;;
     --target) TARGET="$2"; shift 2 ;;
     --name)   NAME="$2";   shift 2 ;;
+    --profile-file) PROFILE_FILE="$2"; shift 2 ;;
+    --strategy)     STRATEGY="$2";   shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -30,6 +34,10 @@ write_json() {
   local file="$1"
   local content="$2"
   local tmp
+  # Ensure parent directory exists
+  local dir
+  dir=$(dirname "$file")
+  mkdir -p "$dir"
   tmp=$(mktemp)
   printf '%s\n' "$content" > "$tmp"
   mv "$tmp" "$file"
@@ -285,10 +293,209 @@ action_remove() {
   echo "Done."
 }
 
+# ── Action: seed ─────────────────────────────────────────────────────────────────
+action_seed() {
+  local profile_file="$1"
+  local strategy="${2:-merge}"
+
+  # Get server names as array first
+  local server_names=()
+  while IFS= read -r name; do
+    [[ -n "$name" && "$name" != "null" ]] && server_names+=("$name")
+  done < <(yq '.mcp.servers | keys | .[]' "$profile_file" 2>/dev/null || true)
+
+  if [[ ${#server_names[@]} -eq 0 ]]; then
+    echo "No MCP servers declared in profile — skipping seed"
+    return 0
+  fi
+
+  # ── Seed .mcp.json (Claude) ──────────────────────────────────────────
+  local mcp_file="$TARGET/.mcp.json"
+  # Create or update .mcp.json if: file exists OR strategy is replace OR mcp.servers declared in profile
+  if [[ -f "$mcp_file" || "$strategy" == "replace" || "${#server_names[@]}" -gt 0 ]]; then
+    local existing_servers updated_servers
+    existing_servers="{}"
+    if [[ -f "$mcp_file" ]]; then
+      existing_servers=$(jq '.mcpServers // {}' "$mcp_file" 2>/dev/null || echo "{}")
+    fi
+
+    if [[ "$strategy" == "replace" ]]; then
+      # Build fresh JSON from profile - start with empty
+      updated_servers="{}"
+      local name
+      for name in "${server_names[@]}"; do
+        local server_yaml server_json
+        server_yaml=$(yq -r ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "")
+        if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
+          # Convert YAML to JSON using yq -o json
+          server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
+          updated_servers=$(printf '%s' "$updated_servers" | jq --arg n "$name" --argjson s "$server_json" '. + {($n): $s}')
+        fi
+      done
+    else
+      # Merge: add only if key doesn't exist
+      local name
+      for name in "${server_names[@]}"; do
+        local exists
+        exists=$(jq -r --arg n "$name" 'has($n)' "$existing_servers" 2>/dev/null || echo "false")
+        if [[ "$exists" == "false" ]]; then
+          local server_yaml server_json
+          server_yaml=$(yq -r ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "")
+          if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
+            # Convert YAML to JSON using yq -o json
+            server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
+            existing_servers=$(printf '%s' "$existing_servers" | jq --arg n "$name" --argjson s "$server_json" '. + {($n): $s}')
+          fi
+        fi
+      done
+      updated_servers="$existing_servers"
+    fi
+
+    local final_json
+    final_json=$(printf '{"mcpServers": %s}' "$updated_servers")
+    write_json "$mcp_file" "$final_json"
+    echo "  ✔  Seeded ${#server_names[@]} server(s) to .mcp.json (strategy: $strategy)"
+  fi
+
+  # ── Helper: translate a profile server entry to Opencode format ─────────
+  # Opencode differences from Claude/profile format:
+  #   - type: stdio→local, http→remote
+  #   - command+args → combined array under "command"
+  #   - env → environment
+  translate_to_opencode() {
+    local server_json="$1"
+    jq '
+      if .type == "stdio" then .type = "local"
+      elif .type == "http" then .type = "remote"
+      else . end
+      |
+      if .command != null then
+        . + { "command": ([ .command ] + (if .args != null then .args else [] end)) }
+        | del(.args)
+      else . end
+      |
+      if .env != null then
+        . + { "environment": .env } | del(.env)
+      else . end
+    ' <<< "$server_json"
+  }
+
+  # ── Helper: translate a profile server entry to Gemini format ────────────
+  # Gemini differences from Claude/profile format:
+  #   - No "type" field (transport inferred from field presence)
+  #   - url → httpUrl for http entries
+  translate_to_gemini() {
+    local server_json="$1"
+    jq '
+      if .type == "http" and .url != null then
+        . + { "httpUrl": .url } | del(.url)
+      else . end
+      |
+      del(.type)
+    ' <<< "$server_json"
+  }
+
+  # ── Seed opencode.json (Opencode) ────────────────────────────────────────
+  local opencode_file="$TARGET/opencode.json"
+  if [[ -f "$opencode_file" ]]; then
+    local existing_oc updated_oc
+    existing_oc=$(jq '.mcp // {}' "$opencode_file" 2>/dev/null || echo "{}")
+
+    if [[ "$strategy" == "replace" ]]; then
+      updated_oc="{}"
+      local name
+      for name in "${server_names[@]}"; do
+        local server_json oc_entry
+        server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+        if [[ -n "$server_json" && "$server_json" != "null" ]]; then
+          oc_entry=$(translate_to_opencode "$server_json")
+          updated_oc=$(printf '%s' "$updated_oc" | jq --arg n "$name" --argjson s "$oc_entry" '. + {($n): $s}')
+        fi
+      done
+    else
+      # Merge: add only if key doesn't already exist
+      local name
+      for name in "${server_names[@]}"; do
+        local exists
+        exists=$(printf '%s' "$existing_oc" | jq -r --arg n "$name" 'has($n)')
+        if [[ "$exists" == "false" ]]; then
+          local server_json oc_entry
+          server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+          if [[ -n "$server_json" && "$server_json" != "null" ]]; then
+            oc_entry=$(translate_to_opencode "$server_json")
+            existing_oc=$(printf '%s' "$existing_oc" | jq --arg n "$name" --argjson s "$oc_entry" '. + {($n): $s}')
+          fi
+        fi
+      done
+      updated_oc="$existing_oc"
+    fi
+
+    local opencode_base final_opencode
+    opencode_base=$(cat "$opencode_file")
+    final_opencode=$(printf '%s' "$opencode_base" | jq --argjson mcp "$updated_oc" '. + {mcp: $mcp}')
+    write_json "$opencode_file" "$final_opencode"
+    echo "  ✔  Seeded ${#server_names[@]} server(s) to opencode.json (strategy: $strategy)"
+  fi
+
+  # ── Seed .gemini/settings.json (Gemini) ──────────────────────────────────
+  local gemini_file="$TARGET/.gemini/settings.json"
+  if [[ -f "$gemini_file" ]]; then
+    local existing_gs updated_gs
+    existing_gs=$(jq '.mcpServers // {}' "$gemini_file" 2>/dev/null || echo "{}")
+
+    if [[ "$strategy" == "replace" ]]; then
+      updated_gs="{}"
+      local name
+      for name in "${server_names[@]}"; do
+        local server_json gs_entry
+        server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+        if [[ -n "$server_json" && "$server_json" != "null" ]]; then
+          gs_entry=$(translate_to_gemini "$server_json")
+          updated_gs=$(printf '%s' "$updated_gs" | jq --arg n "$name" --argjson s "$gs_entry" '. + {($n): $s}')
+        fi
+      done
+    else
+      # Merge: add only if key doesn't already exist
+      local name
+      for name in "${server_names[@]}"; do
+        local exists
+        exists=$(printf '%s' "$existing_gs" | jq -r --arg n "$name" 'has($n)')
+        if [[ "$exists" == "false" ]]; then
+          local server_json gs_entry
+          server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+          if [[ -n "$server_json" && "$server_json" != "null" ]]; then
+            gs_entry=$(translate_to_gemini "$server_json")
+            existing_gs=$(printf '%s' "$existing_gs" | jq --arg n "$name" --argjson s "$gs_entry" '. + {($n): $s}')
+          fi
+        fi
+      done
+      updated_gs="$existing_gs"
+    fi
+
+    local gemini_base final_gemini
+    gemini_base=$(cat "$gemini_file")
+    final_gemini=$(printf '%s' "$gemini_base" | jq --argjson mcpServers "$updated_gs" '. + {mcpServers: $mcpServers}')
+    write_json "$gemini_file" "$final_gemini"
+    echo "  ✔  Seeded ${#server_names[@]} server(s) to .gemini/settings.json (strategy: $strategy)"
+  fi
+}
+
 # ── Dispatch ──────────────────────────────────────────────────────────────────
 case "$ACTION" in
   add)    action_add    ;;
   remove) action_remove ;;
   list)   action_list   ;;
-  *) echo "Error: unknown action '$ACTION' (expected add|remove|list)" >&2; exit 1 ;;
+  seed)
+    # Non-interactive seed from profile - uses globally parsed PROFILE_FILE and STRATEGY
+    # Set defaults if not provided
+    [[ -z "$PROFILE_FILE" ]] && { echo "Error: --profile-file required for seed action" >&2; exit 1; }
+    [[ -f "$PROFILE_FILE" ]] || { echo "Error: profile file not found: $PROFILE_FILE" >&2; exit 1; }
+    [[ -z "$TARGET" ]] && { echo "Error: --target required for seed action" >&2; exit 1; }
+
+    # Use default strategy if not provided
+    [[ -z "$STRATEGY" ]] && STRATEGY="merge"
+
+    action_seed "$PROFILE_FILE" "$STRATEGY"
+    ;;
+  *) echo "Error: unknown action '$ACTION' (expected add|remove|list|seed)" >&2; exit 1 ;;
 esac

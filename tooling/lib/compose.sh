@@ -411,6 +411,19 @@ LOCK
       cp "$PROFILE_FILE" "$profile_dst"
     fi
 
+    # Seed MCP servers from profile (no-op if mcp key absent)
+    local has_mcp
+    has_mcp=$(yq '.mcp.servers // "null"' "$PROFILE_FILE")
+    if [[ "$has_mcp" != "null" && "$has_mcp" != "{}" ]]; then
+      local mcp_strategy
+      mcp_strategy=$(yq '.mcp.strategy // "merge"' "$PROFILE_FILE")
+      bash "$LIBRARY/tooling/lib/mcp.sh" \
+        --action seed \
+        --target "$TARGET" \
+        --profile-file "$PROFILE_FILE" \
+        --strategy "$mcp_strategy"
+    fi
+
     update_gitignore
     echo "Composed AGENTS.md → $TARGET/AGENTS.md"
   fi
@@ -617,6 +630,19 @@ compose_nested() {
   fi
   if [[ "$profile_src_real" != "$profile_dst_real" ]]; then
     cp "$PROFILE_FILE" "$profile_dst"
+  fi
+
+  # Seed MCP servers from profile (no-op if mcp key absent)
+  local has_mcp
+  has_mcp=$(yq '.mcp.servers // "null"' "$PROFILE_FILE")
+  if [[ "$has_mcp" != "null" && "$has_mcp" != "{}" ]]; then
+    local mcp_strategy
+    mcp_strategy=$(yq '.mcp.strategy // "merge"' "$PROFILE_FILE")
+    bash "$LIBRARY/tooling/lib/mcp.sh" \
+      --action seed \
+      --target "$TARGET" \
+      --profile-file "$PROFILE_FILE" \
+      --strategy "$mcp_strategy"
   fi
 
   update_gitignore
