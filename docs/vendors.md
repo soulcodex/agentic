@@ -10,7 +10,7 @@ agentic generates vendor-specific instruction files from a single `AGENTS.md` so
 | **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` | Global always-on instructions + glob-scoped per-language files |
 | **OpenAI Codex** | `AGENTS.md` | `AGENTS.md` natively; hierarchical for monorepos (tier AGENTS.md files) |
 | **Gemini CLI** | `.gemini/systemPrompt.md` | Single system prompt — all fragment content concatenated |
-| **Opencode** | `AGENTS.md` | `AGENTS.md` natively; skills in `.claude/skills/` |
+| **Opencode** | `AGENTS.md` | `AGENTS.md` natively; skills in `.opencode/skills/` |
 
 ## How Each Vendor Uses AGENTS.md
 
@@ -47,7 +47,7 @@ Gemini reads a single system prompt from `.gemini/systemPrompt.md`. The vendor a
 
 ### Opencode
 
-Opencode reads `AGENTS.md` natively. Skills work the same way as Claude (`.claude/skills/`).
+Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`. Opencode also supports `.claude/skills/` and `.agents/skills/` as compatibility fallbacks.
 
 ## Vendor Commands
 

@@ -11,8 +11,8 @@ Opencode reads `AGENTS.md` natively (same as Claude Code and OpenAI Codex). No t
 | File | Path | Purpose |
 |---|---|---|
 | `AGENTS.md` | project root | Canonical instructions, read natively by Opencode |
-| `.claude/skills/` | project root | Skills directory (Opencode reads this Claude-compatible path) |
+| `.opencode/skills/` | project root | Skills directory (Opencode's native path) |
 
 ## Skills
 
-Skills deploy to `.claude/skills/` (not `.opencode/skills/`). Opencode reads the `.claude/skills/` path for Claude compatibility. The `.opencode/skills/` path declared in `output_paths.skills` is reserved for Opencode-native skills only.
+Skills deploy to `.opencode/skills/` — Opencode's native skills path. Opencode also supports `.claude/skills/` and `.agents/skills/` as compatibility fallbacks, but `.opencode/skills/` is the canonical location.
