@@ -11,7 +11,7 @@ This document records what each vendor supports so adapter authors know what is 
 | Per-file scoping (glob) | No | Yes (`.github/instructions/*.instructions.md`) | No | No | No |
 | Multiple rules files | Yes (`.claude/` dir) | Yes (`.github/instructions/`) | No | No | No |
 | Skills / slash commands | Yes (`.claude/skills/`) | No | Yes (`.agents/skills/`) | No | Yes (multiple paths) |
-| Config file generated | CLAUDE.md (symlink) | — | — | — | `opencode.json` (symlink) |
+| Config file generated | CLAUDE.md (symlink) | — | — | — | — |
 
 ## Context Window and Limits
 
@@ -19,7 +19,7 @@ This document records what each vendor supports so adapter authors know what is 
 |---|---|---|---|---|---|
 | Instruction file size limit | ~200KB practical | ~64KB practical | ~32KB | ~32KB | ~200KB practical |
 | Hard per-file char limit | None documented | None documented | None documented | None documented | None documented |
-| Notes | Reads multiple files; total context is shared with conversation | Content prepended to every request | Reads AGENTS.md hierarchically | Reads systemPrompt.md once per session | Reads AGENTS.md natively; config in opencode.json |
+| Notes | Reads multiple files; total context is shared with conversation | Content prepended to every request | Reads AGENTS.md hierarchically | Reads systemPrompt.md once per session | Reads AGENTS.md natively |
 
 ## Section Type Support
 
@@ -62,7 +62,6 @@ This document records what each vendor supports so adapter authors know what is 
 
 ### Opencode
 - `AGENTS.md` (primary, read natively)
-- `opencode.json` (symlink → `.agentic/vendor-files/opencode/opencode.json`)
 - `.opencode/skills/` (symlink → `.agentic/skills/`)
 - Also reads: `.claude/skills/`, `.agents/skills/`
 
@@ -72,7 +71,7 @@ The agentic library uses a symlink-based vendor switching system:
 
 1. **Canonical locations**: All generated files live in `.agentic/vendor-files/{vendor}/`
 2. **Skills**: Deployed once to `.agentic/skills/`, symlinked to vendor-specific paths
-3. **Entrypoints**: Vendor config files (CLAUDE.md, opencode.json, etc.) are symlinks
+3. **Entrypoints**: Vendor config files (CLAUDE.md, etc.) are symlinks
 4. **Switching**: Only symlinks change — no file movement or copying
 5. **Git**: Symlinks are gitignored; recreate locally via `agentic switch <vendor>`
 
