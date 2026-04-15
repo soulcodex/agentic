@@ -58,7 +58,7 @@ Walk them through the prompts:
 3. Enter the command (e.g. `npx -y @modelcontextprotocol/server-github`)
 4. Add environment variables (e.g. `GITHUB_TOKEN`)
 5. Confirm the write to `.mcp.json`
-6. Optionally sync to `opencode.json` and/or `.gemini/settings.json`
+   6. Optionally sync to `.gemini/settings.json`
 
 ### Step 4 — Verify
 
