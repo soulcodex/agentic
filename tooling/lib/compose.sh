@@ -205,8 +205,12 @@ build_tech_stack_section() {
       additional_items+=("$item")
     done < <(yq '.tech_stack.additional[]' "$PROFILE_FILE" 2>/dev/null || true)
     if [[ ${#additional_items[@]} -gt 0 ]]; then
-      local joined
-      joined=$(IFS=", "; echo "${additional_items[*]}")
+      local joined=""
+      local item
+      for item in "${additional_items[@]}"; do
+        [[ -n "$joined" ]] && joined+=", "
+        joined+="$item"
+      done
       section+="| Additional | ${joined} |"$'\n'
     fi
   fi
