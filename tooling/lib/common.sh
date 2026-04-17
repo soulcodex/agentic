@@ -168,18 +168,31 @@ discover_library() {
     fi
   fi
 
-  # 3. Read from .agentic/config.yaml in current/parent directories
-  local config_path
-  config_path="$(find_target_config)"
-  if [[ -n "$config_path" && -f "$config_path" ]]; then
+  # 3. Read from .agentic/config.yaml in current directory only
+  local config_file="$PWD/.agentic/config.yaml"
+  if [[ -f "$config_file" ]]; then
     local lib_path
-    lib_path="$(yq '.agentic_root // ""' "$config_path" 2>/dev/null || true)"
+    lib_path="$(yq '.agentic_root // ""' "$config_file" 2>/dev/null || true)"
     if [[ -n "$lib_path" && "$lib_path" != "null" && "$lib_path" != '""' ]]; then
       # Resolve relative paths
       if [[ "$lib_path" != /* ]]; then
-        local config_dir
-        config_dir="$(dirname "$config_path")"
-        lib_path="$(cd "$config_dir" && cd "$lib_path" 2>/dev/null && pwd)" || true
+        lib_path="$(cd "$PWD" && cd "$lib_path" 2>/dev/null && pwd)" || true
+      fi
+      if [[ -n "$lib_path" && -d "$lib_path" ]]; then
+        echo "$lib_path"
+        return 0
+      fi
+    fi
+  fi
+  # Also check immediate parent directory
+  config_file="$(dirname "$PWD")/.agentic/config.yaml"
+  if [[ -f "$config_file" ]]; then
+    local lib_path
+    lib_path="$(yq '.agentic_root // ""' "$config_file" 2>/dev/null || true)"
+    if [[ -n "$lib_path" && "$lib_path" != "null" && "$lib_path" != '""' ]]; then
+      # Resolve relative paths
+      if [[ "$lib_path" != /* ]]; then
+        lib_path="$(cd "$(dirname "$PWD")" && cd "$lib_path" 2>/dev/null && pwd)" || true
       fi
       if [[ -n "$lib_path" && -d "$lib_path" ]]; then
         echo "$lib_path"
@@ -198,23 +211,44 @@ discover_library() {
   die "Cannot find agentic library. Set AGENTIC_REPO_ROOT environment variable or add 'agentic_root' to .agentic/config.yaml"
 }
 
-# Walks up from current directory to find .agentic/config.yaml
+# Finds .agentic/config.yaml in current + immediate parent only (for library discovery)
 find_target_config() {
   local dir="$PWD"
-  while [[ "$dir" != "/" ]]; do
+  # Check current directory only (safe for tests)
+  if [[ -f "$dir/.agentic/config.yaml" ]]; then
+    echo "$dir/.agentic/config.yaml"
+    return 0
+  fi
+  # Check immediate parent only
+  dir="$(dirname "$dir")"
+  if [[ -f "$dir/.agentic/config.yaml" ]]; then
+    echo "$dir/.agentic/config.yaml"
+    return 0
+  fi
+  return 1
+}
+
+# Deep config search for discover_target (allows multiple parent levels)
+find_target_config_deep() {
+  local dir="$PWD"
+  local depth=0
+  local max_depth=4
+  while [[ "$dir" != "/" && $depth -le $max_depth ]]; do
     if [[ -f "$dir/.agentic/config.yaml" ]]; then
       echo "$dir/.agentic/config.yaml"
       return 0
     fi
     dir="$(dirname "$dir")"
+    depth=$((depth + 1))
   done
   return 1
 }
 
 # Returns the target directory (parent of .agentic/)
+# Allows deeper search for project structure (like src/deep/nested in tests)
 discover_target() {
   local config_path
-  config_path="$(find_target_config)" || true
+  config_path="$(find_target_config_deep)" || true
   if [[ -n "$config_path" ]]; then
     dirname "$(dirname "$config_path")"
     return 0
