@@ -5,6 +5,7 @@ set -euo pipefail
 
 # Source common utilities for check_bash_version and helpers
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
 source "$SCRIPT_DIR/common.sh"
 
 # Check bash version requirement

@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # cli.sh — CLI logic for the agentic global CLI
 # Sourced by: bin/agentic
 # Provides: main(), discover_library(), discover_target(), and all command handlers
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
 source "$SCRIPT_DIR/common.sh"
 
 # ── Version ───────────────────────────────────────────────────────────────────

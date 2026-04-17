@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # test.sh — Integration test suite for the agentic library tooling
 # Called by: just test
 set -euo pipefail
@@ -132,7 +132,11 @@ run_test() {
   local name="$1"
   # Extract just the number part (e.g., "02" from "T02 — compose: ...")
   local num
-  num=$(echo "$name" | sed 's/T\([0-9]*\).*/\1/')
+  if [[ "$name" =~ T([0-9]+) ]]; then
+    num="${BASH_REMATCH[1]}"
+  else
+    num="0"
+  fi
   # Remove leading zeros to avoid octal interpretation
   num=$((10#$num))
   

@@ -5,6 +5,7 @@ set -euo pipefail
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
 source "$SCRIPT_DIR/common.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
@@ -59,7 +60,12 @@ resolve_vendors() {
 # ── Section extraction ────────────────────────────────────────────────────────
 # Escape special regex characters in a string
 escape_regex() {
-  printf "%s" "$1" | sed 's/[].[\*^$()/]/\\&/g'
+  local input="$1"
+  local sed_pattern
+  sed_pattern="s/[].[\\*^\\$()/]/\\\\&/g"
+  local escaped
+  escaped=$(printf "%s" "$input" | sed "$sed_pattern")
+  printf "%s" "$escaped"
 }
 
 # Extract a section from a monolithic AGENTS.md by its H2 heading (full mode)
