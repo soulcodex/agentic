@@ -1,7 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # compose.sh — Assembles AGENTS.md from profile + fragments
 # Called by: just compose <profile> <target>
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 # ── Markdown formatting helper ────────────────────────────────────────────────
 # Formats markdown files if mdformat is available (optional, silent if missing)
@@ -125,8 +129,8 @@ copy_fragments_to_target() {
 # ── Fragment symlink (used in --link mode) ────────────────────────────────────
 link_fragments_to_library() {
   local dest="$TARGET/.agentic/fragments"
-  # Remove any existing copy or symlink
-  rm -rf "$dest"
+  # Remove any existing copy or symlink using safe_rm_rf
+  safe_rm_rf "$dest"
   ln -sf "$LIBRARY/agents" "$dest"
 }
 
@@ -344,10 +348,10 @@ compose_flat() {
   OUTPUT+=$(build_skills_section "$FULL_MODE")
 
   # Local override (project-specific additions, if present)
-  LOCAL_OVERRIDE="$TARGET/AGENTS.local.md"
-  if [[ -f "$LOCAL_OVERRIDE" ]]; then
+  local local_override="$TARGET/AGENTS.local.md"
+  if [[ -f "$local_override" ]]; then
     OUTPUT+=$'\n<!-- local override: AGENTS.local.md -->\n\n'
-    OUTPUT+=$(cat "$LOCAL_OVERRIDE")
+    OUTPUT+=$(cat "$local_override")
     OUTPUT+=$'\n'
   fi
 
