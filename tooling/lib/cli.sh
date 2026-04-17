@@ -8,7 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
 # ── Version ───────────────────────────────────────────────────────────────────
-VERSION="1.0.0"
+# Read version from VERSION file at repo root (two levels up from tooling/lib/)
+VERSION=$(cat "$(dirname "${BASH_SOURCE[0]}")/../../VERSION" 2>/dev/null || echo "1.0.0")
 
 # ── Library discovery (now in common.sh, keeping for API compatibility) ──────
 # These functions are now sourced from common.sh:

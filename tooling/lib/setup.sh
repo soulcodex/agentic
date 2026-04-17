@@ -3,14 +3,12 @@
 # Usage: ./tooling/lib/setup.sh
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Source common utilities for check_bash_version and helpers
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-ok()   { printf "${GREEN}  ✔  %s${NC}\n" "$1"; }
-warn() { printf "${YELLOW}  ✗  %s${NC}\n" "$1"; }
-info() { printf "     %s\n" "$1"; }
+# Check bash version requirement
+check_bash_version
 
 # Detect OS
 OS="$(uname -s)"

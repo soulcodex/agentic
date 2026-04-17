@@ -7,15 +7,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# ── Markdown formatting helper (now in common.sh) ───────────────────────────────
-# Formats markdown files if mdformat is available (optional, silent if missing)
-format_markdown() {
-  local file="$1"
-  if command -v mdformat &>/dev/null; then
-    mdformat "$file" 2>/dev/null || true
-  fi
-}
-
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 TARGET=""
@@ -25,10 +16,10 @@ LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library) LIBRARY="$2"; shift 2 ;;
-    --target)  TARGET="$2";  shift 2 ;;
-    --skills)  SKILLS="$2";  shift 2 ;;
-    --vendor)  VENDOR="$2";  shift 2 ;;
+    --library) require_arg "--library" "$2"; LIBRARY="$2"; shift 2 ;;
+    --target)  require_arg "--target" "$2";  TARGET="$2";  shift 2 ;;
+    --skills)  require_arg "--skills" "$2"; SKILLS="$2"; shift 2 ;;
+    --vendor)  require_arg "--vendor" "$2"; VENDOR="$2"; shift 2 ;;
     --link)    LINK_MODE=true; shift ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac

@@ -16,8 +16,8 @@ VENDORS_INPUT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library) LIBRARY="$2"; shift 2 ;;
-    --target)  TARGET="$2";  shift 2 ;;
+    --library) require_arg "--library" "$2"; LIBRARY="$2"; shift 2 ;;
+    --target)  require_arg "--target" "$2";  TARGET="$2";  shift 2 ;;
     -*)        echo "Unknown option: $1" >&2; exit 1 ;;
     *)         
       # Accumulate all positional args (vendors)
