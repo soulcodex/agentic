@@ -155,8 +155,6 @@ action_add() {
 
     local cmd_bin args_json
     cmd_bin=$(printf '%s' "$full_command" | awk '{print $1}')
-    local args_str
-    args_str=$(printf '%s' "$full_command" | cut -d' ' -f2- | xargs -n1 2>/dev/null || true)
 
     # Build args array safely (bash 3.2 compatible)
     args_json="[]"
