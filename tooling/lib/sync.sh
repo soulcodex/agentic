@@ -1,9 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # sync.sh — Regenerates target project from local profile
 # Called by: agentic sync
 # Uses: .agentic/profile.yaml (local customizable profile)
 #       .agentic/config.yaml (agentic_root, active_vendors)
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 TARGET=""
@@ -31,30 +35,24 @@ LOCAL_PROFILE="$TARGET/.agentic/profile.yaml"
   exit 1
 }
 
-# ── Resolve library path ──────────────────────────────────────────────────────
-# Priority: 1. AGENTIC_REPO_ROOT env var  2. AGENTIC_ROOT env var  3. config.yaml agentic_root  4. config.yaml library_path (legacy)
+# ── Resolve library path ────────────────────────────────────────────────────────
+# Use discover_library_from_target function which reads from target's config
 LIBRARY=""
+CONFIG_PATH="$CONFIG"
 
-# 1. AGENTIC_REPO_ROOT env var
-if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
-  LIBRARY="$AGENTIC_REPO_ROOT"
-fi
-
-# 2. AGENTIC_ROOT env var
-if [[ -z "$LIBRARY" && -n "${AGENTIC_ROOT:-}" ]]; then
-  LIBRARY="$AGENTIC_ROOT"
-fi
-
-# 3. config.yaml agentic_root
-if [[ -z "$LIBRARY" ]]; then
-  LIBRARY=$(yq '.agentic_root // ""' "$CONFIG" 2>/dev/null || echo "")
+# Read directly from target's config file
+if [[ -f "$CONFIG_PATH" ]]; then
+  LIBRARY=$(yq '.agentic_root // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
   [[ "$LIBRARY" == "null" || "$LIBRARY" == '""' ]] && LIBRARY=""
 fi
 
-# 4. config.yaml library_path (legacy)
+# Fall back to env vars if not in config
 if [[ -z "$LIBRARY" ]]; then
-  LIBRARY=$(yq '.library_path // ""' "$CONFIG" 2>/dev/null || echo "")
-  [[ "$LIBRARY" == "null" || "$LIBRARY" == '""' ]] && LIBRARY=""
+  if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
+    LIBRARY="$AGENTIC_REPO_ROOT"
+  elif [[ -n "${AGENTIC_ROOT:-}" ]]; then
+    LIBRARY="$AGENTIC_ROOT"
+  fi
 fi
 
 if [[ -z "$LIBRARY" ]]; then
@@ -75,12 +73,8 @@ COMPOSE_SCRIPT="$LIBRARY/tooling/lib/compose.sh"
 }
 
 # ── Read current configuration ────────────────────────────────────────────────
-# Try new array format first, fall back to old string format
-ACTIVE_VENDORS=$(yq '.active_vendors // [] | join(",")' "$CONFIG" 2>/dev/null || echo "")
-if [[ -z "$ACTIVE_VENDORS" || "$ACTIVE_VENDORS" == "null" ]]; then
-  ACTIVE_VENDORS=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || echo "")
-  [[ "$ACTIVE_VENDORS" == "null" ]] && ACTIVE_VENDORS=""
-fi
+# Use read_active_vendors from common.sh
+ACTIVE_VENDORS=$(read_active_vendors "$CONFIG")
 
 MODE=$(yq '.mode // "lean"' "$CONFIG" 2>/dev/null || echo "lean")
 [[ "$MODE" == "null" ]] && MODE="lean"

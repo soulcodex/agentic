@@ -1,7 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # lint.sh — Validates fragments, profiles, and vendor adapters
 # Called by: just lint
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 LIBRARY=""
 
@@ -93,7 +97,7 @@ done < <(find "$LIBRARY/profiles" -name "*.yaml" | sort)
 # ── Vendor adapter validation ─────────────────────────────────────────────────
 echo ""
 echo "Validating vendor adapters..."
-for vendor in claude copilot codex gemini opencode; do
+for vendor in "${AGENTIC_VENDORS[@]}"; do
   adapter_file="$LIBRARY/vendors/$vendor/adapter.json"
   if [[ ! -f "$adapter_file" ]]; then
     warn "vendors/$vendor/adapter.json — not found"

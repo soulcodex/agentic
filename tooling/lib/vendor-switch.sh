@@ -1,9 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vendor-switch.sh — Switches the active AI vendor(s) in a target project
 # Called by: just vendor-switch <target> <vendors>
 #            agentic switch <vendor[,vendor...]|list|sync>
 # Supports multiple vendors: agentic switch claude,copilot or agentic switch claude copilot
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
@@ -37,7 +41,7 @@ SYNC_SCRIPT="$LIBRARY/tooling/lib/sync.sh"
 CONFIG="$TARGET/.agentic/config.yaml"
 VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
 
-ALL_VENDORS="claude copilot codex gemini opencode"
+# Use AGENTIC_VENDORS from common.sh (single source of truth)
 
 # ── Sync subcommand ────────────────────────────────────────────────────────────
 if [[ "$VENDORS_INPUT" == "sync" ]]; then
@@ -52,16 +56,11 @@ fi
 if [[ "$VENDORS_INPUT" == "list" ]]; then
   ACTIVE_VENDORS=""
   if [[ -f "$CONFIG" ]]; then
-    # Try new array format first, fall back to old string format
-    ACTIVE_VENDORS=$(yq '.active_vendors // [] | join(",")' "$CONFIG" 2>/dev/null || true)
-    if [[ -z "$ACTIVE_VENDORS" || "$ACTIVE_VENDORS" == "null" ]]; then
-      # Fallback to old format
-      ACTIVE_VENDORS=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
-      [[ "$ACTIVE_VENDORS" == "null" ]] && ACTIVE_VENDORS=""
-    fi
+    # Use read_active_vendors from common.sh
+    ACTIVE_VENDORS=$(read_active_vendors "$CONFIG")
   fi
   echo "Available vendors:"
-  for v in $ALL_VENDORS; do
+  for v in "${AGENTIC_VENDORS[@]}"; do
     if [[ ",$ACTIVE_VENDORS," == *",$v,"* ]]; then
       printf "  %-12s ← active\n" "$v"
     else
@@ -79,33 +78,24 @@ read -ra VENDORS <<< "$VENDORS_INPUT"
 # ── Validate all vendors ───────────────────────────────────────────────────────
 for vendor in "${VENDORS[@]}"; do
   valid=false
-  for v in $ALL_VENDORS; do
+  for v in "${AGENTIC_VENDORS[@]}"; do
     [[ "$vendor" == "$v" ]] && valid=true && break
   done
   if [[ "$valid" != "true" ]]; then
-    echo "Error: unknown vendor '$vendor'. Valid vendors: $ALL_VENDORS" >&2
+    echo "Error: unknown vendor '$vendor'. Valid vendors: ${AGENTIC_VENDORS[*]}" >&2
     exit 1
   fi
 done
 
 # ── Read current active vendors ────────────────────────────────────────────────
-CURRENT_VENDORS=""
-if [[ -f "$CONFIG" ]]; then
-  # Try new array format first
-  CURRENT_VENDORS=$(yq '.active_vendors // [] | join(",")' "$CONFIG" 2>/dev/null || true)
-  if [[ -z "$CURRENT_VENDORS" || "$CURRENT_VENDORS" == "null" ]]; then
-    # Fallback to old string format
-    CURRENT_VENDORS=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
-    [[ "$CURRENT_VENDORS" == "null" ]] && CURRENT_VENDORS=""
-  fi
-fi
+CURRENT_VENDORS=$(read_active_vendors "$CONFIG")
 
 # ── Legacy migration: stash system ─────────────────────────────────────────────
 migrate_from_stash() {
   local stash_dir="$TARGET/.agentic/vendor-stash"
   if [[ -d "$stash_dir" ]]; then
     echo "Migrating from old stash system..."
-    rm -rf "$stash_dir"
+    safe_rm_rf "$stash_dir"
     echo "  Removed: .agentic/vendor-stash/"
   fi
 }

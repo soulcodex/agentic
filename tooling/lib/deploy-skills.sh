@@ -1,9 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # deploy-skills.sh — Deploys skill directories to a target project
 # Called by: just deploy-skills <target> [skills] [vendor]
 set -euo pipefail
 
-# ── Markdown formatting helper ────────────────────────────────────────────────
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+# ── Markdown formatting helper (now in common.sh) ───────────────────────────────
 # Formats markdown files if mdformat is available (optional, silent if missing)
 format_markdown() {
   local file="$1"
@@ -40,8 +44,8 @@ mkdir -p "$SKILLS_DST"
 # ── Link mode ────────────────────────────────────────────────────────────────
 if [[ "$LINK_MODE" == "true" ]]; then
   echo "Deploying skills (link mode) to $TARGET..."
-  # Remove any existing copy or symlink
-  rm -rf "$SKILLS_DST"
+  # Remove any existing copy or symlink using safe_rm_rf
+  safe_rm_rf "$SKILLS_DST"
   ln -sf "$LIBRARY/skills" "$SKILLS_DST"
   echo "Linked .agentic/skills → $LIBRARY/skills (link mode)"
 

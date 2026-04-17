@@ -1,9 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vendor-gen.sh — Generates vendor-specific files from a target project's AGENTS.md
 # Called by: just vendor-gen <target> [vendors]
 set -euo pipefail
 
-# ── Markdown formatting helper ────────────────────────────────────────────────
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+# ── Markdown formatting helper (now in common.sh) ───────────────────────────────
 # Formats markdown files if mdformat is available (optional, silent if missing)
 format_markdown() {
   local file="$1"
@@ -55,7 +59,7 @@ VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
 # ── Resolve which vendors to generate ─────────────────────────────────────────
 resolve_vendors() {
   if [[ "$VENDORS" == "all" ]]; then
-    echo "claude copilot codex gemini opencode"
+    echo "${AGENTIC_VENDORS[*]}"
   else
     echo "${VENDORS//,/ }"
   fi
@@ -248,7 +252,7 @@ if [[ "$LINK_MODE" == "true" ]]; then
   GENERATED_DIR="$LIBRARY/_generated/$PROJECT_NAME/vendor-files"
   mkdir -p "$GENERATED_DIR"
   cp -r "$VENDOR_FILES_DIR/." "$GENERATED_DIR/"
-  rm -rf "$VENDOR_FILES_DIR"
+  safe_rm_rf "$VENDOR_FILES_DIR"
   ln -sf "$GENERATED_DIR" "$VENDOR_FILES_DIR"
   echo "Linked .agentic/vendor-files → $GENERATED_DIR (link mode)"
 fi

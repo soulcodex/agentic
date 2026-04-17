@@ -108,6 +108,24 @@ assert_json_min_count() {
   fi
 }
 
+assert_symlink_exists() {
+  local path="$1" label="$2"
+  if [[ -L "$path" ]]; then
+    pass "$label — symlink exists: $path"
+  else
+    fail "$label — expected symlink but does not exist: $path"
+  fi
+}
+
+assert_not_symlink() {
+  local path="$1" label="$2"
+  if [[ ! -L "$path" ]]; then
+    pass "$label — not a symlink: $path"
+  else
+    fail "$label — expected not a symlink but is: $path"
+  fi
+}
+
 run_test() {
   local name="$1"
   echo ""
