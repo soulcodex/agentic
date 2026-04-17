@@ -168,38 +168,32 @@ discover_library() {
     fi
   fi
 
-  # 3. Read from .agentic/config.yaml in current directory only
-  local config_file="$PWD/.agentic/config.yaml"
-  if [[ -f "$config_file" ]]; then
-    local lib_path
-    lib_path="$(yq '.agentic_root // ""' "$config_file" 2>/dev/null || true)"
-    if [[ -n "$lib_path" && "$lib_path" != "null" && "$lib_path" != '""' ]]; then
-      # Resolve relative paths
-      if [[ "$lib_path" != /* ]]; then
-        lib_path="$(cd "$PWD" && cd "$lib_path" 2>/dev/null && pwd)" || true
-      fi
-      if [[ -n "$lib_path" && -d "$lib_path" ]]; then
-        echo "$lib_path"
-        return 0
-      fi
-    fi
-  fi
-  # Also check immediate parent directory
-  config_file="$(dirname "$PWD")/.agentic/config.yaml"
-  if [[ -f "$config_file" ]]; then
-    local lib_path
-    lib_path="$(yq '.agentic_root // ""' "$config_file" 2>/dev/null || true)"
-    if [[ -n "$lib_path" && "$lib_path" != "null" && "$lib_path" != '""' ]]; then
-      # Resolve relative paths
-      if [[ "$lib_path" != /* ]]; then
-        lib_path="$(cd "$(dirname "$PWD")" && cd "$lib_path" 2>/dev/null && pwd)" || true
-      fi
-      if [[ -n "$lib_path" && -d "$lib_path" ]]; then
-        echo "$lib_path"
-        return 0
+  # 3. Read from .agentic/config.yaml in current and parent directories (limited depth)
+  local dir="$PWD"
+  local depth=0
+  local max_depth=1  # Only current directory + one parent for library discovery
+  # Ensure we don't walk above the user home directory
+  local home_parent
+  home_parent=$(dirname "$HOME")
+  while [[ "$dir" != "$home_parent" && "$dir" != "/" && $depth -le $max_depth ]]; do
+    local config_file="$dir/.agentic/config.yaml"
+    if [[ -f "$config_file" ]]; then
+      local lib_path
+      lib_path="$(yq '.agentic_root // ""' "$config_file" 2>/dev/null || true)"
+      if [[ -n "$lib_path" && "$lib_path" != "null" && "$lib_path" != '""' ]]; then
+        # Resolve relative paths relative to the config file's directory
+        if [[ "$lib_path" != /* ]]; then
+          lib_path="$(cd "$dir" && cd "$lib_path" 2>/dev/null && pwd)" || true
+        fi
+        if [[ -n "$lib_path" && -d "$lib_path" ]]; then
+          echo "$lib_path"
+          return 0
+        fi
       fi
     fi
-  fi
+    dir="$(dirname "$dir")"
+    depth=$((depth + 1))
+  done
 
   # 4. LIBRARY_ROOT from install-time embedding (set by install.sh)
   if [[ -n "${LIBRARY_ROOT:-}" && -d "$LIBRARY_ROOT" ]]; then

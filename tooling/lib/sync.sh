@@ -14,7 +14,7 @@ TARGET=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --target) TARGET="$2"; shift 2 ;;
+    --target) require_arg "--target" "$2"; TARGET="$2"; shift 2 ;;
     *)        echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -44,6 +44,20 @@ CONFIG_PATH="$CONFIG"
 if [[ -f "$CONFIG_PATH" ]]; then
   LIBRARY=$(yq '.agentic_root // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
   [[ "$LIBRARY" == "null" || "$LIBRARY" == '""' ]] && LIBRARY=""
+fi
+
+# Fall back to legacy library_path key if agentic_root is empty
+if [[ -z "$LIBRARY" && -f "$CONFIG_PATH" ]]; then
+  local legacy_path
+  legacy_path=$(yq '.library_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+  if [[ -n "$legacy_path" && "$legacy_path" != "null" && "$legacy_path" != '""' ]]; then
+    warn "library_path is deprecated. Use agentic_root in .agentic/config.yaml"
+    # Resolve relative paths
+    if [[ "$legacy_path" != /* ]]; then
+      legacy_path="$(cd "$TARGET" && cd "$legacy_path" 2>/dev/null && pwd)" || true
+    fi
+    LIBRARY="$legacy_path"
+  fi
 fi
 
 # Fall back to env vars if not in config

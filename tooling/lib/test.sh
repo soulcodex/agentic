@@ -130,8 +130,27 @@ assert_not_symlink() {
 
 run_test() {
   local name="$1"
-  # Skip test if FILTER set and name doesn't contain filter string
-  if [[ -n "$FILTER" && "$name" != *"$FILTER"* ]]; then
+  # Extract just the number part (e.g., "02" from "T02 — compose: ...")
+  local num
+  num=$(echo "$name" | sed 's/T\([0-9]*\).*/\1/')
+  # Remove leading zeros to avoid octal interpretation
+  num=$((10#$num))
+  
+  local tag="compose"
+  if (( num >= 8 && num <= 13 )) || (( num >= 28 && num <= 43 )) || (( num >= 42 && num <= 43 )); then
+    tag="vendor"
+  elif (( num == 14 )) || (( num == 73 )); then
+    tag="lint"
+  elif (( num == 15 )) || (( num == 58 )) || (( num == 59 )); then
+    tag="index"
+  elif (( num >= 35 && num <= 38 )); then
+    tag="sync"
+  elif (( num >= 67 && num <= 72 )); then
+    tag="mcp"
+  fi
+
+  # Skip test execution if FILTER set and tag doesn't match
+  if [[ -n "$FILTER" && "$tag" != "$FILTER" ]]; then
     return
   fi
   echo ""
@@ -740,7 +759,7 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 # Modify the local profile
-sed -i.bak 's/version: .*/version: "99.0.0"/' "$TMP/t36/.agentic/profile.yaml"
+yq -i '.meta.version = "99.0.0"' "$TMP/t36/.agentic/profile.yaml"
 
 # Re-compose using local profile
 bash "$COMPOSE" \
@@ -762,7 +781,7 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 # Modify the local profile version
-sed -i.bak 's/version: .*/version: "88.0.0"/' "$TMP/t37/.agentic/profile.yaml"
+yq -i '.meta.version = "88.0.0"' "$TMP/t37/.agentic/profile.yaml"
 
 # Run sync
 bash "$SYNC" --target "$TMP/t37" > /dev/null 2>&1
@@ -786,7 +805,7 @@ bash "$VENDOR_SWITCH" \
   > /dev/null 2>&1
 
 # Modify the local profile version
-sed -i.bak 's/version: .*/version: "77.0.0"/' "$TMP/t38/.agentic/profile.yaml"
+yq -i '.meta.version = "77.0.0"' "$TMP/t38/.agentic/profile.yaml"
 
 # Run sync via vendor-switch
 bash "$VENDOR_SWITCH" \
