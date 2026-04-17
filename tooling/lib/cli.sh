@@ -386,7 +386,7 @@ cmd_list() {
     fragments)
       echo "Available fragments:"
       find "$library/agents" -name "*.md" | sort | while read -r f; do
-        local rel="${f#$library/agents/}"
+        local rel="${f#"$library"/agents/}"
         printf "  %s\n" "${rel%.md}"
       done
       ;;

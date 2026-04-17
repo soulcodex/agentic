@@ -61,7 +61,7 @@ build_skills_index() {
     group=$(basename "$(dirname "$dir")")
     local name
     name=$(basename "$dir")
-    local path="${skill_file#$LIBRARY/}"
+    local path="${skill_file#"$LIBRARY"/}"
 
     # Extract frontmatter fields using yq (parse YAML block between first two --- delimiters)
     local frontmatter
@@ -110,7 +110,7 @@ build_fragments_index() {
   local frags_entries=()
 
   while IFS= read -r frag_file; do
-    local rel="${frag_file#$LIBRARY/agents/}"
+    local rel="${frag_file#"$LIBRARY"/agents/}"
     local group
     group=$(dirname "$rel")
     local name

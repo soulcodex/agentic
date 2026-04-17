@@ -28,7 +28,7 @@ ok()   { echo "  [ OK ] $*"; }
 # ── Fragment validation ───────────────────────────────────────────────────────
 echo "Validating fragments..."
 while IFS= read -r frag_file; do
-  rel="${frag_file#$LIBRARY/}"
+  rel="${frag_file#"$LIBRARY"/}"
 
   # Must start with H2 heading
   first_heading=$(grep -m1 '^## ' "$frag_file" || true)
@@ -55,7 +55,7 @@ done < <(find "$LIBRARY/agents" -name "*.md" | sort)
 echo ""
 echo "Validating profiles..."
 while IFS= read -r profile_file; do
-  rel="${profile_file#$LIBRARY/}"
+  rel="${profile_file#"$LIBRARY"/}"
 
   # Must have required fields
   name=$(yq '.meta.name // ""' "$profile_file" 2>/dev/null)
@@ -116,7 +116,7 @@ done
 echo ""
 echo "Validating skills..."
 while IFS= read -r skill_file; do
-  rel="${skill_file#$LIBRARY/}"
+  rel="${skill_file#"$LIBRARY"/}"
 
   # Must have frontmatter
   if ! grep -q '^---$' "$skill_file"; then

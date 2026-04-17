@@ -48,7 +48,6 @@ fi
 
 # Fall back to legacy library_path key if agentic_root is empty
 if [[ -z "$LIBRARY" && -f "$CONFIG_PATH" ]]; then
-  local legacy_path
   legacy_path=$(yq '.library_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
   if [[ -n "$legacy_path" && "$legacy_path" != "null" && "$legacy_path" != '""' ]]; then
     warn "library_path is deprecated. Use agentic_root in .agentic/config.yaml"

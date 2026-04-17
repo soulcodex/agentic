@@ -101,7 +101,7 @@ resolve_fragments "domains"      "agents/domains"
 # ── Fragment inline output (used in --full mode) ──────────────────────────────
 inline_fragments() {
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
-    local rel_path="${frag#$LIBRARY/}"
+    local rel_path="${frag#"$LIBRARY"/}"
     printf '\n<!-- fragment: %s -->\n\n' "$rel_path"
     cat "$frag"
     printf '\n'
@@ -140,7 +140,7 @@ build_fragment_reference_table() {
     # In link mode, preserve the subdirectory structure since .agentic/fragments is a symlink
     # to $LIBRARY/agents where files live in subdirectories (e.g., base/git-conventions.md)
     if [[ "$LINK_MODE" == "true" ]]; then
-      rel_path="${frag#$LIBRARY/agents/}"
+      rel_path="${frag#"$LIBRARY"/agents/}"
       group=$(dirname "$rel_path")
       if [[ "$group" == "." ]]; then
         # Fragment is directly in agents/ (no subdirectory)
@@ -515,7 +515,7 @@ compose_nested() {
 
   if [[ "$FULL_MODE" == "true" ]]; then
     for f in "${root_frags[@]+"${root_frags[@]}"}"; do
-      local rel_path="${f#$LIBRARY/}"
+      local rel_path="${f#"$LIBRARY"/}"
       root_out+=$'\n<!-- fragment: '"$rel_path"' -->\n\n'
       root_out+=$(cat "$f")
       root_out+=$'\n'
@@ -531,7 +531,7 @@ compose_nested() {
       fname=$(basename "$f")
       # In link mode, preserve the subdirectory structure
       if [[ "$LINK_MODE" == "true" ]]; then
-        rel_path="${f#$LIBRARY/agents/}"
+        rel_path="${f#"$LIBRARY"/agents/}"
         group=$(dirname "$rel_path")
         if [[ "$group" == "." ]]; then
           root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
@@ -588,7 +588,7 @@ compose_nested() {
     if [[ ${#tier_frags[@]} -gt 0 ]]; then
       if [[ "$FULL_MODE" == "true" ]]; then
         for f in "${tier_frags[@]}"; do
-          local rel_path="${f#$LIBRARY/}"
+          local rel_path="${f#"$LIBRARY"/}"
           tier_out+=$'\n<!-- fragment: '"$rel_path"' -->\n\n'
           tier_out+=$(cat "$f")
           tier_out+=$'\n'
