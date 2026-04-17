@@ -1,107 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # cli.sh — CLI logic for the agentic global CLI
 # Sourced by: bin/agentic
 # Provides: main(), discover_library(), discover_target(), and all command handlers
 
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
+source "$SCRIPT_DIR/common.sh"
+
 # ── Version ───────────────────────────────────────────────────────────────────
-VERSION="1.0.0"
+# Read version from VERSION file at repo root (two levels up from tooling/lib/)
+VERSION=$(cat "$(dirname "${BASH_SOURCE[0]}")/../../VERSION" 2>/dev/null || echo "1.0.0")
 
-# ── Output helpers ────────────────────────────────────────────────────────────
-die() {
-  echo "Error: $*" >&2
-  exit 1
-}
-
-warn() {
-  echo "Warning: $*" >&2
-}
-
-info() {
-  echo "$*"
-}
-
-# ── Library discovery ─────────────────────────────────────────────────────────
-# Priority:
-# 1. AGENTIC_REPO_ROOT env var
-# 2. AGENTIC_ROOT env var (alias)
-# 3. agentic_root from .agentic/config.yaml in current/parent directories
-# 4. LIBRARY_ROOT (set at install time by install.sh)
-# 5. Fail with helpful error
-discover_library() {
-  # 1. AGENTIC_REPO_ROOT env var
-  if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
-    if [[ -d "$AGENTIC_REPO_ROOT" ]]; then
-      echo "$AGENTIC_REPO_ROOT"
-      return 0
-    else
-      die "AGENTIC_REPO_ROOT is set but directory does not exist: $AGENTIC_REPO_ROOT"
-    fi
-  fi
-
-  # 2. AGENTIC_ROOT env var (alias)
-  if [[ -n "${AGENTIC_ROOT:-}" ]]; then
-    if [[ -d "$AGENTIC_ROOT" ]]; then
-      echo "$AGENTIC_ROOT"
-      return 0
-    else
-      die "AGENTIC_ROOT is set but directory does not exist: $AGENTIC_ROOT"
-    fi
-  fi
-
-  # 3. Read from .agentic/config.yaml in current/parent directories
-  local config_path
-  config_path="$(find_target_config)"
-  if [[ -n "$config_path" && -f "$config_path" ]]; then
-    local lib_path
-    lib_path="$(yq '.agentic_root // ""' "$config_path" 2>/dev/null || true)"
-    if [[ -n "$lib_path" && "$lib_path" != "null" && "$lib_path" != '""' ]]; then
-      # Resolve relative paths
-      if [[ "$lib_path" != /* ]]; then
-        local config_dir
-        config_dir="$(dirname "$config_path")"
-        lib_path="$(cd "$config_dir" && cd "$lib_path" 2>/dev/null && pwd)" || true
-      fi
-      if [[ -n "$lib_path" && -d "$lib_path" ]]; then
-        echo "$lib_path"
-        return 0
-      fi
-    fi
-  fi
-
-  # 4. LIBRARY_ROOT from install-time embedding (set by install.sh)
-  if [[ -n "${LIBRARY_ROOT:-}" && -d "$LIBRARY_ROOT" ]]; then
-    echo "$LIBRARY_ROOT"
-    return 0
-  fi
-
-  # 5. Fail with helpful error
-  die "Cannot find agentic library. Set AGENTIC_REPO_ROOT environment variable or add 'agentic_root' to .agentic/config.yaml"
-}
-
-# ── Target auto-detection ─────────────────────────────────────────────────────
-# Walks up from current directory to find .agentic/config.yaml
-find_target_config() {
-  local dir="$PWD"
-  while [[ "$dir" != "/" ]]; do
-    if [[ -f "$dir/.agentic/config.yaml" ]]; then
-      echo "$dir/.agentic/config.yaml"
-      return 0
-    fi
-    dir="$(dirname "$dir")"
-  done
-  return 1
-}
-
-# Returns the target directory (parent of .agentic/)
-discover_target() {
-  local config_path
-  config_path="$(find_target_config)" || true
-  if [[ -n "$config_path" ]]; then
-    dirname "$(dirname "$config_path")"
-    return 0
-  fi
-  return 1
-}
+# ── Library discovery (now in common.sh, keeping for API compatibility) ──────
+# These functions are now sourced from common.sh:
+# - discover_library()
+# - find_target_config()
+# - discover_target()
 
 # ── Help system ───────────────────────────────────────────────────────────────
 show_help() {
@@ -472,7 +387,7 @@ cmd_list() {
     fragments)
       echo "Available fragments:"
       find "$library/agents" -name "*.md" | sort | while read -r f; do
-        local rel="${f#$library/agents/}"
+        local rel="${f#"$library"/agents/}"
         printf "  %s\n" "${rel%.md}"
       done
       ;;

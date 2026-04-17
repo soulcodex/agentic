@@ -1,16 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # compose.sh — Assembles AGENTS.md from profile + fragments
 # Called by: just compose <profile> <target>
 set -euo pipefail
 
-# ── Markdown formatting helper ────────────────────────────────────────────────
-# Formats markdown files if mdformat is available (optional, silent if missing)
-format_markdown() {
-  local file="$1"
-  if command -v mdformat &>/dev/null; then
-    mdformat "$file" 2>/dev/null || true
-  fi
-}
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
+source "$SCRIPT_DIR/common.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
@@ -23,10 +19,10 @@ LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library)      LIBRARY="$2";      shift 2 ;;
-    --profile)      PROFILE="$2";      shift 2 ;;
-    --profile-file) PROFILE_FILE="$2"; shift 2 ;;
-    --target)       TARGET="$2";       shift 2 ;;
+    --library)      require_arg "--library" "$2"; LIBRARY="$2";      shift 2 ;;
+    --profile)      require_arg "--profile" "$2"; PROFILE="$2";      shift 2 ;;
+    --profile-file) require_arg "--profile-file" "$2"; PROFILE_FILE="$2"; shift 2 ;;
+    --target)       require_arg "--target" "$2";  TARGET="$2";       shift 2 ;;
     --dry-run)      DRY_RUN=true;      shift   ;;
     --full)         FULL_MODE=true;    shift   ;;
     --link)         LINK_MODE=true;    shift   ;;
@@ -106,7 +102,7 @@ resolve_fragments "domains"      "agents/domains"
 # ── Fragment inline output (used in --full mode) ──────────────────────────────
 inline_fragments() {
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
-    local rel_path="${frag#$LIBRARY/}"
+    local rel_path="${frag#"$LIBRARY"/}"
     printf '\n<!-- fragment: %s -->\n\n' "$rel_path"
     cat "$frag"
     printf '\n'
@@ -125,8 +121,8 @@ copy_fragments_to_target() {
 # ── Fragment symlink (used in --link mode) ────────────────────────────────────
 link_fragments_to_library() {
   local dest="$TARGET/.agentic/fragments"
-  # Remove any existing copy or symlink
-  rm -rf "$dest"
+  # Remove any existing copy or symlink using safe_rm_rf
+  safe_rm_rf "$dest"
   ln -sf "$LIBRARY/agents" "$dest"
 }
 
@@ -139,10 +135,25 @@ build_fragment_reference_table() {
   section+="|------|------|"$'\n'
 
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
-    local heading fname
+    local heading fname rel_path group
     heading=$(grep -m1 '^## ' "$frag" | sed 's/^## //')
     fname=$(basename "$frag")
-    section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+    # In link mode, preserve the subdirectory structure since .agentic/fragments is a symlink
+    # to $LIBRARY/agents where files live in subdirectories (e.g., base/git-conventions.md)
+    if [[ "$LINK_MODE" == "true" ]]; then
+      rel_path="${frag#"$LIBRARY"/agents/}"
+      group=$(dirname "$rel_path")
+      if [[ "$group" == "." ]]; then
+        # Fragment is directly in agents/ (no subdirectory)
+        section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+      else
+        # Fragment is in a subdirectory (e.g., base/git-conventions.md)
+        section+="| ${heading} | \`.agentic/fragments/${group}/${fname}\` |"$'\n'
+      fi
+    else
+      # Copy mode: fragments are flattened into .agentic/fragments/
+      section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+    fi
   done
 
   printf '%s' "$section"
@@ -344,10 +355,10 @@ compose_flat() {
   OUTPUT+=$(build_skills_section "$FULL_MODE")
 
   # Local override (project-specific additions, if present)
-  LOCAL_OVERRIDE="$TARGET/AGENTS.local.md"
-  if [[ -f "$LOCAL_OVERRIDE" ]]; then
+  local local_override="$TARGET/AGENTS.local.md"
+  if [[ -f "$local_override" ]]; then
     OUTPUT+=$'\n<!-- local override: AGENTS.local.md -->\n\n'
-    OUTPUT+=$(cat "$LOCAL_OVERRIDE")
+    OUTPUT+=$(cat "$local_override")
     OUTPUT+=$'\n'
   fi
 
@@ -505,7 +516,7 @@ compose_nested() {
 
   if [[ "$FULL_MODE" == "true" ]]; then
     for f in "${root_frags[@]+"${root_frags[@]}"}"; do
-      local rel_path="${f#$LIBRARY/}"
+      local rel_path="${f#"$LIBRARY"/}"
       root_out+=$'\n<!-- fragment: '"$rel_path"' -->\n\n'
       root_out+=$(cat "$f")
       root_out+=$'\n'
@@ -516,10 +527,21 @@ compose_nested() {
     root_out+="| Area | File |"$'\n'
     root_out+="|------|------|"$'\n'
     for f in "${root_frags[@]+"${root_frags[@]}"}"; do
-      local h fname
+      local h fname rel_path group
       h=$(grep -m1 '^## ' "$f" | sed 's/^## //')
       fname=$(basename "$f")
-      root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+      # In link mode, preserve the subdirectory structure
+      if [[ "$LINK_MODE" == "true" ]]; then
+        rel_path="${f#"$LIBRARY"/agents/}"
+        group=$(dirname "$rel_path")
+        if [[ "$group" == "." ]]; then
+          root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+        else
+          root_out+="| ${h} | \`.agentic/fragments/${group}/${fname}\` |"$'\n'
+        fi
+      else
+        root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+      fi
     done
   fi
 
@@ -567,7 +589,7 @@ compose_nested() {
     if [[ ${#tier_frags[@]} -gt 0 ]]; then
       if [[ "$FULL_MODE" == "true" ]]; then
         for f in "${tier_frags[@]}"; do
-          local rel_path="${f#$LIBRARY/}"
+          local rel_path="${f#"$LIBRARY"/}"
           tier_out+=$'\n<!-- fragment: '"$rel_path"' -->\n\n'
           tier_out+=$(cat "$f")
           tier_out+=$'\n'

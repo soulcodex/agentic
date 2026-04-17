@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # lint.sh — Validates fragments, profiles, and vendor adapters
 # Called by: just lint
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
+source "$SCRIPT_DIR/common.sh"
 
 LIBRARY=""
 
@@ -24,7 +29,7 @@ ok()   { echo "  [ OK ] $*"; }
 # ── Fragment validation ───────────────────────────────────────────────────────
 echo "Validating fragments..."
 while IFS= read -r frag_file; do
-  rel="${frag_file#$LIBRARY/}"
+  rel="${frag_file#"$LIBRARY"/}"
 
   # Must start with H2 heading
   first_heading=$(grep -m1 '^## ' "$frag_file" || true)
@@ -51,7 +56,7 @@ done < <(find "$LIBRARY/agents" -name "*.md" | sort)
 echo ""
 echo "Validating profiles..."
 while IFS= read -r profile_file; do
-  rel="${profile_file#$LIBRARY/}"
+  rel="${profile_file#"$LIBRARY"/}"
 
   # Must have required fields
   name=$(yq '.meta.name // ""' "$profile_file" 2>/dev/null)
@@ -93,7 +98,7 @@ done < <(find "$LIBRARY/profiles" -name "*.yaml" | sort)
 # ── Vendor adapter validation ─────────────────────────────────────────────────
 echo ""
 echo "Validating vendor adapters..."
-for vendor in claude copilot codex gemini opencode; do
+for vendor in "${AGENTIC_VENDORS[@]}"; do
   adapter_file="$LIBRARY/vendors/$vendor/adapter.json"
   if [[ ! -f "$adapter_file" ]]; then
     warn "vendors/$vendor/adapter.json — not found"
@@ -112,7 +117,7 @@ done
 echo ""
 echo "Validating skills..."
 while IFS= read -r skill_file; do
-  rel="${skill_file#$LIBRARY/}"
+  rel="${skill_file#"$LIBRARY"/}"
 
   # Must have frontmatter
   if ! grep -q '^---$' "$skill_file"; then

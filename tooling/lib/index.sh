@@ -51,9 +51,9 @@ write_if_changed() {
 
 # ── Skills index ──────────────────────────────────────────────────────────────
 build_skills_index() {
-  local skills_json='{"version":"1.0.0","generated_at":"","skills":['
-  local first=true
-
+  # Use jq for proper JSON construction (avoids issues with special characters)
+  local skills_entries=()
+  
   while IFS= read -r skill_file; do
     local dir
     dir=$(dirname "$skill_file")
@@ -61,7 +61,7 @@ build_skills_index() {
     group=$(basename "$(dirname "$dir")")
     local name
     name=$(basename "$dir")
-    local path="${skill_file#$LIBRARY/}"
+    local path="${skill_file#"$LIBRARY"/}"
 
     # Extract frontmatter fields using yq (parse YAML block between first two --- delimiters)
     local frontmatter
@@ -73,13 +73,26 @@ build_skills_index() {
     local tags
     tags=$(echo "$frontmatter" | yq -o=json '.tags // []' 2>/dev/null || echo '[]')
 
-    [[ "$first" == "false" ]] && skills_json+=","
-    skills_json+=$(printf '{"name":"%s","group":"%s","path":"%s","description":"%s","version":"%s","tags":%s}' \
-      "$name" "$group" "$path" "${description:0:120}" "${version:-0.0.0}" "${tags:-[]}")
-    first=false
+    # Build JSON entry using jq
+    local entry
+    entry=$(jq -n \
+      --arg name "$name" \
+      --arg group "$group" \
+      --arg path "$path" \
+      --arg desc "${description:0:120}" \
+      --arg ver "${version:-0.0.0}" \
+      --argjson tags "$tags" \
+      '{name: $name, group: $group, path: $path, description: $desc, version: $ver, tags: $tags}')
+    skills_entries+=("$entry")
   done < <(find "$LIBRARY/skills" -name "SKILL.md" | sort)
 
-  skills_json+="]}"
+  # Combine all entries into the final JSON
+  local skills_json
+  if [[ ${#skills_entries[@]} -eq 0 ]]; then
+    skills_json=$(jq -n '{version: "1.0.0", generated_at: "", skills: []}')
+  else
+    skills_json=$(printf '%s\n' "${skills_entries[@]}" | jq -s '{version: "1.0.0", generated_at: "", skills: .}')
+  fi
 
   local count
   count=$(find "$LIBRARY/skills" -name "SKILL.md" | wc -l | tr -d ' ')
@@ -93,11 +106,11 @@ build_skills_index() {
 
 # ── Fragments index ───────────────────────────────────────────────────────────
 build_fragments_index() {
-  local frags_json='{"version":"1.0.0","generated_at":"","fragments":['
-  local first=true
+  # Use jq for proper JSON construction (avoids issues with special characters)
+  local frags_entries=()
 
   while IFS= read -r frag_file; do
-    local rel="${frag_file#$LIBRARY/agents/}"
+    local rel="${frag_file#"$LIBRARY"/agents/}"
     local group
     group=$(dirname "$rel")
     local name
@@ -107,13 +120,25 @@ build_fragments_index() {
     local word_count
     word_count=$(wc -w < "$frag_file" | tr -d ' ')
 
-    [[ "$first" == "false" ]] && frags_json+=","
-    frags_json+=$(printf '{"name":"%s","group":"%s","path":"agents/%s","heading":"%s","words":%s}' \
-      "$name" "$group" "$rel" "$heading" "$word_count")
-    first=false
+    # Build JSON entry using jq (properly escapes special characters)
+    local entry
+    entry=$(jq -n \
+      --arg name "$name" \
+      --arg group "$group" \
+      --arg path "agents/$rel" \
+      --arg heading "$heading" \
+      --argjson words "$word_count" \
+      '{name: $name, group: $group, path: $path, heading: $heading, words: $words}')
+    frags_entries+=("$entry")
   done < <(find "$LIBRARY/agents" -name "*.md" | sort)
 
-  frags_json+="]}"
+  # Combine all entries into the final JSON
+  local frags_json
+  if [[ ${#frags_entries[@]} -eq 0 ]]; then
+    frags_json=$(jq -n '{version: "1.0.0", generated_at: "", fragments: []}')
+  else
+    frags_json=$(printf '%s\n' "${frags_entries[@]}" | jq -s '{version: "1.0.0", generated_at: "", fragments: .}')
+  fi
 
   local count
   count=$(find "$LIBRARY/agents" -name "*.md" | wc -l | tr -d ' ')

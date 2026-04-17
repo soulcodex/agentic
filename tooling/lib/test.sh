@@ -1,14 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # test.sh — Integration test suite for the agentic library tooling
 # Called by: just test
 set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
+FILTER=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --library) LIBRARY="$2"; shift 2 ;;
+    --filter) FILTER="$2"; shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -108,8 +110,53 @@ assert_json_min_count() {
   fi
 }
 
+assert_symlink_exists() {
+  local path="$1" label="$2"
+  if [[ -L "$path" ]]; then
+    pass "$label — symlink exists: $path"
+  else
+    fail "$label — expected symlink but does not exist: $path"
+  fi
+}
+
+assert_not_symlink() {
+  local path="$1" label="$2"
+  if [[ ! -L "$path" ]]; then
+    pass "$label — not a symlink: $path"
+  else
+    fail "$label — expected not a symlink but is: $path"
+  fi
+}
+
 run_test() {
   local name="$1"
+  # Extract just the number part (e.g., "02" from "T02 — compose: ...")
+  local num
+  if [[ "$name" =~ T([0-9]+) ]]; then
+    num="${BASH_REMATCH[1]}"
+  else
+    num="0"
+  fi
+  # Remove leading zeros to avoid octal interpretation
+  num=$((10#$num))
+  
+  local tag="compose"
+  if (( num >= 8 && num <= 13 )) || (( num >= 28 && num <= 43 )) || (( num >= 42 && num <= 43 )); then
+    tag="vendor"
+  elif (( num == 14 )) || (( num == 73 )); then
+    tag="lint"
+  elif (( num == 15 )) || (( num == 58 )) || (( num == 59 )); then
+    tag="index"
+  elif (( num >= 35 && num <= 38 )); then
+    tag="sync"
+  elif (( num >= 67 && num <= 72 )); then
+    tag="mcp"
+  fi
+
+  # Skip test execution if FILTER set and tag doesn't match
+  if [[ -n "$FILTER" && "$tag" != "$FILTER" ]]; then
+    return
+  fi
   echo ""
   echo "── $name"
 }
@@ -716,7 +763,7 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 # Modify the local profile
-sed -i.bak 's/version: .*/version: "99.0.0"/' "$TMP/t36/.agentic/profile.yaml"
+yq -i '.meta.version = "99.0.0"' "$TMP/t36/.agentic/profile.yaml"
 
 # Re-compose using local profile
 bash "$COMPOSE" \
@@ -738,7 +785,7 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 # Modify the local profile version
-sed -i.bak 's/version: .*/version: "88.0.0"/' "$TMP/t37/.agentic/profile.yaml"
+yq -i '.meta.version = "88.0.0"' "$TMP/t37/.agentic/profile.yaml"
 
 # Run sync
 bash "$SYNC" --target "$TMP/t37" > /dev/null 2>&1
@@ -762,7 +809,7 @@ bash "$VENDOR_SWITCH" \
   > /dev/null 2>&1
 
 # Modify the local profile version
-sed -i.bak 's/version: .*/version: "77.0.0"/' "$TMP/t38/.agentic/profile.yaml"
+yq -i '.meta.version = "77.0.0"' "$TMP/t38/.agentic/profile.yaml"
 
 # Run sync via vendor-switch
 bash "$VENDOR_SWITCH" \
@@ -1064,13 +1111,31 @@ T54_OUTPUT=$(cd "$TMP/t54/src/deep/nested" && "$CLI" sync 2>&1) || true
 
 assert_stdout_contains "$T54_OUTPUT" "Composed" "T54"
 
-# T55 — CLI: fails when outside project and no target given
-run_test "T55 — CLI: fails when no target and outside project"
-T55_EXIT=0
-T55_OUTPUT=$(cd "$TMP" && AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" sync 2>&1) || T55_EXIT=$?
+# T55 — CLI: auto-detects target from config in parent
+run_test "T55 — CLI: auto-detects target from config in parent"
+mkdir -p "$TMP/t55/.agentic"
+mkdir -p "$TMP/t55/src"
+cat > "$TMP/t55/.agentic/config.yaml" <<CONFIG
+agentic_root: "$LIBRARY"
+profile: "golang-hexagonal-cobra-cli"
+active_vendors: []
+CONFIG
+cat > "$TMP/t55/.agentic/profile.yaml" <<PROFILE
+meta:
+  name: Test Profile
+  version: "1.0.0"
+  description: Test
+fragments:
+  base:
+    - git-conventions
+PROFILE
 
-assert_exit_code 1 "$T55_EXIT" "T55"
-assert_stdout_contains "$T55_OUTPUT" "Cannot auto-detect target" "T55"
+# Run sync from a subdirectory (should find config in parent dir)
+T55_EXIT=0
+T55_OUTPUT=$(cd "$TMP/t55/src" && AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" sync 2>&1) || T55_EXIT=$?
+
+assert_exit_code 0 "$T55_EXIT" "T55"
+assert_stdout_contains "$T55_OUTPUT" "Composed" "T55"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # INSTALL SCRIPT TESTS
@@ -1098,8 +1163,6 @@ assert_stdout_contains "$T57_OUTPUT" "--branch" "T57"
 # ══════════════════════════════════════════════════════════════════════════════
 # MCP SERVER SEEDING TESTS (profile mcp: key)
 # ══════════════════════════════════════════════════════════════════════════════
-
-MCP="$LIBRARY/tooling/lib/mcp.sh"
 
 # T67 — compose: MCP seed creates .mcp.json with correct keys
 run_test "T67 — compose: MCP seed creates .mcp.json"

@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # sync-links.sh — Re-creates symlinks for a project deployed in --link mode
 # Called by: just sync-links <target>
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tooling/lib/common.sh
+source "$SCRIPT_DIR/common.sh"
 
 TARGET=""
 while [[ $# -gt 0 ]]; do
@@ -34,13 +39,13 @@ echo "Syncing symlinks for $TARGET (agentic_root: $AGENTIC_ROOT)..."
 
 # Re-create fragments symlink
 FRAGS="$TARGET/.agentic/fragments"
-rm -rf "$FRAGS"
+safe_rm_rf "$FRAGS"
 ln -sf "$AGENTIC_ROOT/agents" "$FRAGS"
 echo "  Linked: .agentic/fragments → $AGENTIC_ROOT/agents"
 
 # Re-create skills symlink
 SKILLS="$TARGET/.agentic/skills"
-rm -rf "$SKILLS"
+safe_rm_rf "$SKILLS"
 ln -sf "$AGENTIC_ROOT/skills" "$SKILLS"
 echo "  Linked: .agentic/skills → $AGENTIC_ROOT/skills"
 
@@ -49,7 +54,7 @@ PROJECT_NAME=$(basename "$TARGET")
 GENERATED_DIR="$AGENTIC_ROOT/_generated/$PROJECT_NAME/vendor-files"
 if [[ -d "$GENERATED_DIR" ]]; then
   VENDOR_FILES="$TARGET/.agentic/vendor-files"
-  rm -rf "$VENDOR_FILES"
+  safe_rm_rf "$VENDOR_FILES"
   ln -sf "$GENERATED_DIR" "$VENDOR_FILES"
   echo "  Linked: .agentic/vendor-files → $GENERATED_DIR"
 fi

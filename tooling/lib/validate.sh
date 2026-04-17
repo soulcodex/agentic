@@ -1,14 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # validate.sh — Validates an assembled AGENTS.md in a target project
 # Called by: just validate <target>
 set -euo pipefail
 
-LIBRARY=""
 TARGET=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library) LIBRARY="$2"; shift 2 ;;
+    --library) shift 2 ;;  # Accepted for backwards compatibility but not used
     --target)  TARGET="$2";  shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac

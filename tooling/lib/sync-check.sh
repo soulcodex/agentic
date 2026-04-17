@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # sync-check.sh — Checks if a project's config has drifted from the current library
 # Called by: just sync-check <target>
 set -euo pipefail
@@ -46,7 +46,9 @@ if [[ "$DEPLOYED_COMMIT" != "unknown" && "$CURRENT_COMMIT" != "unknown" ]]; then
   CHANGED=$(cd "$LIBRARY" && git diff --name-only "$DEPLOYED_COMMIT" "$CURRENT_COMMIT" -- agents/ 2>/dev/null || true)
   if [[ -n "$CHANGED" ]]; then
     echo "Status: DRIFTED — the following fragments changed since deployment:"
-    echo "$CHANGED" | sed 's/^/  - /'
+    while IFS= read -r line; do
+      printf "  - %s\n" "$line"
+    done <<< "$CHANGED"
   else
     echo "Status: DRIFTED (library commit changed, but no agent fragment changes detected)"
   fi
