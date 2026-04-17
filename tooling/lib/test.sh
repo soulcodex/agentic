@@ -5,10 +5,12 @@ set -euo pipefail
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
+FILTER=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --library) LIBRARY="$2"; shift 2 ;;
+    --filter) FILTER="$2"; shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -128,6 +130,10 @@ assert_not_symlink() {
 
 run_test() {
   local name="$1"
+  # Skip test if FILTER set and name doesn't contain filter string
+  if [[ -n "$FILTER" && "$name" != *"$FILTER"* ]]; then
+    return
+  fi
   echo ""
   echo "── $name"
 }
