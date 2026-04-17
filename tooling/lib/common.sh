@@ -17,9 +17,8 @@
 # Bash version check
 # ══════════════════════════════════════════════════════════════════════════════
 check_bash_version() {
-  local major minor
+  local major
   major=$(echo "$BASH_VERSION" | cut -d. -f1)
-  minor=$(echo "$BASH_VERSION" | cut -d. -f2)
   if [[ "$major" -lt 4 ]]; then
     echo "Error: Bash 4.0+ required, but found $BASH_VERSION" >&2
     exit 1
@@ -29,12 +28,12 @@ check_bash_version() {
 # ══════════════════════════════════════════════════════════════════════════════
 # ANSI Color constants
 # ══════════════════════════════════════════════════════════════════════════════
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+export RED='\033[0;31m'
+export GREEN='\033[0;32m'
+export YELLOW='\033[0;33m'
+export BLUE='\033[0;34m'
+export CYAN='\033[0;36m'
+export NC='\033[0m' # No Color
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Output helpers
@@ -112,7 +111,7 @@ require_arg() {
 # ══════════════════════════════════════════════════════════════════════════════
 
 # All supported vendors (single source of truth)
-AGENTIC_VENDORS=(claude copilot codex gemini opencode)
+export AGENTIC_VENDORS=(claude copilot codex gemini opencode)
 
 # Get vendor skill directory path
 # Usage: get_vendor_skill_dir <vendor>
@@ -131,11 +130,11 @@ get_vendor_skill_dir() {
 # Path constants
 # ══════════════════════════════════════════════════════════════════════════════
 
-AGENTIC_DIR=".agentic"
-AGENTIC_FRAGS_DIR=".agentic/fragments"
-AGENTIC_SKILLS_DIR=".agentic/skills"
-AGENTIC_VENDOR_DIR=".agentic/vendor-files"
-AGENTIC_GENERATED_DIR="_generated"
+export AGENTIC_DIR=".agentic"
+export AGENTIC_FRAGS_DIR=".agentic/fragments"
+export AGENTIC_SKILLS_DIR=".agentic/skills"
+export AGENTIC_VENDOR_DIR=".agentic/vendor-files"
+export AGENTIC_GENERATED_DIR="_generated"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Library discovery

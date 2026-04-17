@@ -1160,8 +1160,6 @@ assert_stdout_contains "$T57_OUTPUT" "--branch" "T57"
 # MCP SERVER SEEDING TESTS (profile mcp: key)
 # ══════════════════════════════════════════════════════════════════════════════
 
-MCP="$LIBRARY/tooling/lib/mcp.sh"
-
 # T67 — compose: MCP seed creates .mcp.json with correct keys
 run_test "T67 — compose: MCP seed creates .mcp.json"
 # Create a profile with mcp.servers

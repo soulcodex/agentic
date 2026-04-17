@@ -36,7 +36,6 @@ done
 [[ -z "$VENDORS_INPUT" ]] && { echo "Error: vendor argument required (or 'list', 'sync')" >&2; exit 1; }
 
 VENDOR_GEN="$LIBRARY/tooling/lib/vendor-gen.sh"
-DEPLOY_SKILLS="$LIBRARY/tooling/lib/deploy-skills.sh"
 SYNC_SCRIPT="$LIBRARY/tooling/lib/sync.sh"
 CONFIG="$TARGET/.agentic/config.yaml"
 VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"

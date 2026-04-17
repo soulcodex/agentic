@@ -59,7 +59,7 @@ resolve_vendors() {
 # ── Section extraction ────────────────────────────────────────────────────────
 # Escape special regex characters in a string
 escape_regex() {
-  printf '%s' "$1" | sed 's/[].[\*^$()/]/\\&/g'
+  printf "%s" "$1" | sed 's/[].[\*^$()/]/\\&/g'
 }
 
 # Extract a section from a monolithic AGENTS.md by its H2 heading (full mode)
