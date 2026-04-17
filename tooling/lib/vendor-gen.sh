@@ -7,15 +7,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# ── Markdown formatting helper (now in common.sh) ───────────────────────────────
-# Formats markdown files if mdformat is available (optional, silent if missing)
-format_markdown() {
-  local file="$1"
-  if command -v mdformat &>/dev/null; then
-    mdformat "$file" 2>/dev/null || true
-  fi
-}
-
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 TARGET=""
@@ -24,9 +15,9 @@ LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library) LIBRARY="$2"; shift 2 ;;
-    --target)  TARGET="$2";  shift 2 ;;
-    --vendors) VENDORS="$2"; shift 2 ;;
+    --library) require_arg "--library" "$2"; LIBRARY="$2"; shift 2 ;;
+    --target)  require_arg "--target" "$2";  TARGET="$2";  shift 2 ;;
+    --vendors) require_arg "--vendors" "$2"; VENDORS="$2"; shift 2 ;;
     --link)    LINK_MODE=true; shift ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -66,12 +57,20 @@ resolve_vendors() {
 }
 
 # ── Section extraction ────────────────────────────────────────────────────────
+# Escape special regex characters in a string
+escape_regex() {
+  printf '%s' "$1" | sed 's/[].[\*^$()/]/\\&/g'
+}
+
 # Extract a section from a monolithic AGENTS.md by its H2 heading (full mode)
 extract_section() {
   local heading="$1"
   local file="$2"
+  # Escape special regex characters in heading before using in awk pattern
+  local escaped_heading
+  escaped_heading=$(escape_regex "$heading")
   # Match from the heading line to the next H2 heading or end of file
-  awk "/^## ${heading//\//\\/}/{found=1; next} found && /^## /{exit} found{print}" "$file"
+  awk "/^## ${escaped_heading}/{found=1; next} found && /^## /{exit} found{print}" "$file"
 }
 
 # Extract a section from the fragments directory (lean mode)
@@ -81,12 +80,15 @@ extract_section_from_fragments() {
   local heading="$1"   # e.g. "Git Conventions"
   local frags_dir="$2" # TARGET/.agentic/fragments/
   [[ ! -d "$frags_dir" ]] && return
+  # Escape special regex characters in heading before using in pattern
+  local escaped_heading
+  escaped_heading=$(escape_regex "$heading")
   local match
-  match=$(grep -rl "^## ${heading}$" "$frags_dir" 2>/dev/null | head -1)
+  match=$(grep -rl "^## ${escaped_heading}$" "$frags_dir" 2>/dev/null | head -1)
   [[ -z "$match" ]] && return
   # Skip the first H2 heading line so callers get body content only,
   # matching the behaviour of extract_section which uses `next` to skip it.
-  awk "/^## ${heading//\//\\/}/{found=1; next} found{print}" "$match"
+  awk "/^## ${escaped_heading}/{found=1; next} found{print}" "$match"
 }
 
 # Unified dispatcher: routes to the right source depending on compose mode
