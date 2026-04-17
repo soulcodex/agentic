@@ -1107,10 +1107,28 @@ T54_OUTPUT=$(cd "$TMP/t54/src/deep/nested" && "$CLI" sync 2>&1) || true
 
 assert_stdout_contains "$T54_OUTPUT" "Composed" "T54"
 
-# T55 — CLI: auto-detects target from parent config
+# T55 — CLI: auto-detects target from config in parent
 run_test "T55 — CLI: auto-detects target from config in parent"
+mkdir -p "$TMP/t55/.agentic"
+mkdir -p "$TMP/t55/src"
+cat > "$TMP/t55/.agentic/config.yaml" <<CONFIG
+agentic_root: "$LIBRARY"
+profile: "golang-hexagonal-cobra-cli"
+active_vendors: []
+CONFIG
+cat > "$TMP/t55/.agentic/profile.yaml" <<PROFILE
+meta:
+  name: Test Profile
+  version: "1.0.0"
+  description: Test
+fragments:
+  base:
+    - git-conventions
+PROFILE
+
+# Run sync from a subdirectory (should find config in parent dir)
 T55_EXIT=0
-T55_OUTPUT=$(cd "$TMP" && AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" sync 2>&1) || T55_EXIT=$?
+T55_OUTPUT=$(cd "$TMP/t55/src" && AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" sync 2>&1) || T55_EXIT=$?
 
 assert_exit_code 0 "$T55_EXIT" "T55"
 assert_stdout_contains "$T55_OUTPUT" "Composed" "T55"
