@@ -7,15 +7,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# ── Markdown formatting helper ────────────────────────────────────────────────
-# Formats markdown files if mdformat is available (optional, silent if missing)
-format_markdown() {
-  local file="$1"
-  if command -v mdformat &>/dev/null; then
-    mdformat "$file" 2>/dev/null || true
-  fi
-}
-
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
 PROFILE=""
@@ -27,10 +18,10 @@ LINK_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --library)      LIBRARY="$2";      shift 2 ;;
-    --profile)      PROFILE="$2";      shift 2 ;;
-    --profile-file) PROFILE_FILE="$2"; shift 2 ;;
-    --target)       TARGET="$2";       shift 2 ;;
+    --library)      require_arg "--library" "$2"; LIBRARY="$2";      shift 2 ;;
+    --profile)      require_arg "--profile" "$2"; PROFILE="$2";      shift 2 ;;
+    --profile-file) require_arg "--profile-file" "$2"; PROFILE_FILE="$2"; shift 2 ;;
+    --target)       require_arg "--target" "$2";  TARGET="$2";       shift 2 ;;
     --dry-run)      DRY_RUN=true;      shift   ;;
     --full)         FULL_MODE=true;    shift   ;;
     --link)         LINK_MODE=true;    shift   ;;
@@ -143,10 +134,25 @@ build_fragment_reference_table() {
   section+="|------|------|"$'\n'
 
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
-    local heading fname
+    local heading fname rel_path group
     heading=$(grep -m1 '^## ' "$frag" | sed 's/^## //')
     fname=$(basename "$frag")
-    section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+    # In link mode, preserve the subdirectory structure since .agentic/fragments is a symlink
+    # to $LIBRARY/agents where files live in subdirectories (e.g., base/git-conventions.md)
+    if [[ "$LINK_MODE" == "true" ]]; then
+      rel_path="${frag#$LIBRARY/agents/}"
+      group=$(dirname "$rel_path")
+      if [[ "$group" == "." ]]; then
+        # Fragment is directly in agents/ (no subdirectory)
+        section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+      else
+        # Fragment is in a subdirectory (e.g., base/git-conventions.md)
+        section+="| ${heading} | \`.agentic/fragments/${group}/${fname}\` |"$'\n'
+      fi
+    else
+      # Copy mode: fragments are flattened into .agentic/fragments/
+      section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
+    fi
   done
 
   printf '%s' "$section"
@@ -520,10 +526,21 @@ compose_nested() {
     root_out+="| Area | File |"$'\n'
     root_out+="|------|------|"$'\n'
     for f in "${root_frags[@]+"${root_frags[@]}"}"; do
-      local h fname
+      local h fname rel_path group
       h=$(grep -m1 '^## ' "$f" | sed 's/^## //')
       fname=$(basename "$f")
-      root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+      # In link mode, preserve the subdirectory structure
+      if [[ "$LINK_MODE" == "true" ]]; then
+        rel_path="${f#$LIBRARY/agents/}"
+        group=$(dirname "$rel_path")
+        if [[ "$group" == "." ]]; then
+          root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+        else
+          root_out+="| ${h} | \`.agentic/fragments/${group}/${fname}\` |"$'\n'
+        fi
+      else
+        root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+      fi
     done
   fi
 
