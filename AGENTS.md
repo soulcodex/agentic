@@ -8,7 +8,6 @@ project repositories via the tooling provided here.
 
 - `agents/` — Composable AGENTS.md building blocks (fragments)
 - `skills/` — Reusable agent skill definitions
-- `automations/` — n8n workflow exports and templates
 - `vendors/` — Vendor-specific adapter configurations
 - `profiles/` — Composition presets for common project types
 - `tooling/` — Scripts and utilities (called via `just`)
