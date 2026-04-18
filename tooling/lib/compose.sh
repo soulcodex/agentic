@@ -442,7 +442,7 @@ inject_local_override() {
       else
         # Defensive fallback: prepend at very top
         echo "Warning: Could not find header anchor — prepending at top" >&2
-        output_ref="<!-- local override: ${override_name} -->\n\n$local_content"$'\n\n'"$output_ref"
+        output_ref="<!-- local override: ${override_name} -->"$'\n\n'"$local_content"$'\n\n'"$output_ref"
       fi
       ;;
     after_section)
@@ -539,9 +539,11 @@ compose_flat() {
     mkdir -p "$TARGET"
     # Atomic write: write to temp file first, then move into place
     local tmp_agents
-    tmp_agents=$(mktemp "$TARGET/XXXXX-agents.md")
+    trap '[[ -n "${tmp_agents:-}" ]] && rm -f "$tmp_agents"' RETURN
+    tmp_agents=$(mktemp "$TARGET/.agents-tmp-XXXXXX")
     printf '%s\n' "$OUTPUT" > "$tmp_agents"
     mv "$tmp_agents" "$TARGET/AGENTS.md"
+    tmp_agents=""  # clear so RETURN trap is a no-op
     format_markdown "$TARGET/AGENTS.md"
 
     LOCK_DIR="$TARGET/.agentic"
@@ -635,7 +637,7 @@ compose_nested() {
 
   # ── Root fragments: base + practices + domains (cross-cutting) ─────────────
   local root_frags=()
-  local _grp _subdir _names _n _fp
+  local _grp _names _n _fp
 
   for _grp in "base|agents/base" "practices|agents/practices" "domains|agents/domains"; do
     local _g="${_grp%%|*}"
@@ -750,9 +752,11 @@ compose_nested() {
   mkdir -p "$TARGET"
   # Atomic write: write to temp file first, then move into place
   local tmp_agents
-  tmp_agents=$(mktemp "$TARGET/XXXXX-agents.md")
+  trap '[[ -n "${tmp_agents:-}" ]] && rm -f "$tmp_agents"' RETURN
+  tmp_agents=$(mktemp "$TARGET/.agents-tmp-XXXXXX")
   printf '%s\n' "$root_out" > "$tmp_agents"
   mv "$tmp_agents" "$TARGET/AGENTS.md"
+  tmp_agents=""  # clear so RETURN trap is a no-op
   format_markdown "$TARGET/AGENTS.md"
 
   # ── Per-tier AGENTS.md ──────────────────────────────────────────────────────
@@ -815,9 +819,11 @@ compose_nested() {
     mkdir -p "$TARGET/$tier"
     # Atomic write: write to temp file first, then move into place
     local tmp_tier_agents
-    tmp_tier_agents=$(mktemp "$TARGET/$tier/XXXXX-agents.md")
+    trap '[[ -n "${tmp_tier_agents:-}" ]] && rm -f "$tmp_tier_agents"' RETURN
+    tmp_tier_agents=$(mktemp "$TARGET/$tier/.agents-tmp-XXXXXX")
     printf '%s\n' "$tier_out" > "$tmp_tier_agents"
     mv "$tmp_tier_agents" "$TARGET/$tier/AGENTS.md"
+    tmp_tier_agents=""  # clear so RETURN trap is a no-op
     format_markdown "$TARGET/$tier/AGENTS.md"
     echo "Composed ${tier}/AGENTS.md → $TARGET/${tier}/AGENTS.md"
   done

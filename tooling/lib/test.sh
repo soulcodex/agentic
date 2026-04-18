@@ -1803,13 +1803,12 @@ cat > "$TMP/t85/AGENTS.local.md" <<'EOF'
 This should appear after a missing section.
 EOF
 
+T85_EXIT=0
 T85_OUTPUT=$(bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile-file "$TMP/t85-profile.yaml" \
   --target "$TMP/t85" \
-  2>&1) || true
-
-T85_EXIT=$?
+  2>&1) || T85_EXIT=$?
 
 # Check exit was successful
 assert_exit_code 0 "$T85_EXIT" "T85"
