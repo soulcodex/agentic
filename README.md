@@ -143,6 +143,8 @@ Add a fragment, profile, skill, or vendor adapter — all in plain Markdown and 
 
 [Extending guide →](docs/extending.md)
 
+Add project-specific rules without touching the library → [docs/custom-rules.md](docs/custom-rules.md)
+
 ---
 
 ## Prerequisites & Contributing

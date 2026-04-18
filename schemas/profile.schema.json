@@ -179,6 +179,33 @@
           "type": "string",
           "enum": ["lean", "full"],
           "description": "lean (default): slim AGENTS.md with fragment refs copied to .agentic/fragments/; full: all content inlined"
+        },
+        "custom_rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Configuration for AGENTS.local.md injection",
+          "properties": {
+            "placement": {
+              "type": "string",
+              "enum": ["append", "prepend", "after_section"],
+              "default": "append",
+              "description": "Where to inject AGENTS.local.md content: append (default), prepend (after header), or after_section"
+            },
+            "after_section": {
+              "type": "string",
+              "description": "H2 heading after which to inject (e.g. 'Commands'). Only used when placement is 'after_section'"
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional description for custom rules"
+            },
+            "import_strategy": {
+              "type": "string",
+              "enum": ["adopt", "skip", "overwrite"],
+              "default": "adopt",
+              "description": "How to handle existing user-authored AGENTS.md on first compose"
+            }
+          }
         }
       }
     },
