@@ -300,8 +300,8 @@ bash "$VENDOR_GEN" \
 
 assert_file_exists "$TMP/t09/.agentic/vendor-files/copilot/copilot-instructions.md" "T09"
 
-# T10 — vendor-gen: gemini creates systemPrompt.md in vendor-files
-run_test "T10 — vendor-gen: gemini creates systemPrompt.md in vendor-files"
+# T10 — vendor-gen: gemini creates GEMINI.md in vendor-files
+run_test "T10 — vendor-gen: gemini creates GEMINI.md and system.md in vendor-files"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
@@ -314,7 +314,8 @@ bash "$VENDOR_GEN" \
   --vendors gemini \
   > /dev/null 2>&1
 
-assert_file_exists "$TMP/t10/.agentic/vendor-files/gemini/systemPrompt.md" "T10"
+assert_file_exists "$TMP/t10/.agentic/vendor-files/gemini/GEMINI.md" "T10 GEMINI.md"
+assert_file_exists "$TMP/t10/.agentic/vendor-files/gemini/system.md" "T10 system.md"
 
 # T11 — vendor-gen: fails without AGENTS.md
 run_test "T11 — vendor-gen: fails without AGENTS.md"
@@ -596,8 +597,9 @@ bash "$VENDOR_SWITCH" \
   > /dev/null 2>&1
 
 # Gemini should have symlink, claude symlinks should be gone
-assert_file_exists     "$TMP/t28/.gemini/systemPrompt.md"                      "T28 gemini"
-assert_file_exists     "$TMP/t28/.agentic/vendor-files/gemini/systemPrompt.md" "T28 gemini"
+assert_file_exists "$TMP/t28/GEMINI.md"            "T28 gemini GEMINI.md root symlink"
+assert_file_exists "$TMP/t28/.gemini/system.md"     "T28 gemini system.md"
+assert_file_exists "$TMP/t28/.agentic/vendor-files/gemini/GEMINI.md" "T28 gemini vendor file"
 assert_file_not_exists "$TMP/t28/CLAUDE.md"                                    "T28 gemini (no claude)"
 assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"       "T28 gemini"
 assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - gemini"            "T28 gemini"
@@ -967,7 +969,8 @@ bash "$VENDOR_SWITCH" \
 assert_file_contains "$TMP/t43/.agentic/config.yaml" "  - gemini" "T43 replace"
 assert_file_not_exists "$TMP/t43/CLAUDE.md" "T43 claude removed"
 assert_file_not_exists "$TMP/t43/.github/copilot-instructions.md" "T43 copilot removed"
-assert_file_exists "$TMP/t43/.gemini/systemPrompt.md" "T43 gemini active"
+assert_file_exists "$TMP/t43/GEMINI.md"         "T43 gemini active GEMINI.md"
+assert_file_exists "$TMP/t43/.gemini/system.md"  "T43 gemini active system.md"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GLOBAL CLI TESTS
@@ -1914,6 +1917,104 @@ bash "$COMPOSE" \
   > /dev/null 2>&1 || T89_EXIT=$?
 
 assert_exit_code 1 "$T89_EXIT" "T89"
+
+# T90 — vendor-gen: gemini creates GEMINI.md in vendor-files (lean mode)
+run_test "T90 — vendor-gen: gemini creates GEMINI.md with project name header"
+mkdir -p "$TMP/t90"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t90" \
+  > /dev/null 2>&1
+
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t90" \
+  --vendors gemini \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t90/.agentic/vendor-files/gemini/GEMINI.md" "T90 GEMINI.md"
+assert_file_contains "$TMP/t90/.agentic/vendor-files/gemini/GEMINI.md" "typescript-hexagonal-microservice" "T90 project name"
+
+# T91 — vendor-gen: gemini creates system.md in vendor-files (lean mode)
+run_test "T91 — vendor-gen: gemini creates system.md in vendor-files"
+assert_file_exists "$TMP/t90/.agentic/vendor-files/gemini/system.md" "T91 system.md"
+
+# T92 — vendor-gen: gemini GEMINI.md contains fragment content
+run_test "T92 — vendor-gen: gemini GEMINI.md contains fragment content"
+assert_file_contains "$TMP/t90/.agentic/vendor-files/gemini/GEMINI.md" "## Git Conventions" "T92 fragment content"
+
+# T93 — vendor-switch: GEMINI.md root symlink created after switching to gemini
+run_test "T93 — vendor-switch: GEMINI.md root symlink created"
+mkdir -p "$TMP/t93"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t93" \
+  > /dev/null 2>&1
+
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t93" \
+  --vendors gemini \
+  > /dev/null 2>&1
+
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t93" \
+  gemini \
+  > /dev/null 2>&1
+
+assert_symlink_exists "$TMP/t93/GEMINI.md" "T93 GEMINI.md symlink"
+
+# T94 — vendor-switch: .gemini/system.md symlink created after switching to gemini
+run_test "T94 — vendor-switch: .gemini/system.md symlink created"
+assert_symlink_exists "$TMP/t93/.gemini/system.md" "T94 .gemini/system.md symlink"
+
+# T95 — vendor-switch: .gemini/skills symlink created when skills exist
+run_test "T95 — vendor-switch: .gemini/skills symlink created when skills exist"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t93" \
+  --skills code-review \
+  > /dev/null 2>&1
+
+# Re-switch to gemini to create skills symlink
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t93" \
+  gemini \
+  > /dev/null 2>&1
+
+assert_symlink_exists "$TMP/t93/.gemini/skills" "T95 .gemini/skills symlink"
+
+# T96 — deploy-skills: .gemini/skills symlink created with --vendor gemini
+run_test "T96 — deploy-skills: .gemini/skills symlink created with --vendor gemini"
+mkdir -p "$TMP/t96"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t96" \
+  --skills code-review \
+  --vendor gemini \
+  > /dev/null 2>&1
+
+assert_symlink_exists "$TMP/t96/.gemini/skills" "T96 .gemini/skills symlink"
+
+# T97 — vendor isolation: vendors/gemini.sh exists and is a regular file
+run_test "T97 — vendor isolation: vendors/gemini.sh exists"
+if [[ -f "$LIBRARY/tooling/lib/vendors/gemini.sh" ]]; then
+  pass "T97 — vendors/gemini.sh exists"
+else
+  fail "T97 — vendors/gemini.sh should exist"
+fi
+
+# T98 — vendor isolation: vendors/claude.sh exists and is a regular file
+run_test "T98 — vendor isolation: vendors/claude.sh exists"
+if [[ -f "$LIBRARY/tooling/lib/vendors/claude.sh" ]]; then
+  pass "T98 — vendors/claude.sh exists"
+else
+  fail "T98 — vendors/claude.sh should exist"
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

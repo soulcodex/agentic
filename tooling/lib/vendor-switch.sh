@@ -122,7 +122,9 @@ remove_all_vendor_symlinks() {
 
   [[ -L "$TARGET/.github/copilot-instructions.md" ]] && rm "$TARGET/.github/copilot-instructions.md"
   [[ -L "$TARGET/.github/instructions" ]] && rm "$TARGET/.github/instructions"
-  [[ -L "$TARGET/.gemini/systemPrompt.md" ]] && rm "$TARGET/.gemini/systemPrompt.md"
+  [[ -L "$TARGET/.gemini/GEMINI.md" ]] && rm "$TARGET/GEMINI.md"
+  [[ -L "$TARGET/.gemini/system.md" ]] && rm "$TARGET/.gemini/system.md"
+  [[ -L "$TARGET/.gemini/skills" ]] && rm "$TARGET/.gemini/skills"
   
   # Remove skill symlinks
   [[ -L "$TARGET/.claude/skills" ]] && rm "$TARGET/.claude/skills"
@@ -180,12 +182,23 @@ create_vendor_symlinks() {
       fi
       ;;
     gemini)
-      if [[ -f "$VENDOR_FILES_DIR/gemini/systemPrompt.md" ]]; then
-        mkdir -p "$TARGET/.gemini"
-        ln -sf "../.agentic/vendor-files/gemini/systemPrompt.md" "$TARGET/.gemini/systemPrompt.md"
-        echo "    Linked: .gemini/systemPrompt.md"
+      # Primary context file (auto-discovered, zero config)
+      if [[ -f "$VENDOR_FILES_DIR/gemini/GEMINI.md" ]]; then
+        ln -sf ".agentic/vendor-files/gemini/GEMINI.md" "$TARGET/GEMINI.md"
+        echo "    Linked: GEMINI.md → .agentic/vendor-files/gemini/GEMINI.md"
       fi
-      # Gemini uses prompt-injected skills, no symlink needed
+      # System prompt override (requires GEMINI_SYSTEM_MD=1)
+      if [[ -f "$VENDOR_FILES_DIR/gemini/system.md" ]]; then
+        mkdir -p "$TARGET/.gemini"
+        ln -sf "../.agentic/vendor-files/gemini/system.md" "$TARGET/.gemini/system.md"
+        echo "    Linked: .gemini/system.md → ../.agentic/vendor-files/gemini/system.md"
+      fi
+      # Native skills directory
+      if [[ -d "$TARGET/.agentic/skills" ]]; then
+        mkdir -p "$TARGET/.gemini"
+        ln -sf "../.agentic/skills" "$TARGET/.gemini/skills"
+        echo "    Linked: .gemini/skills → ../.agentic/skills"
+      fi
       ;;
     opencode)
       # NOTE: opencode.json is intentionally not generated — users manage their own config.
@@ -206,7 +219,7 @@ vendor_files_exist() {
     claude)   [[ -f "$VENDOR_FILES_DIR/claude/CLAUDE.md" ]] ;;
     copilot)  [[ -f "$VENDOR_FILES_DIR/copilot/copilot-instructions.md" ]] ;;
     codex)    [[ -d "$VENDOR_FILES_DIR/codex" ]] ;;
-    gemini)   [[ -f "$VENDOR_FILES_DIR/gemini/systemPrompt.md" ]] ;;
+    gemini)   [[ -f "$VENDOR_FILES_DIR/gemini/GEMINI.md" ]] ;;
     opencode) [[ -d "$VENDOR_FILES_DIR/opencode" ]] ;;
     *)        return 1 ;;
   esac

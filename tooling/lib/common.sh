@@ -121,7 +121,8 @@ get_vendor_skill_dir() {
     claude)   echo ".claude/skills" ;;
     opencode) echo ".opencode/skills" ;;
     codex)    echo ".agents/skills" ;;
-    copilot|gemini) echo "" ;; # These vendors use prompt-injected skills
+    gemini)   echo ".gemini/skills" ;;
+    copilot)  echo "" ;;           # Copilot uses prompt-injected skills
     *)        echo "" ;;
   esac
 }
