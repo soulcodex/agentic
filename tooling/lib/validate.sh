@@ -77,7 +77,7 @@ if [[ -f "$AGENTS_LOCAL" ]]; then
 
   # Check for duplicate sections with AGENTS.md
   if [[ -f "$AGENTS_MD" ]]; then
-    local -a headings_in_local=()
+    headings_in_local=()
     while IFS= read -r line; do
       headings_in_local+=("$line")
     done < <(grep -h '^## ' "$AGENTS_LOCAL" | sort -u || true)
