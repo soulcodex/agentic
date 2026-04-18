@@ -1516,6 +1516,405 @@ else
 fi
 assert_file_not_contains "$TMP/t66/.agentic/config.yaml" "deploy_mode: link" "T66"
 
+# ══════════════════════════════════════════════════════════════════════════════
+# CUSTOM RULES / AGENTS.LOCAL.MD TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T74 — compose: AGENTS.local.md appears in output (append, default)
+run_test "T74 — compose: AGENTS.local.md appears in output (append)"
+mkdir -p "$TMP/t74"
+cat > "$TMP/t74/AGENTS.local.md" <<'EOF'
+## Custom Rules
+
+These are my project-specific rules.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t74" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t74/AGENTS.md" "T74"
+assert_file_contains "$TMP/t74/AGENTS.md" "<!-- local override: AGENTS.local.md -->" "T74"
+assert_file_contains "$TMP/t74/AGENTS.md" "## Custom Rules" "T74"
+assert_file_contains "$TMP/t74/AGENTS.md" "These are my project-specific rules." "T74"
+
+# T75 — compose: custom_rules.placement: prepend places local content first
+run_test "T75 — compose: custom_rules.placement: prepend"
+mkdir -p "$TMP/t75"
+cat > "$TMP/t75-profile.yaml" <<'EOF'
+meta:
+  name: Test Prepend
+  description: Test profile with prepend placement
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+  custom_rules:
+    placement: prepend
+vendors:
+  enabled: []
+EOF
+
+cat > "$TMP/t75/AGENTS.local.md" <<'EOF'
+## Prepended Section
+
+This should appear near the top.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t75-profile.yaml" \
+  --target "$TMP/t75" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t75/AGENTS.md" "T75"
+assert_file_contains "$TMP/t75/AGENTS.md" "<!-- local override: AGENTS.local.md -->" "T75"
+assert_file_contains "$TMP/t75/AGENTS.md" "## Prepended Section" "T75"
+
+# T76 — compose: custom_rules.placement: after_section injects after named section
+run_test "T76 — compose: custom_rules.placement: after_section"
+mkdir -p "$TMP/t76"
+cat > "$TMP/t76-profile.yaml" <<'EOF'
+meta:
+  name: Test After Section
+  description: Test profile with after_section placement
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+  custom_rules:
+    placement: after_section
+    after_section: "Commands"
+vendors:
+  enabled: []
+EOF
+
+cat > "$TMP/t76/AGENTS.local.md" <<'EOF'
+## Post-Commands Section
+
+This should appear after Commands.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t76-profile.yaml" \
+  --target "$TMP/t76" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t76/AGENTS.md" "T76"
+assert_file_contains "$TMP/t76/AGENTS.md" "<!-- local override: AGENTS.local.md -->" "T76"
+assert_file_contains "$TMP/t76/AGENTS.md" "## Post-Commands Section" "T76"
+
+# T77 — compose: no AGENTS.local.md, no leftover placeholder
+run_test "T77 — compose: no AGENTS.local.md produces clean output"
+mkdir -p "$TMP/t77"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t77" \
+  > /dev/null 2>&1
+
+assert_file_not_contains "$TMP/t77/AGENTS.md" "<!-- local override:" "T77"
+
+# T78 — compose: nested mode with root AGENTS.local.md in root only
+run_test "T78 — compose: nested mode root AGENTS.local.md in root only"
+mkdir -p "$TMP/t78"
+cat > "$TMP/t78/AGENTS.local.md" <<'EOF'
+## Root Custom Rules
+
+These are root-level custom rules.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t78" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t78/AGENTS.md" "T78"
+assert_file_contains "$TMP/t78/AGENTS.md" "## Root Custom Rules" "T78"
+# Should NOT appear in tier files
+assert_file_not_contains "$TMP/t78/backend/AGENTS.md" "Root Custom Rules" "T78"
+assert_file_not_contains "$TMP/t78/ui/AGENTS.md" "Root Custom Rules" "T78"
+
+# T79 — compose: nested mode with tier-level AGENTS.local.md
+run_test "T79 — compose: nested mode tier-level AGENTS.local.md"
+mkdir -p "$TMP/t79"
+mkdir -p "$TMP/t79/backend"
+cat > "$TMP/t79/backend/AGENTS.local.md" <<'EOF'
+## Backend Custom Rules
+
+These are backend-tier specific rules.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t79" \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t79/AGENTS.md" "T79"
+assert_file_not_contains "$TMP/t79/AGENTS.md" "Backend Custom Rules" "T79"
+assert_file_exists "$TMP/t79/backend/AGENTS.md" "T79"
+assert_file_contains "$TMP/t79/backend/AGENTS.md" "## Backend Custom Rules" "T79"
+
+# T80 — validate: warning when custom_rules declared but AGENTS.local.md absent
+run_test "T80 — validate: warning for custom_rules without AGENTS.local.md"
+mkdir -p "$TMP/t80"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t80" \
+  > /dev/null 2>&1 || true
+
+# Manually add custom_rules to the profile (simulating profile change)
+yq -i '.output.custom_rules = {"placement": "append"}' "$TMP/t80/.agentic/profile.yaml" || true
+
+T80_OUTPUT=$(bash "$VALIDATE" \
+  --library "$LIBRARY" \
+  --target "$TMP/t80" \
+  2>&1) || true
+
+assert_stdout_contains "$T80_OUTPUT" "[WARN]" "T80"
+
+# T81 — --import=adopt migrates user-authored AGENTS.md to AGENTS.local.md
+run_test "T81 — --import=adopt migrates user-authored AGENTS.md"
+mkdir -p "$TMP/t81"
+cat > "$TMP/t81/AGENTS.md" <<'EOF'
+# Agent Instructions — my-project
+
+## Custom Workflow
+
+My existing custom rules.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t81" \
+  --import adopt \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t81/AGENTS.local.md" "T81"
+assert_file_contains "$TMP/t81/AGENTS.local.md" "## Custom Workflow" "T81"
+
+# T82 — --import=adopt with existing AGENTS.local.md skips migration
+run_test "T82 — --import=adopt skips when AGENTS.local.md exists"
+mkdir -p "$TMP/t82"
+cat > "$TMP/t82/AGENTS.md" <<'EOF'
+# Agent Instructions
+
+Old content.
+EOF
+cat > "$TMP/t82/AGENTS.local.md" <<'EOF'
+## Existing Local Rules
+
+These are my local rules.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t82" \
+  --import adopt \
+  > /dev/null 2>&1
+
+# AGENTS.local.md should NOT be overwritten
+assert_file_contains "$TMP/t82/AGENTS.local.md" "## Existing Local Rules" "T82"
+# AGENTS.md should be generated, overwriting old content
+assert_file_contains "$TMP/t82/AGENTS.md" "<!-- AUTO-GENERATED by agentic library -->" "T82"
+
+# T83 — --import=skip aborts on user-authored AGENTS.md
+run_test "T83 — --import=skip exits with error on user-authored AGENTS.md"
+mkdir -p "$TMP/t83"
+cat > "$TMP/t83/AGENTS.md" <<'EOF'
+# Agent Instructions
+
+My custom rules without marker.
+EOF
+
+T83_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t83" \
+  --import skip \
+  > /dev/null 2>&1 || T83_EXIT=$?
+
+assert_exit_code 1 "$T83_EXIT" "T83"
+
+# T84 — --import=overwrite --yes overwrites without prompt
+run_test "T84 — --import=overwrite --yes overwrites without prompt"
+mkdir -p "$TMP/t84"
+cat > "$TMP/t84/AGENTS.md" <<'EOF'
+# Agent Instructions
+
+Old user content.
+EOF
+
+T84_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t84" \
+  --import overwrite \
+  --yes \
+  > /dev/null 2>&1 || T84_EXIT=$?
+
+assert_exit_code 0 "$T84_EXIT" "T84"
+assert_file_contains "$TMP/t84/AGENTS.md" "<!-- AUTO-GENERATED by agentic library -->" "T84"
+assert_file_not_contains "$TMP/t84/AGENTS.md" "Old user content" "T84"
+
+# T85 — compose: after_section fallback when heading not found emits warning to stderr
+run_test "T85 — compose: after_section fallback emits warning"
+mkdir -p "$TMP/t85"
+cat > "$TMP/t85-profile.yaml" <<'EOF'
+meta:
+  name: Test After Section Fallback
+  description: Test profile with after_section placement
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+  custom_rules:
+    placement: after_section
+    after_section: "NonExistentSection"
+vendors:
+  enabled: []
+EOF
+
+cat > "$TMP/t85/AGENTS.local.md" <<'EOF'
+## Custom Section
+
+This should appear after a missing section.
+EOF
+
+T85_EXIT=0
+T85_OUTPUT=$(bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t85-profile.yaml" \
+  --target "$TMP/t85" \
+  2>&1) || T85_EXIT=$?
+
+# Check exit was successful
+assert_exit_code 0 "$T85_EXIT" "T85"
+# Check warning was emitted (captured in combined stdout/stderr)
+if echo "$T85_OUTPUT" | grep -q "Warning.*NonExistentSection.*not found"; then
+  pass "T85 — warning emitted for missing section"
+else
+  fail "T85 — should emit warning for missing section"
+fi
+# Check content was appended (not lost)
+assert_file_contains "$TMP/t85/AGENTS.md" "## Custom Section" "T85"
+
+# T86 — compose: --import=adopt in nested mode migrates root AGENTS.md
+run_test "T86 — compose: --import=adopt works in nested mode"
+mkdir -p "$TMP/t86"
+cat > "$TMP/t86/AGENTS.md" <<'EOF'
+# Agent Instructions — my-project
+
+## Custom Workflow
+
+My existing custom rules.
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t86" \
+  --import adopt \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t86/AGENTS.local.md" "T86"
+assert_file_contains "$TMP/t86/AGENTS.local.md" "## Custom Workflow" "T86"
+# Original AGENTS.md should be regenerated (not user-authored anymore)
+assert_file_contains "$TMP/t86/AGENTS.md" "<!-- AUTO-GENERATED by agentic library -->" "T86"
+
+# T87 — compose: Mode B with --import=skip does NOT abort (auto-generated AGENTS.md)
+run_test "T87 — compose: --import=skip with auto-generated AGENTS.md proceeds"
+mkdir -p "$TMP/t87"
+# First compose to create an auto-generated AGENTS.md
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t87" \
+  > /dev/null 2>&1
+
+# Now run compose again with --import=skip (should succeed since AGENTS.md is auto-generated)
+T87_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t87" \
+  --import skip \
+  > /dev/null 2>&1 || T87_EXIT=$?
+
+assert_exit_code 0 "$T87_EXIT" "T87"
+
+# T88 — compose: empty AGENTS.local.md produces no override block
+run_test "T88 — compose: empty AGENTS.local.md produces clean output"
+mkdir -p "$TMP/t88"
+# Create empty file
+touch "$TMP/t88/AGENTS.local.md"
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t88" \
+  > /dev/null 2>&1
+
+assert_file_not_contains "$TMP/t88/AGENTS.md" "<!-- local override" "T88"
+
+# T89 — compose: profile import_strategy: skip exits 1 without --import flag on user-authored AGENTS.md
+run_test "T89 — compose: profile import_strategy: skip exits 1"
+mkdir -p "$TMP/t89"
+cat > "$TMP/t89/AGENTS.md" <<'EOF'
+# Agent Instructions
+
+User-authored content without marker.
+EOF
+
+cat > "$TMP/t89-profile.yaml" <<'EOF'
+meta:
+  name: Test Skip Strategy
+  description: Test profile with skip import strategy
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+  custom_rules:
+    import_strategy: skip
+vendors:
+  enabled: []
+EOF
+
+T89_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t89-profile.yaml" \
+  --target "$TMP/t89" \
+  > /dev/null 2>&1 || T89_EXIT=$?
+
+assert_exit_code 1 "$T89_EXIT" "T89"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
