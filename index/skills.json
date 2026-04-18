@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-04T11:17:24Z",
+  "generated_at": "2026-04-18T19:27:03Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -245,6 +245,19 @@
         "debugging",
         "fix",
         "quality"
+      ]
+    },
+    {
+      "name": "git-flow-pr",
+      "group": "development",
+      "path": "skills/development/git-flow-pr/SKILL.md",
+      "description": "Executes the full PR-driven development workflow: create an isolated feature branch from the current work, commit all st",
+      "version": "1.0.0",
+      "tags": [
+        "git",
+        "github",
+        "pull-request",
+        "workflow"
       ]
     },
     {

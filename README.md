@@ -12,24 +12,25 @@ One library. One deploy. All your AI tools stay in sync.
 
 ```
 Without agentic              With agentic
-─────────────────────────    ────────────────────────────────────
-my-project/                  my-project/
-├── CLAUDE.md                ├── AGENTS.md               ← source of truth
-├── .github/                 ├── CLAUDE.md               ← symlink
-│   └── copilot-instr.md     ├── .github/
-├── .cursor/rules/           │   └── copilot-instr.md    ← symlink
-│   └── *.mdc                ├── .gemini/
-└── .gemini/                 │   └── systemPrompt.md     ← symlink
-    └── systemPrompt.md      └── .agentic/
-                                 ├── config.yaml         ← locked config
-                                 ├── profile.yaml        ← customize per-project
-                                 ├── project-skills/     ← your custom skills
-                                 ├── fragments/          ← on-demand context
-                                 ├── skills/             ← deployed skills
-                                 └── vendor-files/       ← generated once
-                                     ├── claude/
-                                     ├── copilot/
-                                     └── gemini/
+ ─────────────────────────    ────────────────────────────────────
+ my-project/                  my-project/
+ ├── CLAUDE.md                ├── AGENTS.md               ← source of truth
+ ├── .github/                 ├── CLAUDE.md               ← symlink
+ │   └── copilot-instr.md     ├── .github/
+ ├── .cursor/rules/           │   └── copilot-instructions.md ← symlink
+ │   └── *.mdc                ├── .gemini/
+ └── .gemini/                 │   ├── GEMINI.md           ← auto-discovered
+     └── systemPrompt.md      │   ├── system.md           ← symlink
+                              └── .agentic/              └── skills/          ← symlink
+                                   ├── config.yaml         ← locked config
+                                   ├── profile.yaml        ← customize per-project
+                                   ├── project-skills/     ← your custom skills
+                                   ├── fragments/          ← on-demand context
+                                   ├── skills/             ← deployed skills
+                                   └── vendor-files/       ← generated once
+                                       ├── claude/
+                                       ├── copilot/
+                                       └── gemini/
 ```
 
 Instructions drift and contradict each other. Every new project starts from scratch. Adding a new AI tool means updating N files manually.
@@ -70,7 +71,7 @@ agentic list profiles
 agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 ```
 
-Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/systemPrompt.md`, and `.agentic/config.yaml` into `~/code/my-api`. Run `agentic sync` from within any project to regenerate from local profile.
+Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `GEMINI.md`, `.gemini/system.md`, and `.agentic/config.yaml` into `~/code/my-api`. Run `agentic sync` from within any project to regenerate from local profile.
 
 ---
 
@@ -103,7 +104,7 @@ Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/sys
 | **Claude** (Claude Code) | `AGENTS.md`, `CLAUDE.md`, `.claude/skills/` |
 | **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` |
 | **OpenAI Codex** | `AGENTS.md` |
-| **Gemini CLI** | `.gemini/systemPrompt.md` |
+| **Gemini CLI** | `GEMINI.md`, `.gemini/system.md`, `.gemini/skills/` |
 | **Opencode** | `AGENTS.md` (native), `.opencode/skills/` |
 
 [Vendor details, glob mechanism, and vendor-switch →](docs/vendors.md)

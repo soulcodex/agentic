@@ -37,6 +37,18 @@ project repositories via the tooling provided here.
 - The canonical source of truth is always `AGENTS.md` (assembled from fragments).
 - `adapter.json` files must validate against `vendors/_schema/adapter.schema.json`.
 
+### Documentation
+
+- **Any change that introduces, renames, or removes a vendor output file, symlink path,
+  tooling flag, or `just` recipe must include a corresponding update to the affected
+  docs in the same commit.** Relevant files: `README.md`, `docs/vendors.md`,
+  `docs/commands.md`, `docs/extending.md`, and any `vendors/*/README.md`.
+- When adding a new vendor adapter, add it to the Supported Vendors table in
+  `README.md` and `docs/vendors.md`, and document its output files and symlink paths.
+- When adding a new `just` recipe or CLI command, add it to `docs/commands.md`.
+- When adding or updating a skill that references tooling paths or output filenames,
+  verify those paths are still accurate before committing.
+
 ### Profiles
 
 - Profile YAML files must validate against `schemas/profile.schema.json`.
@@ -74,7 +86,7 @@ Rules:
 
 ### Testing & Quality
 
-- **Always run `just test` before committing any change to `tooling/`.** All 29 (or more) assertions must pass.
+- **Always run `just test` before committing any change to `tooling/`.** All assertions must pass (currently 279+).
 - **When adding or changing behaviour in `compose.sh`, `vendor-gen.sh`, `deploy-skills.sh`, or any other script, add corresponding assertions to `tooling/lib/test.sh`.**
   - New compose feature (e.g. a new generated section)? Add a `T##` test that composes a suitable profile and asserts the section is present.
   - New flag or mode? Add a test that exercises the flag, checks the output file(s) exist (or don't), and verifies the content.

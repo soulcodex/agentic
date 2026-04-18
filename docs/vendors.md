@@ -9,7 +9,7 @@ agentic generates vendor-specific instruction files from a single `AGENTS.md` so
 | **Claude** (Claude Code) | `AGENTS.md`, `CLAUDE.md` | `AGENTS.md` natively; `CLAUDE.md` is a thin wrapper pointing to it; skills in `.claude/skills/` |
 | **GitHub Copilot** | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` | Global always-on instructions + glob-scoped per-language files |
 | **OpenAI Codex** | `AGENTS.md` | `AGENTS.md` natively; hierarchical for monorepos (tier AGENTS.md files) |
-| **Gemini CLI** | `.gemini/systemPrompt.md` | Single system prompt — all fragment content concatenated |
+| **Gemini CLI** | `GEMINI.md`, `.gemini/system.md` | Root context file (auto-discovered) + system-prompt override |
 | **Opencode** | `AGENTS.md` | `AGENTS.md` natively; skills in `.opencode/skills/` |
 
 ## How Each Vendor Uses AGENTS.md
@@ -43,7 +43,11 @@ This means the Go conventions are injected only when Copilot is working on `.go`
 
 ### Gemini CLI
 
-Gemini reads a single system prompt from `.gemini/systemPrompt.md`. The vendor adapter concatenates all fragment content (in lean mode, reads from `.agentic/fragments/`) and appends it after the prompt header.
+Gemini CLI auto-discovers `GEMINI.md` at the project root — no environment variables
+required. The vendor adapter also generates `.gemini/system.md` as a full
+system-prompt override; set `GEMINI_SYSTEM_MD=1` to activate it.
+Skills are deployed natively to `.gemini/skills/` and activated lazily via the
+`activate_skill` tool, keeping the initial context lean.
 
 ### Opencode
 
@@ -91,5 +95,5 @@ Multiple vendors can be active simultaneously since their symlink paths don't co
 | `claude` | `CLAUDE.md`, `.claude/skills` |
 | `copilot` | `.github/copilot-instructions.md`, `.github/instructions/` |
 | `codex` | `.agents/skills` (reads `AGENTS.md` natively) |
-| `gemini` | `.gemini/systemPrompt.md` |
+| `gemini` | `GEMINI.md`, `.gemini/system.md`, `.gemini/skills` |
 | `opencode` | `.opencode/skills` |

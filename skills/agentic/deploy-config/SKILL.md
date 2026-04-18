@@ -54,7 +54,9 @@ After deploying, list the files created in the target project:
 - `AGENTS.md` — primary agent instructions
 - `CLAUDE.md` — Claude adapter (if claude vendor enabled)
 - `.github/copilot-instructions.md` — Copilot adapter (if copilot enabled)
-- `.gemini/systemPrompt.md` — Gemini adapter (if gemini enabled)
+- `GEMINI.md` — Gemini primary context file (auto-discovered, if gemini enabled)
+- `.gemini/system.md` — Gemini system-prompt override (requires `GEMINI_SYSTEM_MD=1`, if gemini enabled)
+- `.gemini/skills/` — Gemini skills directory (symlinked, if gemini enabled)
 - `.claude/skills/*/` — deployed skill directories (if claude enabled)
 - `.agentic/config.yaml` — lock file recording what was deployed
 

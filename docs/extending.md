@@ -203,7 +203,8 @@ into the format expected by a specific AI tool.
 
 1. Create `vendors/my-tool/` directory.
 2. Add a template file (e.g., `template.my-tool.md`).
-3. Add the generation logic to `tooling/lib/vendor-gen.sh` as a `gen_mytool()` function.
-4. Add `my-tool` to the `resolve_vendors` function.
-5. Add `my-tool` to the `vendors.enabled` list in any profiles that should use it.
-6. Run `just lint && just test`.
+3. Create `tooling/lib/vendors/my-tool.sh` with a `gen_mytool()` function (see existing vendor scripts for the pattern).
+4. Add a `# shellcheck source=tooling/lib/vendors/my-tool.sh` directive and `source` call to `tooling/lib/vendor-gen.sh`'s vendor-loading block.
+5. Add `my-tool` to the `AGENTIC_VENDORS` array in `tooling/lib/common.sh`.
+6. Add `my-tool` to the `vendors.enabled` list in any profiles that should use it.
+7. Run `just lint && just test`.
