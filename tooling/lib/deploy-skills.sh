@@ -108,7 +108,7 @@ This directory contains reusable agent skills deployed by the agentic library.
 | OpenCode | `.opencode/skills/` (symlinked here) | Native |
 | Codex | `.agents/skills/` (symlinked here) | Native |
 | Copilot | Injected into copilot-instructions.md | Prompt-injected |
-| Gemini | Injected into systemPrompt.md | Prompt-injected |
+| Gemini | `.gemini/skills/` (symlinked here) | Native (lazy via activate_skill) |
 
 ## How It Works
 
@@ -194,8 +194,14 @@ create_skill_symlinks() {
       ln -s "../.agentic/skills" "$TARGET/.agents/skills"
       echo "  Linked: .agents/skills → ../.agentic/skills"
       ;;
-    copilot|gemini)
-      echo "  $vendor uses prompt-injected skills — no symlink needed"
+    copilot)
+      echo "  copilot uses prompt-injected skills — no symlink needed"
+      ;;
+    gemini)
+      mkdir -p "$TARGET/.gemini"
+      rm -f "$TARGET/.gemini/skills"
+      ln -s "../.agentic/skills" "$TARGET/.gemini/skills"
+      echo "  Linked: .gemini/skills → ../.agentic/skills"
       ;;
     *)
       echo "  Unknown vendor '$vendor' — skipping skill symlinks"

@@ -2,7 +2,8 @@
 <!-- Source profile: {{PROFILE_NAME}} (v{{PROFILE_VERSION}}) -->
 <!-- Generated: {{GENERATED_AT}} -->
 <!-- DO NOT EDIT — regenerate with: just vendor-gen {{TARGET_PATH}} -->
+<!-- Usage: set GEMINI_SYSTEM_MD=1 to activate this as the full system prompt -->
 
-# {{PROJECT_NAME}} — Agent Instructions
+# {{PROJECT_NAME}} — System Prompt
 
 {{ALL_SECTIONS}}
