@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-06T18:21:19Z",
+  "generated_at": "2026-04-19T20:22:07Z",
   "fragments": [
     {
       "name": "bff",
@@ -87,6 +87,41 @@
       "words": 386
     },
     {
+      "name": "ci-cd",
+      "group": ".",
+      "path": "agents/ci-cd.md",
+      "heading": "CI/CD",
+      "words": 444
+    },
+    {
+      "name": "cobra",
+      "group": ".",
+      "path": "agents/cobra.md",
+      "heading": "Cobra CLI (Go)",
+      "words": 363
+    },
+    {
+      "name": "code-review",
+      "group": ".",
+      "path": "agents/code-review.md",
+      "heading": "Code Review",
+      "words": 352
+    },
+    {
+      "name": "ddd",
+      "group": ".",
+      "path": "agents/ddd.md",
+      "heading": "Domain-Driven Design (DDD)",
+      "words": 852
+    },
+    {
+      "name": "documentation",
+      "group": ".",
+      "path": "agents/documentation.md",
+      "heading": "Documentation",
+      "words": 335
+    },
+    {
       "name": "cobra",
       "group": "frameworks",
       "path": "agents/frameworks/cobra.md",
@@ -115,6 +150,34 @@
       "words": 394
     },
     {
+      "name": "git-conventions",
+      "group": ".",
+      "path": "agents/git-conventions.md",
+      "heading": "Git Conventions",
+      "words": 244
+    },
+    {
+      "name": "go-standard-layout",
+      "group": ".",
+      "path": "agents/go-standard-layout.md",
+      "heading": "Go Standard Layout",
+      "words": 412
+    },
+    {
+      "name": "go",
+      "group": ".",
+      "path": "agents/go.md",
+      "heading": "Go",
+      "words": 418
+    },
+    {
+      "name": "hexagonal",
+      "group": ".",
+      "path": "agents/hexagonal.md",
+      "heading": "Hexagonal Architecture",
+      "words": 568
+    },
+    {
       "name": "go",
       "group": "languages",
       "path": "agents/languages/go.md",
@@ -141,6 +204,13 @@
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
       "words": 353
+    },
+    {
+      "name": "observability",
+      "group": ".",
+      "path": "agents/observability.md",
+      "heading": "Observability",
+      "words": 398
     },
     {
       "name": "api-design",
@@ -183,6 +253,27 @@
       "path": "agents/practices/tdd.md",
       "heading": "Test-Driven Development (TDD)",
       "words": 397
+    },
+    {
+      "name": "security",
+      "group": ".",
+      "path": "agents/security.md",
+      "heading": "Security",
+      "words": 372
+    },
+    {
+      "name": "tdd",
+      "group": ".",
+      "path": "agents/tdd.md",
+      "heading": "Test-Driven Development (TDD)",
+      "words": 397
+    },
+    {
+      "name": "testing-philosophy",
+      "group": ".",
+      "path": "agents/testing-philosophy.md",
+      "heading": "Testing Philosophy",
+      "words": 386
     }
   ]
 }

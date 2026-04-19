@@ -977,7 +977,7 @@ BLOCK
     before="${full%%"$MARKER_START"*}"
     after="${full##*"$MARKER_END"}"
     # Ensure trailing newline is preserved
-    printf '%s\n%s\n' "$before" "$AGENTIC_BLOCK" "$after" > "$gitignore"
+    printf '%s%s%s\n' "$before" "$AGENTIC_BLOCK" "$after" > "$gitignore"
 
   elif [[ -f "$gitignore" && "$has_start" == "true" && "$has_end" == "false" ]]; then
     # Malformed: start marker present but end marker missing — warn and append fresh block
