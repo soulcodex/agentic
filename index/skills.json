@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-18T19:48:08Z",
+  "generated_at": "2026-04-19T16:09:54Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -338,12 +338,14 @@
       "name": "sync-confluence",
       "group": "documentation",
       "path": "skills/documentation/sync-confluence/SKILL.md",
-      "description": "Syncs Markdown documentation to Confluence Cloud using the `mark` tool. Scans docs directories for files with mark metad",
-      "version": "1.0.0",
+      "description": "Syncs engineering documentation (ADR, RFC, architecture) from docs/engineering/ to Confluence Cloud using the `mark` too",
+      "version": "1.1.0",
       "tags": [
         "documentation",
         "confluence",
-        "sync"
+        "sync",
+        "ci",
+        "engineering"
       ]
     },
     {
