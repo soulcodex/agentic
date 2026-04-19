@@ -10,27 +10,41 @@ One library. One deploy. All your AI tools stay in sync.
 
 ## The Problem
 
+**Without agentic**
+
 ```
-Without agentic              With agentic
- ─────────────────────────    ────────────────────────────────────
- my-project/                  my-project/
- ├── CLAUDE.md                ├── AGENTS.md               ← source of truth
- ├── .github/                 ├── CLAUDE.md               ← symlink
- │   └── copilot-instr.md     ├── .github/
- ├── .cursor/rules/           │   └── copilot-instructions.md ← symlink
- │   └── *.mdc                ├── .gemini/
- └── .gemini/                 │   ├── GEMINI.md           ← auto-discovered
-     └── systemPrompt.md      │   ├── system.md           ← symlink
-                              └── .agentic/              └── skills/          ← symlink
-                                   ├── config.yaml         ← locked config
-                                   ├── profile.yaml        ← customize per-project
-                                   ├── project-skills/     ← your custom skills
-                                   ├── fragments/          ← on-demand context
-                                   ├── skills/             ← deployed skills
-                                   └── vendor-files/       ← generated once
-                                       ├── claude/
-                                       ├── copilot/
-                                       └── gemini/
+my-project/
+├── CLAUDE.md
+├── .github/
+│   └── copilot-instr.md
+├── .cursor/rules/
+│   └── *.mdc
+└── .gemini/
+    └── systemPrompt.md
+```
+
+**With agentic**
+
+```
+my-project/
+├── AGENTS.md                        ← source of truth
+├── CLAUDE.md                        ← symlink
+├── .github/
+│   └── copilot-instructions.md      ← symlink
+├── .gemini/
+│   ├── GEMINI.md                    ← auto-discovered
+│   ├── system.md                    ← symlink
+│   └── skills/                      ← symlink
+└── .agentic/
+    ├── config.yaml                  ← locked config
+    ├── profile.yaml                 ← customize per-project
+    ├── project-skills/              ← your custom skills
+    ├── fragments/                   ← on-demand context
+    ├── skills/                      ← deployed skills
+    └── vendor-files/                ← generated once
+        ├── claude/
+        ├── copilot/
+        └── gemini/
 ```
 
 Instructions drift and contradict each other. Every new project starts from scratch. Adding a new AI tool means updating N files manually.
