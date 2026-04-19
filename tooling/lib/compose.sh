@@ -959,6 +959,18 @@ BLOCK
 
   # Handle based on marker state
   if [[ -f "$gitignore" && "$has_start" == "true" && "$has_end" == "true" ]]; then
+    # Guard against multiple blocks — count occurrences of each marker
+    local start_count end_count
+    start_count=$(grep -cxF "$MARKER_START" "$gitignore" 2>/dev/null || true)
+    end_count=$(grep -cxF "$MARKER_END" "$gitignore" 2>/dev/null || true)
+
+    # If multiple blocks exist, treat as malformed — warn and append fresh block instead
+    if [[ "$start_count" -gt 1 || "$end_count" -gt 1 ]]; then
+      echo "Warning: agentic: multiple managed blocks found in $gitignore — appending fresh block instead of replacing" >&2
+      printf '\n%s\n' "$AGENTIC_BLOCK" >> "$gitignore"
+      return
+    fi
+
     # Normal case: replace existing managed block in-place using pure bash parameter expansion
     local full before after
     full=$(< "$gitignore")
