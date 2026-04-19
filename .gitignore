@@ -20,3 +20,6 @@ Thumbs.db
 
 # Library-internal generated vendor files (used by --link mode)
 _generated/
+
+# Agentic — local plan files (managed by write-plan / persist-plan skills)
+.agentic/plans/
