@@ -133,6 +133,10 @@ inline_fragments() {
 # ── Fragment copy (used in lean mode) ─────────────────────────────────────────
 copy_fragments_to_target() {
   local dest="$TARGET/.agentic/fragments"
+  # Remove any existing symlink (e.g. switching from --link to copy mode) before
+  # creating the directory — without this, cp would write through the symlink into
+  # the library's own agents/ directory.
+  [[ -L "$dest" ]] && rm -f "$dest"
   mkdir -p "$dest"
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
     cp "$frag" "$dest/$(basename "$frag")"
