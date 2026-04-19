@@ -956,6 +956,52 @@ assert_file_contains "$TMP/t_gu/.gitignore" "node_modules/" "T_GITIGNORE_UPDATE_
 # New entry from current canonical block must be present
 assert_file_contains "$TMP/t_gu/.gitignore" "GEMINI.md" "T_GITIGNORE_UPDATE_BLOCK"
 
+# T_GITIGNORE_COPY_TO_LINK — runtime dirs added when upgrading to link mode
+run_test "T_GITIGNORE_COPY_TO_LINK — runtime dirs added when upgrading to link mode"
+mkdir -p "$TMP/t_c2l"
+# First deploy: copy mode (no --link)
+bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t_c2l" > /dev/null 2>&1
+# Runtime dirs must NOT be in gitignore yet
+assert_file_not_contains "$TMP/t_c2l/.gitignore" ".agentic/skills/" "T_GITIGNORE_COPY_TO_LINK"
+# Second deploy: switch to link mode
+bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t_c2l" --link > /dev/null 2>&1
+# Runtime dirs MUST now be ignored
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/skills/" "T_GITIGNORE_COPY_TO_LINK"
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/fragments/" "T_GITIGNORE_COPY_TO_LINK"
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_COPY_TO_LINK"
+# Exactly one managed block
+count=$(grep -c "# agentic:start" "$TMP/t_c2l/.gitignore" || true)
+if [[ "$count" -eq 1 ]]; then
+  pass "T_GITIGNORE_COPY_TO_LINK — single managed block after upgrade"
+else
+  fail "T_GITIGNORE_COPY_TO_LINK — block duplicated ($count occurrences)"
+fi
+
+# T_GITIGNORE_LINK_TO_COPY — runtime dirs removed when downgrading to copy mode
+run_test "T_GITIGNORE_LINK_TO_COPY — runtime dirs removed when downgrading to copy mode"
+mkdir -p "$TMP/t_l2c"
+# First deploy: link mode
+bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t_l2c" --link > /dev/null 2>&1
+# Runtime dirs must be in gitignore
+assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_TO_COPY"
+# Second deploy: switch to copy mode (no --link)
+bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t_l2c" > /dev/null 2>&1
+# Runtime dirs must NO LONGER be ignored
+assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_TO_COPY"
+assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/fragments/" "T_GITIGNORE_LINK_TO_COPY"
+assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_LINK_TO_COPY"
+# Exactly one managed block
+count=$(grep -c "# agentic:start" "$TMP/t_l2c/.gitignore" || true)
+if [[ "$count" -eq 1 ]]; then
+  pass "T_GITIGNORE_LINK_TO_COPY — single managed block after downgrade"
+else
+  fail "T_GITIGNORE_LINK_TO_COPY — block duplicated ($count occurrences)"
+fi
+
 # T42 — deploy: activates the first vendor automatically
 run_test "T42 — deploy: activates the first vendor automatically"
 mkdir -p "$TMP/t42"

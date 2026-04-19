@@ -86,3 +86,25 @@ are gitignored automatically.
 > **Note**: vendor entry-point files (`CLAUDE.md`, `.github/copilot-instructions.md`,
 > `.gemini/system.md`, etc.) are always gitignored in both modes — they are always
 > regenerated and have no standalone value in git history.
+
+### Switching between modes
+
+**Switching copy → link mode** (stop carrying library files in your repo):
+
+1. Re-deploy with `--link`: `agentic sync` (if config already has link mode) or re-run deploy with `--link`
+2. Remove the now-symlinked directories from git's index:
+   ```bash
+   git rm -r --cached .agentic/skills .agentic/fragments .agentic/vendor-files
+   git commit -m "chore: switch agentic to link mode"
+   ```
+3. The managed `.gitignore` block is updated automatically — the three paths are added to it.
+
+**Switching link → copy mode** (make the project fully self-contained):
+
+1. Re-deploy without `--link`: update `deploy_mode` in `.agentic/config.yaml` to `copy` then run `agentic sync`
+2. Stage the newly materialized directories:
+   ```bash
+   git add .agentic/skills .agentic/fragments .agentic/vendor-files
+   git commit -m "chore: switch agentic to copy mode"
+   ```
+3. The managed `.gitignore` block is updated automatically — the three paths are removed from it.
