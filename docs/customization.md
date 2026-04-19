@@ -49,3 +49,40 @@ See [extending.md](extending.md) for the full skill format and frontmatter requi
 | Customize one project | Edit `.agentic/profile.yaml`, run `agentic sync` |
 | Reusable skill for one project | Create in `.agentic/project-skills/` |
 | Shared across all projects | Add to library (see [extending.md](extending.md)) |
+
+## What to Commit to Your Project Repo
+
+agentic automatically injects a managed `.gitignore` block on every `deploy` or `sync`
+so you never have to figure this out manually. The block is delimited by
+`# agentic:start` / `# agentic:end` and is updated in-place on re-runs.
+
+What goes in and what stays out depends on whether you deployed with `--link` or not.
+
+### Copy mode (default)
+
+`.agentic/skills/`, `.agentic/fragments/`, and `.agentic/vendor-files/` contain real
+files copied from the library. They are committed to the repo so the project is
+self-contained and cloneable without the library installed on every machine.
+
+### Link mode (`--link`)
+
+Those same directories are symlinks pointing to the library on the deploying machine.
+Committing a symlink to an absolute local path breaks every other machine, so they
+are gitignored automatically.
+
+### What this means for your repo
+
+| Path | Copy mode | Link mode | Why |
+|---|---|---|---|
+| `AGENTS.md` | ✅ commit | ✅ commit | Source of truth — review in PRs |
+| `.agentic/config.yaml` | ✅ commit | ✅ commit | Reproducibility anchor |
+| `.agentic/profile.yaml` | ✅ commit | ✅ commit | Per-project customization |
+| `.agentic/project-skills/` | ✅ commit | ✅ commit | Your code — treat as source |
+| `.agentic/skills/` | ✅ commit | 🚫 ignore | Real files vs symlink to library |
+| `.agentic/fragments/` | ✅ commit | 🚫 ignore | Real files vs symlink to library |
+| `.agentic/vendor-files/` | ✅ commit | 🚫 ignore | Real files vs symlink to library |
+| `CLAUDE.md`, `GEMINI.md`, vendor symlinks | 🚫 ignore | 🚫 ignore | Always recreated by `agentic sync` / `agentic switch` |
+
+> **Note**: vendor entry-point files (`CLAUDE.md`, `.github/copilot-instructions.md`,
+> `.gemini/system.md`, etc.) are always gitignored in both modes — they are always
+> regenerated and have no standalone value in git history.
