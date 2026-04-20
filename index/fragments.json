@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-19T23:10:18Z",
+  "generated_at": "2026-04-20T21:19:08Z",
   "fragments": [
     {
       "name": "bff",
@@ -94,6 +94,13 @@
       "words": 363
     },
     {
+      "name": "nuxt-patterns",
+      "group": "frameworks",
+      "path": "agents/frameworks/nuxt-patterns.md",
+      "heading": "Nuxt 3 Patterns",
+      "words": 513
+    },
+    {
       "name": "nuxt",
       "group": "frameworks",
       "path": "agents/frameworks/nuxt.md",
@@ -108,11 +115,32 @@
       "words": 380
     },
     {
+      "name": "vue-component-design",
+      "group": "frameworks",
+      "path": "agents/frameworks/vue-component-design.md",
+      "heading": "Vue 3 Component Design",
+      "words": 591
+    },
+    {
+      "name": "vue-styling",
+      "group": "frameworks",
+      "path": "agents/frameworks/vue-styling.md",
+      "heading": "Vue 3 Styling Discipline",
+      "words": 432
+    },
+    {
+      "name": "vue-testing",
+      "group": "frameworks",
+      "path": "agents/frameworks/vue-testing.md",
+      "heading": "Vue 3 Testing Strategy",
+      "words": 524
+    },
+    {
       "name": "vue",
       "group": "frameworks",
       "path": "agents/frameworks/vue.md",
       "heading": "Vue 3",
-      "words": 394
+      "words": 476
     },
     {
       "name": "go",

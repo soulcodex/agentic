@@ -48,6 +48,9 @@ tiers:
       - typescript
     frameworks:
       - vue
+      - vue-component-design
+      - vue-testing
+      - vue-styling
     architecture: []
     commands:
       build_command: "pnpm --filter ui build"
@@ -74,6 +77,8 @@ skills:
   - write-readme
   - relational-database-design
   - vue-application-structure
+  - vue-component-design
+  - vue-component-testing
   - internationalization-i18n
   - wireframe-prototyping
   - static-code-analysis

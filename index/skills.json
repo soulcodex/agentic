@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-19T16:09:54Z",
+  "generated_at": "2026-04-20T21:19:08Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -407,6 +407,32 @@
         "vue",
         "typescript",
         "pinia"
+      ]
+    },
+    {
+      "name": "vue-component-design",
+      "group": "ui",
+      "path": "skills/ui/vue-component-design/SKILL.md",
+      "description": "Designs or reviews Vue 3 component APIs. Handles prop drilling decisions, applies compound component patterns with provi",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "vue",
+        "typescript",
+        "composition"
+      ]
+    },
+    {
+      "name": "vue-component-testing",
+      "group": "ui",
+      "path": "skills/ui/vue-component-testing/SKILL.md",
+      "description": "Applies the three-tier test taxonomy for Vue 3 applications: writes unit tests for composables and Pinia stores with Vit",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "vue",
+        "testing",
+        "vitest"
       ]
     },
     {
