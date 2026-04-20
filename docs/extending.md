@@ -159,10 +159,10 @@ skills:
 Or deploy directly:
 
 ```bash
-agentic deploy my-profile ./project claude --skills project:my-custom-workflow
+agentic deploy <profile> [target] <vendors> --skills project:my-custom-workflow
 
-# Or using just (from library directory)
-just deploy-skills /path/to/project project:my-custom-workflow claude
+# Example:
+agentic deploy typescript-hexagonal-microservice ./my-project claude --skills project:my-custom-workflow
 ```
 
 Project skills are copied to `.agentic/skills/` alongside library skills and symlinked

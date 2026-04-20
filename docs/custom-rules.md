@@ -7,7 +7,7 @@ Add project-specific rules to your AGENTS.md without modifying the library or fo
 `AGENTS.local.md` is a file that gets injected into the composed `AGENTS.md` at a configurable position. It's:
 
 - **Not part of the library** — your project, your rules
-- **Preserved on regenerate** — `just compose` won't overwrite it
+- **Preserved on regenerate** — `agentic sync` won't overwrite it
 - **Optional** — works with or without profile configuration
 
 ## Use Cases
@@ -18,7 +18,7 @@ You already have an AGENTS.md and want to install agentic:
 
 ```bash
 # Run compose — it detects your existing AGENTS.md is user-authored
-just compose typescript-hexagonal-microservice .
+agentic compose typescript-hexagonal-microservice
 
 # Options:
 # --import adopt    → copies existing AGENTS.md to AGENTS.local.md, then composes
@@ -34,7 +34,7 @@ Start from scratch:
 
 ```bash
 # 1. Deploy a profile
-just compose typescript-hexagonal-microservice .
+agentic compose typescript-hexagonal-microservice
 
 # 2. Create AGENTS.local.md
 cat > AGENTS.local.md <<'EOF'
@@ -45,7 +45,7 @@ cat > AGENTS.local.md <<'EOF'
 EOF
 
 # 3. Regenerate — local rules are injected
-just compose typescript-hexagonal-microservice .
+agentic sync
 ```
 
 ## The --import Flag
@@ -112,9 +112,9 @@ Tier-level overrides follow the same placement rules but apply only to their tie
 | Scenario | Approach |
 |----------|----------|
 | New project, want custom rules | Create AGENTS.local.md after first compose |
-| Existing AGENTS.md, migrate to agentic | `just compose --import adopt` |
-| Want to review before migrate | `just compose --import skip`, then create AGENTS.local.md manually |
-| Quick overwrite existing | `just compose --import overwrite --yes` |
+| Existing AGENTS.md, migrate to agentic | `agentic compose <profile> --import adopt` |
+| Want to review before migrate | `agentic compose <profile> --import skip`, then create AGENTS.local.md manually |
+| Quick overwrite existing | `agentic compose <profile> --import overwrite --yes` |
 | Nested, rules for one tier only | Create `<tier>/AGENTS.local.md` |
 | Nested, rules for all tiers | Use root AGENTS.local.md |
 
@@ -123,11 +123,11 @@ Tier-level overrides follow the same placement rules but apply only to their tie
 1. **One H2 per concern** — keeps rules findable
 2. **Keep it lean** — reference library fragments for full context
 3. **Use after_section** — group related rules under existing sections
-4. **Check before regenerate** — review AGENTS.local.md before each `just compose`
+4. **Check before regenerate** — review AGENTS.local.md before each `agentic sync`
 
 ## Validation
 
-`just validate <target>` checks:
+Validation runs automatically as part of `agentic sync`. It checks:
 
 - AGENTS.local.md exists → "[ OK ] Custom rules file present"
 - custom_rules in profile but no AGENTS.local.md → "[WARN]"
