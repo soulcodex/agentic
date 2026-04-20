@@ -6,6 +6,8 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 
 | Profile | What it's for | Language(s) |
 |---|---|---|
+| `typescript-vue-spa` | Standalone Vue 3 SPA with Vite, Pinia, Vue Router. No SSR. | TypeScript |
+| `typescript-nuxt-app` | Standalone Nuxt 3 app with SSR, file-based routing, Nitro | TypeScript |
 | `typescript-hexagonal-microservice` | TypeScript backend service with Hono, hexagonal architecture, DDD | TypeScript |
 | `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript |
 | `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend (SSR) | TypeScript |
@@ -78,5 +80,5 @@ tiers:
 Preview the composed AGENTS.md without writing any files:
 
 ```bash
-just dry-run typescript-hexagonal-microservice
+agentic compose typescript-hexagonal-microservice --dry-run
 ```

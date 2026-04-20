@@ -93,6 +93,8 @@ Writes `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `GEMINI.md`,
 
 | Profile | What it's for | Language(s) |
 |---|---|---|
+| `typescript-vue-spa` | Standalone Vue 3 SPA — Vite, Pinia, Vue Router, no SSR | TypeScript |
+| `typescript-nuxt-app` | Standalone Nuxt 3 app — SSR, file-based routing, Nitro | TypeScript |
 | `typescript-hexagonal-microservice` | TypeScript backend service with Hono | TypeScript |
 | `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript |
 | `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 (SSR) | TypeScript |

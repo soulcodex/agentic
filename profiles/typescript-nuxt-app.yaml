@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "TypeScript Nuxt 3 App"
+  description: >
+    Standalone Nuxt 3 application with Vue 3, Pinia, Tailwind CSS v4, and Vitest.
+    SSR-capable with file-based routing. Covers Nuxt-specific patterns (definePageMeta,
+    error handling, plugins, runtime config, Nitro caching, Layers), Vue component
+    design, composition patterns, prop drilling prevention, styling discipline, and
+    a three-tier test strategy (unit / component / acceptance).
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+  languages:
+    - typescript
+  frameworks:
+    - vue
+    - nuxt
+    - vue-component-design
+    - vue-testing
+    - vue-styling
+    - nuxt-patterns
+  architecture: []
+  practices:
+    - tdd
+    - api-design
+    - ci-cd
+  domains: []
+
+tech_stack:
+  language_runtime: "Node 22+"
+  package_manager: "pnpm"
+  frontend_framework: "Nuxt 3"
+  ui_component_library: "shadcn/vue"
+  css_framework: "Tailwind CSS v4"
+  build_tool: "Vite 6 (via Nuxt)"
+  test_framework: "Vitest + @testing-library/vue"
+  additional:
+    - "Vue 3"
+    - "Pinia"
+    - "Vue Router 4 (via Nuxt)"
+    - "Nitro"
+    - "Playwright (acceptance)"
+
+skills:
+  - code-review
+  - add-tests
+  - vue-application-structure
+  - vue-component-design
+  - vue-component-testing
+  - wireframe-prototyping
+  - internationalization-i18n
+  - static-code-analysis
+  - write-readme
+  - write-adr
+  - github-actions-workflow
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test"
+  lint_command: "pnpm lint"
+  project_header: |
+    Standalone Nuxt 3 application with SSR.
+    All components use <script setup lang="ts"> exclusively — no Options API.
+    State management via Pinia setup stores. File-based routing via Nuxt.
+    Styling via Tailwind CSS v4; shadcn/vue for UI primitives.
+    Server routes under server/api/ via Nitro. SSR safety rules apply everywhere.
+    Three-tier testing: Vitest unit tests for composables/stores, @testing-library/vue
+    for component behaviour, Playwright for acceptance tests.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

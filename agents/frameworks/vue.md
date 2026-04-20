@@ -41,3 +41,10 @@
 - Test components with `@vue/test-utils`. Prefer `mount` over `shallowMount` unless child component rendering is irrelevant to the test.
 - Use `flushPromises()` from `@vue/test-utils` after async operations before asserting DOM state.
 - Do not test implementation details (internal refs, private methods). Test observable behavior.
+
+### Performance
+
+- Use `shallowRef` instead of `ref` for large datasets (arrays of hundreds of items, maps) that do not need deep reactivity tracking.
+- Use `markRaw` to opt objects out of reactivity entirely — required for third-party class instances (chart libraries, WebSocket clients, canvas objects) that must not be proxied.
+- Use `v-memo="[dep]"` on expensive list items to skip re-renders when the listed dependencies have not changed.
+- Lazy-load heavy components with `defineAsyncComponent` and wrap with `<Suspense>` for graceful loading UI.

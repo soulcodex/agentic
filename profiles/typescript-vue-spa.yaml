@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "TypeScript Vue 3 SPA"
+  description: >
+    Standalone Vue 3 single-page application with Vite, Pinia, Vue Router,
+    and Vitest. No server-side rendering. Covers component design, composition
+    patterns, prop drilling prevention, Tailwind v4 styling discipline, and a
+    three-tier test strategy (unit / component / acceptance).
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+  languages:
+    - typescript
+  frameworks:
+    - vue
+    - vue-component-design
+    - vue-testing
+    - vue-styling
+  architecture: []
+  practices:
+    - tdd
+    - api-design
+    - ci-cd
+  domains: []
+
+tech_stack:
+  language_runtime: "Node 22+"
+  package_manager: "pnpm"
+  frontend_framework: "Vue 3 (SPA)"
+  ui_component_library: "shadcn/vue"
+  css_framework: "Tailwind CSS v4"
+  build_tool: "Vite 6"
+  test_framework: "Vitest + @testing-library/vue"
+  additional:
+    - "Pinia"
+    - "Vue Router 4"
+    - "Playwright (acceptance)"
+
+skills:
+  - code-review
+  - add-tests
+  - vue-application-structure
+  - vue-component-design
+  - vue-component-testing
+  - wireframe-prototyping
+  - internationalization-i18n
+  - static-code-analysis
+  - write-readme
+  - github-actions-workflow
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test"
+  lint_command: "pnpm lint"
+  project_header: |
+    Standalone Vue 3 SPA — no server-side rendering.
+    All components use <script setup lang="ts"> exclusively — no Options API.
+    State management via Pinia setup stores. Routing via Vue Router 4 with typed routes.
+    Styling via Tailwind CSS v4 utility classes; shadcn/vue for UI primitives.
+    Three-tier testing: Vitest unit tests for composables/stores, @testing-library/vue
+    for component behaviour, Playwright for acceptance tests.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode
