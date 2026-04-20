@@ -60,10 +60,6 @@ Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`.
 ```bash
 # Using global CLI (from anywhere)
 agentic deploy <profile> [target] <vendors>
-
-# Using just (from library directory)
-just vendor-gen /path/to/project
-just vendor-gen /path/to/project claude,copilot   # specific vendors
 ```
 
 ### Switch Active Vendors
@@ -81,11 +77,6 @@ agentic switch list                  # Show all vendors
 
 # With explicit target
 agentic switch /path/to/project gemini
-
-# Using just (from library directory)
-just vendor-switch /path/to/project gemini
-just vendor-switch /path/to/project claude,copilot
-just vendor-switch /path/to/project list
 ```
 
 Multiple vendors can be active simultaneously since their symlink paths don't conflict:
