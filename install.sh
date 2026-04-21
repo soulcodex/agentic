@@ -19,6 +19,13 @@ DEFAULT_INSTALL_DIR="$HOME/.local/share/agentic"
 DEFAULT_BRANCH="main"
 REPO_URL="https://github.com/soulcodex/agentic.git"
 
+# ── Dependency versions ────────────────────────────────────────────────────────
+# Releases: https://github.com/casey/just/releases
+JUST_VERSION="1.50.0"
+
+# Releases: https://github.com/mikefarah/yq/releases
+YQ_VERSION="v4.53.2"
+
 # ── Output helpers ────────────────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -57,7 +64,6 @@ install_yq_binary() {
   local arch bin_dir bin_path
   arch="$(detect_arch)"
   [[ "$arch" == "unsupported" ]] && { warn "Unsupported architecture for yq binary install — install manually"; return 1; }
-  local YQ_VERSION="v4.44.1"
   bin_dir="$HOME/.local/bin"
   [[ "$EUID" -eq 0 ]] && bin_dir="/usr/local/bin"
   mkdir -p "$bin_dir"
@@ -71,7 +77,6 @@ install_just_binary() {
   local arch bin_dir tarball
   arch="$(detect_arch)"
   [[ "$arch" == "unsupported" ]] && { warn "Unsupported architecture for just binary install — install manually"; return 1; }
-  local JUST_VERSION="1.40.0"
   bin_dir="$HOME/.local/bin"
   [[ "$EUID" -eq 0 ]] && bin_dir="/usr/local/bin"
   mkdir -p "$bin_dir"
