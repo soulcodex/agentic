@@ -1,22 +1,19 @@
 # Command Reference
 
-## Global CLI
+## CLI Overview
 
-The `agentic` CLI provides a unified interface for managing agent instructions across all your projects.
+The `agentic` CLI provides a unified interface for managing agent instructions
+across all your projects.
 
 ### Installation
 
-```bash
-# From the agentic library directory
-just install           # Installs to ~/.local/bin (default)
-just install global    # Installs to /usr/local/bin (requires sudo)
+One-line install (installs to ~/.local/bin):
 
-# Uninstall
-just uninstall         # Remove from ~/.local/bin
-just uninstall global  # Remove from /usr/local/bin
+```bash
+curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | bash
 ```
 
-After installation, ensure `~/.local/bin` is in your `PATH`:
+Ensure `~/.local/bin` is in your PATH:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -74,6 +71,11 @@ agentic deploy golang-hexagonal-cobra-cli ./my-cli claude
 agentic deploy typescript-hexagonal-microservice . claude,copilot
 agentic deploy python-fastapi-microservice gemini --full
 ```
+
+> **Link mode (`--link`):** Creates POSIX symlinks instead of copying files — POSIX only,
+> not supported on Windows without WSL. The target repo stays minimal: only `config.yaml`,
+> `profile.yaml`, and `project-skills/` are committed; fragments, skills, and vendor-files
+> are live symlinks to the library. Run `agentic sync` to re-create broken symlinks.
 
 ### compose
 
@@ -145,130 +147,6 @@ agentic list <resource>
 agentic list profiles
 agentic list skills
 agentic list vendors
-```
-
----
-
-## Just Recipes (Legacy)
-
-These recipes still work when run from the agentic library directory. They're useful
-for library development and for users who haven't installed the global CLI.
-
-### Discovery
-
-```bash
-just list-profiles          # List all available composition profiles
-just list-skills            # List all available skills
-just list-fragments         # List all available fragment files
-```
-
-### Composition
-
-```bash
-just compose PROFILE TARGET           # Compose AGENTS.md (lean mode)
-just compose-full PROFILE TARGET      # Compose AGENTS.md (full mode)
-just dry-run PROFILE                  # Preview without writing files
-just validate TARGET                  # Validate AGENTS.md in a project
-just sync-check TARGET                # Check for config drift
-just sync TARGET                      # Re-sync configuration
-```
-
-### Link Mode (POSIX only)
-
-> **Platform note:** The `--link` / `compose-linked` / `deploy-linked` commands use
-> POSIX symlinks and are **not supported on Windows** (without WSL). On non-POSIX
-> systems these commands will fail with a clear error. Use the standard `compose` /
-> `deploy` commands instead, which copy files and work on all platforms.
->
-> These commands create POSIX symlinks instead of copying files. The target repo stays
-> minimal — only `config.yaml`, `profile.yaml`, and `project-skills/` are committed;
-> fragments, skills, and vendor-files are live symlinks back to the library.
-
-```bash
-just compose-linked PROFILE TARGET          # Compose using symlinks
-just deploy-linked PROFILE TARGET VENDORS   # Full pipeline using symlinks
-just sync-links TARGET                      # Re-create broken symlinks from config
-```
-
-### Deployment
-
-```bash
-just deploy PROFILE TARGET VENDORS          # Full pipeline
-just deploy-full PROFILE TARGET VENDORS     # Full pipeline (monolithic)
-just vendor-gen TARGET [VENDORS]            # Generate vendor files only
-just deploy-skills TARGET SKILLS VENDORS    # Deploy skills only
-just vendor-switch TARGET VENDORS           # Switch active vendors
-```
-
-### Library Maintenance
-
-```bash
-just lint    # Validate fragments, profiles, adapters, skills
-just test    # Run integration test suite
-just index   # Rebuild index files
-just setup   # Check/install required tools
-```
-
-### MCP Servers
-
-```bash
-just mcp-add TARGET                  # Add an MCP server (interactive)
-just mcp-remove TARGET SERVER_NAME   # Remove an MCP server
-just mcp-list TARGET                 # List configured MCP servers
-```
-
----
-
-## Migration from ./agentic Wrapper
-
-If you have projects using the old `./agentic` wrapper script, follow these steps
-to migrate to the global CLI.
-
-### 1. Update the Library
-
-```bash
-cd ~/agentic-library   # or wherever you cloned it
-git pull origin main
-```
-
-### 2. Install the Global CLI
-
-```bash
-just install
-# Installs to ~/.local/bin — add to PATH if needed
-```
-
-### 3. Remove the Old Wrapper
-
-For each project with the old wrapper:
-
-```bash
-cd /path/to/your-project
-rm ./agentic                    # Remove the wrapper script
-
-# Edit .gitignore to remove the /agentic line if present
-```
-
-### 4. Update Config (Automatic)
-
-The old `library_path` key is now `agentic_root`. This updates automatically
-on the next `agentic sync` or `agentic deploy`. You can also update manually:
-
-```yaml
-# In .agentic/config.yaml
-# Old:
-library_path: "/path/to/agentic"
-
-# New:
-agentic_root: "/path/to/agentic"
-```
-
-### 5. Verify
-
-```bash
-cd /path/to/your-project
-agentic sync              # Should work from within project
-agentic switch list       # Show available vendors
 ```
 
 ---

@@ -1,6 +1,6 @@
 # Extending agentic
 
-The library is designed to be forked and extended. Here is how to add each type of asset.
+Here is how to extend the library with new fragments, profiles, skills, and project-local customisations.
 
 ## Add a Fragment
 
@@ -14,14 +14,10 @@ Rules:
 ```bash
 # 1. Create the file
 touch agents/practices/my-practice.md
-# Write your guidelines (one ## H2 heading at the top)
-
-# 2. Rebuild the index so lint and compose can find it
-just index
-
-# 3. Validate
-just lint
+# Write your guidelines — one ## H2 heading at the top, plain Markdown, no project-specific content
 ```
+
+After creating the file, run `agentic list fragments` to confirm it is discovered.
 
 Then add the fragment name to any profile's `fragments.practices` list:
 
@@ -40,8 +36,9 @@ Profiles are YAML presets in `profiles/{name}.yaml`.
 ```bash
 cp profiles/golang-hexagonal-cobra-cli.yaml profiles/my-profile.yaml
 # Edit: name, description, fragment lists, tech_stack, skills, output commands
-just lint
-just dry-run my-profile
+
+# Preview the assembled AGENTS.md without writing any files
+agentic compose my-profile --dry-run
 ```
 
 Minimum required fields:
@@ -79,9 +76,9 @@ Skills are reusable agent task definitions in `skills/{group}/{name}/SKILL.md`.
 mkdir -p skills/development/my-skill
 # Groups: development, agentic, data, quality, architecture, or any custom name
 # Write skills/development/my-skill/SKILL.md with frontmatter + steps
-just index
-just lint
 ```
+
+Run `agentic list skills` to confirm the skill is discovered after creating it.
 
 Required frontmatter:
 
@@ -198,13 +195,7 @@ tiers:
 
 ## Add a Vendor Adapter
 
-Vendor adapters live in `vendors/{name}/`. Each adapter transforms `AGENTS.md`
-into the format expected by a specific AI tool.
-
-1. Create `vendors/my-tool/` directory.
-2. Add a template file (e.g., `template.my-tool.md`).
-3. Create `tooling/lib/vendors/my-tool.sh` with a `gen_mytool()` function (see existing vendor scripts for the pattern).
-4. Add a `# shellcheck source=tooling/lib/vendors/my-tool.sh` directive and `source` call to `tooling/lib/vendor-gen.sh`'s vendor-loading block.
-5. Add `my-tool` to the `AGENTIC_VENDORS` array in `tooling/lib/common.sh`.
-6. Add `my-tool` to the `vendors.enabled` list in any profiles that should use it.
-7. Run `just lint && just test`.
+Adding a new vendor adapter requires changes to the library internals. Open an issue
+or pull request on the [GitHub repository](https://github.com/soulcodex/agentic)
+describing the vendor and its expected output format. See the existing adapters in
+`vendors/` for the implementation pattern.
