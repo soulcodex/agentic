@@ -108,7 +108,7 @@ Claude, GitHub Copilot, Gemini CLI, OpenAI Codex, Opencode — all from one `AGE
 Edit `.agentic/profile.yaml` and run `agentic sync` to update your project.
 Add project-specific skills in `.agentic/project-skills/`.
 
-→ [Customization guide](https://agentic.soulcodex.link/customization) · [Custom rules](https://agentic.soulcodex.link/custom-rules) · [Project customisation](https://agentic.soulcodex.link/extending)
+→ [Customization guide](https://agentic.soulcodex.link/customization) · [Custom rules](https://agentic.soulcodex.link/custom-rules)
 
 ---
 

@@ -26,29 +26,96 @@ This re-runs compose with your local profile, regenerates vendor files, and pres
 
 ## Project-Local Skills
 
-For skills specific to a single project, create them in `.agentic/project-skills/`:
+For skills specific to a single project that shouldn't live in the shared library,
+create them in `.agentic/project-skills/`:
 
 ```bash
-mkdir -p .agentic/project-skills/my-workflow
+mkdir -p .agentic/project-skills/my-custom-workflow
 ```
 
-Create `.agentic/project-skills/my-workflow/SKILL.md` with frontmatter and steps, then reference it in your profile:
+Create `.agentic/project-skills/my-custom-workflow/SKILL.md`:
 
 ```yaml
-skills:
-  - code-review              # from library
-  - project:my-workflow      # from .agentic/project-skills/
+---
+name: my-custom-workflow
+description: >
+  Project-specific deployment workflow for this repo.
+version: 1.0.0
+tags: [deployment, internal]
+resources: []
+vendor_support:
+  claude: native
+  opencode: native
+  copilot: prompt-inject
+  codex: prompt-inject
+  gemini: prompt-inject
+---
+
+## Steps
+
+1. Run pre-deploy checks: `make verify`
+2. Build the artifact: `make build`
+3. Deploy to staging: `make deploy-staging`
+4. Run smoke tests: `make smoke-test`
 ```
 
-See [extending.md](extending.md) for the full skill format and frontmatter requirements.
+Reference it in your profile:
+
+```yaml
+# In .agentic/profile.yaml
+skills:
+  - code-review                    # from library
+  - project:my-custom-workflow     # from .agentic/project-skills/
+```
+
+Or deploy with it directly:
+
+```bash
+agentic deploy <profile> [target] <vendors> --skills project:my-custom-workflow
+```
+
+Project skills are copied to `.agentic/skills/` alongside library skills and
+symlinked to vendor-specific paths just like regular skills.
+
+## Declare Proprietary Libraries
+
+List internal packages that agents need to be aware of. Agents are told to load
+the relevant documentation before making changes to code that uses these packages.
+
+### Project-wide
+
+Declared in `tech_stack` in `.agentic/profile.yaml` — appears in the root `AGENTS.md`:
+
+```yaml
+tech_stack:
+  proprietary_libraries:
+    - name: "@acme/core"
+      description: "Core domain primitives shared across all services"
+      url_doc: "https://docs.acme.internal/core"   # optional
+```
+
+### Tier-specific (nested profiles only)
+
+Declared under the relevant tier — appears in that tier's `AGENTS.md`:
+
+```yaml
+tiers:
+  backend:
+    proprietary_libraries:
+      - name: "@acme/domain-kit"
+        description: "Backend domain helpers"
+        url_doc: "https://docs.acme.internal/domain-kit"
+```
+
+`url_doc` is optional. When omitted the Docs column in `AGENTS.md` shows `—`.
 
 ## When to Use What
 
 | Need | Solution |
 |------|----------|
 | Customize one project | Edit `.agentic/profile.yaml`, run `agentic sync` |
-| Reusable skill for one project | Create in `.agentic/project-skills/` |
-| Shared across all projects | Add to library (see [extending.md](extending.md)) |
+| Reusable skill for one project | Create in `.agentic/project-skills/` (see above) |
+| Shared across all projects | Add to library (see [Contributing guide](https://github.com/soulcodex/agentic/blob/main/.github/CONTRIBUTING.md)) |
 
 ## What to Commit to Your Project Repo
 

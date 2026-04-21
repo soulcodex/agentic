@@ -19,7 +19,6 @@ nav:
       - Vendors: vendors.md
       - Customization: customization.md
       - Custom Rules: custom-rules.md
-      - Extending: extending.md
 
 theme:
   name: material
