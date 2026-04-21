@@ -64,6 +64,7 @@ install_yq_binary() {
   local arch bin_dir bin_path
   arch="$(detect_arch)"
   [[ "$arch" == "unsupported" ]] && { warn "Unsupported architecture for yq binary install — install manually"; return 1; }
+  local YQ_VERSION="v4.53.2"
   bin_dir="$HOME/.local/bin"
   [[ "$EUID" -eq 0 ]] && bin_dir="/usr/local/bin"
   mkdir -p "$bin_dir"
@@ -77,6 +78,7 @@ install_just_binary() {
   local arch bin_dir tarball
   arch="$(detect_arch)"
   [[ "$arch" == "unsupported" ]] && { warn "Unsupported architecture for just binary install — install manually"; return 1; }
+  local JUST_VERSION="1.50.0"
   bin_dir="$HOME/.local/bin"
   [[ "$EUID" -eq 0 ]] && bin_dir="/usr/local/bin"
   mkdir -p "$bin_dir"
@@ -129,6 +131,12 @@ install_dependencies() {
       die "Homebrew not found. Install it from https://brew.sh then re-run this installer."
     fi
   elif [[ "$os" == "Linux" ]]; then
+    local distro_id=""
+    if [[ -f /etc/os-release ]]; then
+      # shellcheck source=/dev/null
+      source /etc/os-release
+      distro_id="${ID:-}"
+    fi
     local pkg_manager=""
     if command -v apt-get >/dev/null 2>&1; then
       pkg_manager="apt"
