@@ -41,6 +41,61 @@ just lint && just test
 
 All tests must pass before your PR can be merged.
 
+## Adding Library Assets
+
+### Add a Fragment
+
+Fragments are composable Markdown building blocks in `agents/{group}/{name}.md`.
+Groups: `base`, `languages`, `frameworks`, `architecture`, `practices`, `domains`.
+
+```bash
+touch agents/practices/my-practice.md
+# Write your guidelines — one ## H2 heading at the top, plain Markdown, no project-specific content
+```
+
+Add the fragment name to any profile's `fragments.<group>` list:
+
+```yaml
+fragments:
+  practices:
+    - tdd
+    - my-practice
+```
+
+Run `just index && just lint` before opening a PR.
+
+### Add a Profile
+
+Profiles are YAML presets in `profiles/{name}.yaml`. Naming convention: `{language}-{framework}-{pattern}.yaml`.
+
+```bash
+cp profiles/golang-hexagonal-cobra-cli.yaml profiles/my-profile.yaml
+# Edit: name, description, fragment lists, tech_stack, skills, output commands
+agentic compose my-profile --dry-run   # Preview the assembled AGENTS.md
+```
+
+Minimum required fields: `meta` (name, description, version), `fragments`, `output` (build/test/lint commands), `vendors.enabled`.
+Optional: `tech_stack`, `skills`, `output.structure: nested`, `tiers`.
+
+Run `just lint` before opening a PR.
+
+### Add a Skill
+
+Skills are reusable agent task definitions in `skills/{group}/{name}/SKILL.md`.
+
+```bash
+mkdir -p skills/development/my-skill
+# Write skills/development/my-skill/SKILL.md with frontmatter and steps
+```
+
+Required frontmatter: `name`, `description` (>=20 chars), `version` (SemVer), `tags`, `resources`, `vendor_support` (claude/opencode: `native`; copilot/codex/gemini: `prompt-inject`).
+
+Run `just index && just lint` before opening a PR.
+
+### Add a Vendor Adapter
+
+Adding a vendor adapter requires changes to the library internals. Open an issue or PR describing the vendor and its expected output format. See existing adapters in `vendors/` for the implementation pattern.
+
 ## Fragment Authoring Rules
 
 Fragments are composable building blocks in `agents/`. Each fragment must be:
