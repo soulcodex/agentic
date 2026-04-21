@@ -15,7 +15,7 @@ curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | 
 ```
 
 Installs the `agentic` CLI to `~/.local/bin`. Requires `bash`, `just`, `yq`, `jq`.
-Run `just setup` to check and install prerequisites on macOS.
+The installer auto-detects missing prerequisites and offers to install them.
 
 ---
 
@@ -48,6 +48,5 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 - [**Commands**](commands.md) — full CLI reference
 - [**Profiles**](profiles.md) — all available profiles and their fragments
 - [**Vendors**](vendors.md) — supported AI tools and their output files
-- [**Customization**](customization.md) — per-project overrides, link mode vs copy mode
+- [**Customization**](customization.md) — per-project overrides, project skills, proprietary libraries, link mode vs copy mode
 - [**Custom Rules**](custom-rules.md) — `AGENTS.local.md` injection
-- [**Extending**](extending.md) — adding fragments, profiles, skills, vendor adapters
