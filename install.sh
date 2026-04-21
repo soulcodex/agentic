@@ -203,15 +203,20 @@ Remove it first or choose a different --dir"
   else
     warn "CLI installed but not found in PATH"
     echo ""
-    echo "  Add this to your shell profile (~/.bashrc, ~/.zshrc):"
+    echo "  Add this to your shell profile:"
+    echo ""
     if [[ "$cli_target" == "global" ]]; then
-      echo "    export PATH=\"/usr/local/bin:\$PATH\""
+      echo "    bash/zsh:  export PATH=\"/usr/local/bin:\$PATH\""
+      echo "    fish:      fish_add_path /usr/local/bin"
     else
-      echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
+      echo "    bash/zsh:  export PATH=\"\$HOME/.local/bin:\$PATH\""
+      echo "    fish:      fish_add_path ~/.local/bin"
     fi
     echo ""
-    echo "  Then restart your shell or run:"
-    echo "    source ~/.bashrc  # or ~/.zshrc"
+    echo "  Then reload your shell:"
+    echo "    source ~/.bashrc   # bash"
+    echo "    source ~/.zshrc    # zsh"
+    echo "    exec fish          # fish"
     echo ""
   fi
 }

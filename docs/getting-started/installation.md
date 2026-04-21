@@ -9,11 +9,16 @@ curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | 
 Clones the library to `~/.local/share/agentic` and installs the `agentic` CLI
 to `~/.local/bin`.
 
-After installation, ensure `~/.local/bin` is in your `PATH`:
+After installation, ensure `~/.local/bin` is in your `PATH`.
 
+**macOS (zsh):**
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
-# Add to ~/.bashrc or ~/.zshrc to make it permanent
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+```
+
+**Linux (bash):**
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 ```
 
 ## Manual Install
@@ -28,16 +33,20 @@ just install
 # Installs to ~/.local/bin — add to PATH if needed
 ```
 
-## Prerequisites
+### Linux — PATH persistence
 
-Run `just setup` from the library directory to check and install all required tools:
+After manual install, add the CLI to your PATH permanently:
 
-| Tool | Purpose | Install |
-|---|---|---|
-| `bash` | Shell runtime | Usually pre-installed |
-| `just` | Task runner | `brew install just` / [just.systems](https://just.systems) |
-| `yq` | YAML processor | `brew install yq` / [github.com/mikefarah/yq](https://github.com/mikefarah/yq) |
-| `jq` | JSON processor | `brew install jq` / [stedolan.github.io/jq](https://stedolan.github.io/jq) |
+```bash
+# bash (most Linux distros)
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+
+# zsh
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+
+# fish
+fish_add_path ~/.local/bin
+```
 
 ## Verify Installation
 
