@@ -21,5 +21,8 @@ Thumbs.db
 # Library-internal generated vendor files (used by --link mode)
 _generated/
 
+# MkDocs build output
+site/
+
 # Agentic — local plan files (managed by write-plan / persist-plan skills)
 .agentic/plans/
