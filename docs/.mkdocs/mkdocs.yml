@@ -1,9 +1,12 @@
 site_name: Agentic
 site_description: One library. All your AI tools stay in sync.
-site_url: https://soulcodex.github.io/agentic/
+site_url: https://agentic.soulcodex.link/
 repo_url: https://github.com/soulcodex/agentic
 repo_name: soulcodex/agentic
 edit_uri: edit/main/docs/
+
+docs_dir: ..
+site_dir: ../../site
 
 nav:
   - Home: index.md
