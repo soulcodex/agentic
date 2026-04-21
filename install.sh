@@ -19,6 +19,13 @@ DEFAULT_INSTALL_DIR="$HOME/.local/share/agentic"
 DEFAULT_BRANCH="main"
 REPO_URL="https://github.com/soulcodex/agentic.git"
 
+# ── Dependency versions ────────────────────────────────────────────────────────
+# Releases: https://github.com/casey/just/releases
+JUST_VERSION="1.50.0"
+
+# Releases: https://github.com/mikefarah/yq/releases
+YQ_VERSION="v4.53.2"
+
 # ── Output helpers ────────────────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -44,38 +51,159 @@ warn() {
 }
 
 # ── Dependency checks ─────────────────────────────────────────────────────────
-check_dependencies() {
+detect_arch() {
+  case "$(uname -m)" in
+    x86_64)         echo "amd64" ;;
+    aarch64|arm64)  echo "arm64" ;;
+    armv7l)         echo "armv7" ;;
+    *)              echo "unsupported" ;;
+  esac
+}
+
+install_yq_binary() {
+  local arch bin_dir bin_path
+  arch="$(detect_arch)"
+  [[ "$arch" == "unsupported" ]] && { warn "Unsupported architecture for yq binary install — install manually"; return 1; }
+  bin_dir="$HOME/.local/bin"
+  [[ "$EUID" -eq 0 ]] && bin_dir="/usr/local/bin"
+  mkdir -p "$bin_dir"
+  bin_path="$bin_dir/yq"
+  info "Downloading yq ${YQ_VERSION} (${arch})..."
+  curl -sSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${arch}" \
+    -o "$bin_path" && chmod +x "$bin_path"
+}
+
+install_just_binary() {
+  local arch bin_dir tarball
+  arch="$(detect_arch)"
+  [[ "$arch" == "unsupported" ]] && { warn "Unsupported architecture for just binary install — install manually"; return 1; }
+  bin_dir="$HOME/.local/bin"
+  [[ "$EUID" -eq 0 ]] && bin_dir="/usr/local/bin"
+  mkdir -p "$bin_dir"
+  info "Downloading just ${JUST_VERSION} (${arch})..."
+  tarball="just-${JUST_VERSION}-${arch}-unknown-linux-musl.tar.gz"
+  [[ "$arch" == "armv7" ]] && tarball="just-${JUST_VERSION}-armv7-unknown-linux-musleabihf.tar.gz"
+  curl -sSL "https://github.com/casey/just/releases/download/${JUST_VERSION}/${tarball}" \
+    | tar -xz -C "$bin_dir" just
+}
+
+pkg_install() {
+  local pkg_manager="$1" tool="$2"
+  local sudo_prefix=""
+  [[ "$EUID" -ne 0 ]] && sudo_prefix="sudo"
+  case "$pkg_manager" in
+    apt)    $sudo_prefix apt-get install -y "$tool" ;;
+    dnf)    $sudo_prefix dnf install -y "$tool" ;;
+    yum)    $sudo_prefix yum install -y "$tool" ;;
+    pacman) $sudo_prefix pacman -S --noconfirm "$tool" ;;
+    apk)    $sudo_prefix apk add "$tool" ;;
+    zypper) $sudo_prefix zypper install -y "$tool" ;;
+  esac
+}
+
+install_dependencies() {
+  local os
+  os="$(uname -s)"
+
   local missing=()
+  for tool in git bash just yq jq; do
+    command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
+  done
+  [[ ${#missing[@]} -eq 0 ]] && return 0
 
-  command -v git >/dev/null 2>&1 || missing+=("git")
-  command -v bash >/dev/null 2>&1 || missing+=("bash")
+  info "Missing required tools: ${missing[*]}"
 
-  # Check for just (required for install)
-  if ! command -v just >/dev/null 2>&1; then
-    missing+=("just")
+  if [[ "$os" == "Darwin" ]]; then
+    if command -v brew >/dev/null 2>&1; then
+      printf "Auto-install with Homebrew? [y/N] "
+      read -r REPLY
+      if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        for tool in "${missing[@]}"; do
+          info "Installing $tool via Homebrew..."
+          brew install "$tool"
+        done
+      else
+        die "Homebrew declined. Install tools manually then re-run this installer."
+      fi
+    else
+      die "Homebrew not found. Install it from https://brew.sh then re-run this installer."
+    fi
+  elif [[ "$os" == "Linux" ]]; then
+    local pkg_manager=""
+    if command -v apt-get >/dev/null 2>&1; then
+      pkg_manager="apt"
+    elif command -v dnf >/dev/null 2>&1; then
+      pkg_manager="dnf"
+    elif command -v yum >/dev/null 2>&1; then
+      pkg_manager="yum"
+    elif command -v pacman >/dev/null 2>&1; then
+      pkg_manager="pacman"
+    elif command -v apk >/dev/null 2>&1; then
+      pkg_manager="apk"
+    elif command -v zypper >/dev/null 2>&1; then
+      pkg_manager="zypper"
+    fi
+
+    if [[ -n "$pkg_manager" ]]; then
+      printf "Auto-install missing tools (%s)? [y/N] " "${missing[*]}"
+      read -r REPLY
+      if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        for tool in "${missing[@]}"; do
+          case "$tool" in
+            jq|git)
+              info "Installing $tool via $pkg_manager..."
+              pkg_install "$pkg_manager" "$tool"
+              ;;
+            yq)
+              if [[ "$pkg_manager" == "pacman" ]]; then
+                info "Installing yq via $pkg_manager..."
+                pkg_install "$pkg_manager" "go-yq"
+              else
+                install_yq_binary || warn "yq binary install failed — install manually"
+              fi
+              ;;
+            just)
+              if [[ "$pkg_manager" == "pacman" ]]; then
+                info "Installing just via $pkg_manager..."
+                pkg_install "$pkg_manager" "just"
+              else
+                install_just_binary || warn "just binary install failed — install manually"
+              fi
+              ;;
+            bash)
+              warn "bash must be installed via your package manager — install manually"
+              ;;
+          esac
+        done
+      else
+        printf "\nManual install instructions:\n"
+        printf "  jq:   sudo %s install jq\n" \
+          "$(case "$pkg_manager" in apt) echo "apt-get" ;; dnf) echo "dnf" ;; yum) echo "yum" ;; pacman) echo "pacman -S" ;; apk) echo "apk add" ;; zypper) echo "zypper install" ;; esac)"
+        printf "  git:  sudo %s install git\n" \
+          "$(case "$pkg_manager" in apt) echo "apt-get" ;; dnf) echo "dnf" ;; yum) echo "yum" ;; pacman) echo "pacman -S" ;; apk) echo "apk add" ;; zypper) echo "zypper install" ;; esac)"
+        printf "  yq:   https://github.com/mikefarah/yq/releases (download binary)\n"
+        printf "  just: https://just.systems (download binary or: cargo install just)\n"
+        die "Install missing tools and re-run this installer."
+      fi
+    else
+      printf "\nUnknown Linux distribution — cannot auto-install.\n"
+      printf "Manual install instructions:\n"
+      printf "  jq:   sudo apt-get install jq  /  sudo dnf install jq  /  sudo pacman -S jq\n"
+      printf "  git:  sudo apt-get install git  /  sudo dnf install git\n"
+      printf "  yq:   https://github.com/mikefarah/yq/releases (download binary)\n"
+      printf "  just: https://just.systems (download binary or: cargo install just)\n"
+      die "Install missing tools and re-run this installer."
+    fi
+  else
+    die "Unsupported OS: $os. Install tools manually then re-run this installer."
   fi
 
-  # Check for yq (required by agentic)
-  if ! command -v yq >/dev/null 2>&1; then
-    missing+=("yq")
-  fi
-
-  # Check for jq (required by agentic)
-  if ! command -v jq >/dev/null 2>&1; then
-    missing+=("jq")
-  fi
-
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    echo ""
-    die "Missing required tools: ${missing[*]}
-
-Install them first:
-  macOS:   brew install ${missing[*]}
-  Ubuntu:  sudo apt install ${missing[*]}
-  Arch:    sudo pacman -S ${missing[*]}
-
-Then re-run this installer."
-  fi
+  # Re-verify all tools
+  for tool in "${missing[@]}"; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      die "$tool still missing after install — install it manually then re-run this installer."
+    fi
+  done
 }
 
 # ── Help ──────────────────────────────────────────────────────────────────────
@@ -156,7 +284,7 @@ main() {
 
   # Check dependencies
   info "Checking dependencies..."
-  check_dependencies
+  install_dependencies
   success "All dependencies found"
 
   # Clone or update repository

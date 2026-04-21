@@ -32,6 +32,7 @@ Commands:
   switch [target] <vendors>             Switch active vendor(s) via symlinks
   sync [target]                         Regenerate from local profile
   list <resource>                       List profiles, skills, fragments, or vendors
+  uninstall [--global]                  Remove the agentic CLI
 
   version                               Show version
   help                                  Show this help
@@ -154,13 +155,30 @@ Usage:
 Resources:
   profiles    List available composition profiles
   skills      List available skills
-  fragments   List available fragments
-  vendors     List supported vendors
+  fragments   List available fragment files
+  vendors     List supported vendor adapters
 
 Examples:
   agentic list profiles
   agentic list skills
   agentic list vendors
+EOF
+}
+
+show_uninstall_help() {
+  cat <<'EOF'
+agentic uninstall — Remove the CLI binary
+
+Usage:
+  agentic uninstall [--global]
+
+Options:
+  --global    Remove from /usr/local/bin instead of ~/.local/bin (requires sudo)
+
+Description:
+  Removes the agentic CLI binary from your PATH.
+  The library directory (~/.local/share/agentic) is NOT removed.
+  To fully remove agentic: rm -rf ~/.local/share/agentic
 EOF
 }
 
@@ -409,6 +427,31 @@ cmd_version() {
   echo "agentic version $VERSION"
 }
 
+cmd_uninstall() {
+  local target="local"
+  local args=()
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --global) target="global"; shift ;;
+      --help)   show_uninstall_help; exit 0 ;;
+      -*)       die "Unknown option: $1" ;;
+      *)        args+=("$1"); shift ;;
+    esac
+  done
+
+  if [[ ${#args[@]} -gt 0 ]]; then
+    show_uninstall_help
+    die "Usage: agentic uninstall [--global]"
+  fi
+
+  local library
+  library="$(discover_library)"
+
+  bash "$library/tooling/lib/install.sh" uninstall "$target"
+}
+
 # ── Main entry point ──────────────────────────────────────────────────────────
 main() {
   local command=""
@@ -438,13 +481,20 @@ main() {
   [[ -z "$command" ]] && { show_help; exit 0; }
 
   case "$command" in
-    deploy)  cmd_deploy "$@" ;;
-    compose) cmd_compose "$@" ;;
-    switch)  cmd_switch "$@" ;;
-    sync)    cmd_sync "$@" ;;
-    list)    cmd_list "$@" ;;
+    deploy)    cmd_deploy "$@" ;;
+    compose)   cmd_compose "$@" ;;
+    switch)    cmd_switch "$@" ;;
+    sync)      cmd_sync "$@" ;;
+    list)      cmd_list "$@" ;;
+    uninstall) cmd_uninstall "$@" ;;
     version) cmd_version ;;
-    help)    show_help ;;
+    help)
+      if [[ "${1:-}" == "uninstall" ]]; then
+        show_uninstall_help
+      else
+        show_help
+      fi
+      ;;
     *)       die "Unknown command: $command. Use 'agentic --help' for usage." ;;
   esac
 }

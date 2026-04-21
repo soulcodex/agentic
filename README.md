@@ -115,9 +115,9 @@ Add project-specific skills in `.agentic/project-skills/`.
 ## Contributing
 
 Contributions are welcome — new fragments, profiles, and skills.
-Run `just lint && just test` before opening a PR.
+See the contributing guide for authoring rules, quality checks, and commit conventions.
 
-→ [Extending guide](https://agentic.soulcodex.link/extending) · [Contributing guide](.github/CONTRIBUTING.md)
+→ [Contributing guide](.github/CONTRIBUTING.md)
 
 ---
 

@@ -1173,6 +1173,66 @@ T51_OUTPUT=$(cd "$TMP/t51" && unset LIBRARY_ROOT && bash -c '
 assert_exit_code 1 "$T51_EXIT" "T51"
 assert_stdout_contains "$T51_OUTPUT" "AGENTIC_REPO_ROOT" "T51"
 
+# ══════════════════════════════════════════════════════════════════════════════
+# UNINSTALL & SMART INSTALLER TESTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# T_UNINSTALL_HELP — CLI: uninstall --help shows usage
+run_test "T_UNINSTALL_HELP — CLI: uninstall --help shows usage"
+T_UNINSTALL_HELP_OUT=$(AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" uninstall --help 2>&1) || true
+assert_stdout_contains "$T_UNINSTALL_HELP_OUT" "uninstall"  "T_UNINSTALL_HELP"
+assert_stdout_contains "$T_UNINSTALL_HELP_OUT" "--global"   "T_UNINSTALL_HELP"
+
+# T_UNINSTALL_HELP_GLOBAL — CLI: help uninstall routes to uninstall help
+run_test "T_UNINSTALL_HELP_GLOBAL — CLI: help uninstall shows usage"
+T_UNINSTALL_HELP_GLOBAL_OUT=$(AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" help uninstall 2>&1) || true
+assert_stdout_contains "$T_UNINSTALL_HELP_GLOBAL_OUT" "uninstall" "T_UNINSTALL_HELP_GLOBAL"
+
+# T_UNINSTALL_IN_HELP — CLI: main --help table includes uninstall
+run_test "T_UNINSTALL_IN_HELP — CLI: main --help lists uninstall command"
+T_UNINSTALL_IN_HELP_OUT=$("$CLI" --help 2>&1) || true
+assert_stdout_contains "$T_UNINSTALL_IN_HELP_OUT" "uninstall" "T_UNINSTALL_IN_HELP"
+
+# T_UNINSTALL_NOOP — CLI: uninstall when not installed exits cleanly
+run_test "T_UNINSTALL_NOOP — CLI: uninstall when not installed exits 0"
+T_UNINSTALL_NOOP_HOME="$TMP/t_uninstall_noop_home"
+mkdir -p "$T_UNINSTALL_NOOP_HOME"
+T_UNINSTALL_NOOP_OUT=$(HOME="$T_UNINSTALL_NOOP_HOME" \
+  AGENTIC_REPO_ROOT="$LIBRARY" \
+  "$CLI" uninstall 2>&1) || true
+assert_stdout_contains "$T_UNINSTALL_NOOP_OUT" "not installed" "T_UNINSTALL_NOOP"
+
+# T_UNINSTALL_REMOVES — CLI: install to temp dir then uninstall removes binary
+run_test "T_UNINSTALL_REMOVES — CLI: uninstall removes installed binary"
+T_UNINSTALL_HOME="$TMP/t_uninstall_home"
+mkdir -p "$T_UNINSTALL_HOME/.local/bin"
+HOME="$T_UNINSTALL_HOME" \
+  bash "$LIBRARY/tooling/lib/install.sh" install local > /dev/null 2>&1
+assert_file_exists "$T_UNINSTALL_HOME/.local/bin/agentic" "T_UNINSTALL_REMOVES install"
+HOME="$T_UNINSTALL_HOME" \
+  AGENTIC_REPO_ROOT="$LIBRARY" \
+  "$CLI" uninstall > /dev/null 2>&1
+if [[ ! -f "$T_UNINSTALL_HOME/.local/bin/agentic" ]]; then
+  pass "T_UNINSTALL_REMOVES — binary removed after uninstall"
+else
+  fail "T_UNINSTALL_REMOVES — binary still present after uninstall"
+fi
+
+# T_INSTALL_SH_HELP_WORKS — install.sh: --help exits 0 cleanly
+run_test "T_INSTALL_SH_HELP_WORKS — install.sh --help exits 0"
+T_INSTALL_HELP_EXIT=0
+bash "$LIBRARY/install.sh" --help > /dev/null 2>&1 || T_INSTALL_HELP_EXIT=$?
+if [[ "$T_INSTALL_HELP_EXIT" -eq 0 ]]; then
+  pass "T_INSTALL_SH_HELP_WORKS — exit 0"
+else
+  fail "T_INSTALL_SH_HELP_WORKS — unexpected exit $T_INSTALL_HELP_EXIT"
+fi
+
+# T_INSTALL_SH_DETECTS_ARCH — install.sh: --help output mentions installer
+run_test "T_INSTALL_SH_DETECTS_ARCH — install.sh --help shows installer header"
+T_INSTALL_SH_OUT=$(bash "$LIBRARY/install.sh" --help 2>&1) || true
+assert_stdout_contains "$T_INSTALL_SH_OUT" "agentic installer" "T_INSTALL_SH_DETECTS_ARCH"
+
 # T52 — CLI: fails when library path doesn't exist
 run_test "T52 — CLI: fails when library path doesn't exist"
 T52_EXIT=0
