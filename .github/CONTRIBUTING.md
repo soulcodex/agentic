@@ -37,7 +37,7 @@ just lint && just test
 ```
 
 - `just lint` — validates all fragments, profiles, and adapter files against schemas
-- `just test` — runs 29+ assertions to ensure tooling works correctly
+- `just test` — runs 319+ assertions to ensure tooling works correctly
 
 All tests must pass before your PR can be merged.
 
