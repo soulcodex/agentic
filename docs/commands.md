@@ -149,6 +149,19 @@ agentic list skills
 agentic list vendors
 ```
 
+### uninstall
+
+Remove the `agentic` CLI binary from your PATH.
+
+```bash
+agentic uninstall           # remove from ~/.local/bin (default)
+agentic uninstall --global  # remove from /usr/local/bin (requires sudo)
+```
+
+This removes only the CLI binary. The library directory (`~/.local/share/agentic`)
+is left untouched — reinstall at any time with the one-line installer.
+To fully remove the library: `rm -rf ~/.local/share/agentic`
+
 ---
 
 ## Config Lock File

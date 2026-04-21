@@ -70,6 +70,16 @@ git pull origin main
 ## Uninstall
 
 ```bash
-cd ~/.local/share/agentic
-just uninstall
+agentic uninstall           # remove from ~/.local/bin
+agentic uninstall --global  # remove from /usr/local/bin
+```
+
+This removes the CLI binary only. The library directory (`~/.local/share/agentic`)
+is preserved — reinstall at any time without re-cloning.
+
+To fully remove agentic:
+
+```bash
+agentic uninstall
+rm -rf ~/.local/share/agentic
 ```
