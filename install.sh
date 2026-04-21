@@ -124,13 +124,6 @@ install_dependencies() {
       die "Homebrew not found. Install it from https://brew.sh then re-run this installer."
     fi
   elif [[ "$os" == "Linux" ]]; then
-    local distro_id=""
-    if [[ -f /etc/os-release ]]; then
-      # shellcheck source=/dev/null
-      source /etc/os-release
-      distro_id="${ID:-}"
-    fi
-
     local pkg_manager=""
     if command -v apt-get >/dev/null 2>&1; then
       pkg_manager="apt"
