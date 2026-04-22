@@ -175,3 +175,25 @@ are gitignored automatically.
    git commit -m "chore: switch agentic to copy mode"
    ```
 3. The managed `.gitignore` block is updated automatically — the three paths are removed from it.
+
+## Config Lock File
+
+Every `agentic deploy` or `agentic compose` writes `TARGET/.agentic/config.yaml`:
+
+```yaml
+# Managed by agentic library — do not edit manually
+library_commit: "abc123..."
+profile: "golang-hexagonal-cobra-cli"
+profile_version: "1.0.0"
+composed_at: "2026-03-03T12:00:00Z"
+mode: lean
+agentic_root: "/Users/you/agentic"
+active_vendors:
+  - claude
+  - copilot
+structure: nested          # only for nested profiles
+tiers: [backend, ui]       # only for nested profiles
+```
+
+The `agentic_root` and `active_vendors` fields enable the global CLI to work
+from any directory within your project.

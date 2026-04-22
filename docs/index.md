@@ -14,8 +14,37 @@ same `AGENTS.md` source of truth — automatically.
 curl -sSL https://raw.githubusercontent.com/soulcodex/agentic/main/install.sh | bash
 ```
 
-Installs the `agentic` CLI to `~/.local/bin`. Requires `bash`, `just`, `yq`, `jq`.
-The installer auto-detects missing prerequisites and offers to install them.
+Installs the `agentic` CLI to `~/.local/bin`. The installer checks prerequisites and offers to install any that are missing.
+
+---
+
+<div class="grid cards" markdown>
+
+-   :material-puzzle:{ .lg .middle } **One source of truth**
+
+    ---
+
+    Write `AGENTS.md` once. Every AI tool reads the same instructions — no drift, no duplication.
+
+-   :material-lightning-bolt:{ .lg .middle } **Deploy in one command**
+
+    ---
+
+    Pick a profile and run `agentic deploy`. Claude, Copilot, Gemini, Codex and Opencode all configured instantly.
+
+-   :material-shape:{ .lg .middle } **15 ready-made profiles**
+
+    ---
+
+    TypeScript, Go, Python, PHP — microservices, CLIs, SPAs, full-stack. Start from a proven template, customise from there.
+
+-   :material-brain:{ .lg .middle } **Skills system**
+
+    ---
+
+    Reusable agent task definitions. Deploy shared skills from the library or add project-local ones in `.agentic/project-skills/`.
+
+</div>
 
 ---
 

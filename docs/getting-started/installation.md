@@ -10,8 +10,7 @@
 | `yq` | YAML processor | `brew install yq` | `snap install yq` or [prebuilt binary](https://github.com/mikefarah/yq/releases) |
 | `jq` | JSON processor | `brew install jq` | `sudo apt install jq` / `sudo dnf install jq` |
 
-On macOS, run `just setup` from the library directory to auto-install missing tools via Homebrew.
-On Linux, install missing tools with your package manager then run `just setup` to verify.
+The one-line installer detects missing tools and offers to install them automatically (Homebrew on macOS, package manager on Linux).
 
 ## One-line Install (Recommended)
 

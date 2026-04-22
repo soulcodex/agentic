@@ -55,15 +55,17 @@ Full deployment pipeline: compose + vendor-gen + deploy skills + activate vendor
 agentic deploy <profile> [target] <vendors> [options]
 ```
 
-**Arguments:**
-- `profile` — Name of the profile (see `agentic list profiles`)
-- `target` — Project directory (auto-detected if omitted)
-- `vendors` — Comma-separated vendors to activate (e.g., `claude,copilot`)
+| Argument | Required | Description |
+|---|---|---|
+| `profile` | ✅ | Profile name — see `agentic list profiles` |
+| `target` | optional | Project directory, auto-detected from current dir if omitted |
+| `vendors` | ✅ | Comma-separated vendors to activate: `claude`, `copilot`, `gemini`, `codex`, `opencode` |
 
-**Options:**
-- `--full` — Inline all fragment content (monolithic AGENTS.md)
-- `--link` — Use symlinks instead of file copies (POSIX only; see Link Mode section below)
-- `--skills LIST` — Deploy specific skills (default: all from profile)
+| Option | Description |
+|---|---|
+| `--full` | Inline all fragment content into a monolithic `AGENTS.md` |
+| `--link` | Use symlinks instead of file copies (POSIX only, not Windows without WSL) |
+| `--skills LIST` | Deploy specific skills only (default: all skills declared in the profile) |
 
 **Examples:**
 ```bash
@@ -85,9 +87,15 @@ Assemble AGENTS.md from a profile without generating vendor files.
 agentic compose <profile> [target] [options]
 ```
 
-**Options:**
-- `--full` — Inline all fragment content
-- `--link` — Use symlinks instead of file copies (POSIX only)
+| Argument | Required | Description |
+|---|---|---|
+| `profile` | ✅ | Profile name — see `agentic list profiles` |
+| `target` | optional | Project directory, auto-detected from current dir if omitted |
+
+| Option | Description |
+|---|---|
+| `--full` | Inline all fragment content into a monolithic `AGENTS.md` |
+| `--link` | Use symlinks instead of file copies (POSIX only, not Windows without WSL) |
 
 **Examples:**
 ```bash
@@ -136,11 +144,9 @@ List available resources.
 agentic list <resource>
 ```
 
-**Resources:**
-- `profiles` — Available composition profiles
-- `skills` — Available skills (group, name, description)
-- `fragments` — Available fragment files
-- `vendors` — Supported vendor adapters
+| Argument | Required | Description |
+|---|---|---|
+| `resource` | ✅ | Resource type to list: `profiles`, `skills`, `fragments`, or `vendors` |
 
 **Examples:**
 ```bash
@@ -161,27 +167,3 @@ agentic uninstall --global  # remove from /usr/local/bin (requires sudo)
 This removes only the CLI binary. The library directory (`~/.local/share/agentic`)
 is left untouched — reinstall at any time with the one-line installer.
 To fully remove the library: `rm -rf ~/.local/share/agentic`
-
----
-
-## Config Lock File
-
-Every `agentic deploy` or `agentic compose` writes `TARGET/.agentic/config.yaml`:
-
-```yaml
-# Managed by agentic library — do not edit manually
-library_commit: "abc123..."
-profile: "golang-hexagonal-cobra-cli"
-profile_version: "1.0.0"
-composed_at: "2026-03-03T12:00:00Z"
-mode: lean
-agentic_root: "/Users/you/agentic"
-active_vendors:
-  - claude
-  - copilot
-structure: nested          # only for nested profiles
-tiers: [backend, ui]       # only for nested profiles
-```
-
-The `agentic_root` and `active_vendors` fields enable the global CLI to work
-from any directory within your project.
