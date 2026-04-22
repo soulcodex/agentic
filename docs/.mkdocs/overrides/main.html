@@ -3,9 +3,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="{{ config.site_url }}assets/favicons/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="{{ config.site_url }}assets/favicons/favicon-16x16.png" />
 <link rel="manifest" href="{{ config.site_url }}assets/favicons/site.webmanifest" />
-{% set title = config.site_name %} {% if page and page.title and not page.is_homepage %} {% set title = page.title ~ " -
-" ~ config.site_name %} {% endif %} {% set description = config.site_description %} {% if page and page.meta and
-page.meta.description %} {% set description = page.meta.description %} {% endif %}
+{% set title = config.site_name ~ " - One command, all your AI tools in sync." %} {% if page and page.title and not
+page.is_homepage %} {% set title = page.title ~ " - One command, all your AI tools in sync. - " ~ config.site_name %} {%
+endif %} {% set description = config.site_description %} {% if page and page.meta and page.meta.description %} {% set
+description = page.meta.description %} {% endif %}
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="{{ config.site_name }}" />
 <meta property="og:logo" content="{{ config.site_url }}assets/favicons/apple-touch-icon.png" />
