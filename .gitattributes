@@ -1,2 +1,4 @@
 * text eol=lf
 *.png binary
+*.ico binary
+*.webmanifest text eol=lf

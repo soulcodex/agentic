@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ config.site_url }}assets/favicons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ config.site_url }}assets/favicons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ config.site_url }}assets/favicons/favicon-16x16.png" />
+  <link rel="manifest" href="{{ config.site_url }}assets/favicons/site.webmanifest" />
   {% set title = config.site_name %}
   {% if page and page.title and not page.is_homepage %}
     {% set title = page.title ~ " - " ~ config.site_name %}
