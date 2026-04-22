@@ -25,6 +25,7 @@ theme:
   custom_dir: overrides
   icon:
     logo: material/puzzle
+  favicon: favicon.png
   palette:
     - scheme: default
       toggle:
