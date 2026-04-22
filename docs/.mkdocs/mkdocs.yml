@@ -22,6 +22,8 @@ nav:
 
 theme:
   name: material
+  icon:
+    logo: material/puzzle
   palette:
     - scheme: default
       toggle:
@@ -41,6 +43,8 @@ theme:
     - content.code.annotate
 
 markdown_extensions:
+  - attr_list
+  - md_in_html
   - admonition
   - pymdownx.details
   - pymdownx.superfences
