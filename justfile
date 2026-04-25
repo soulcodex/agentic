@@ -71,6 +71,14 @@ sync target:
     @"{{LIBRARY_ROOT}}/tooling/lib/sync.sh" \
         --target "{{target}}"
 
+# Scaffold .agentic skeleton for custom profile workflows
+# Usage: just init /path/to/project
+init target:
+    @"{{LIBRARY_ROOT}}/tooling/lib/init.sh" \
+        --library "{{LIBRARY_ROOT}}" \
+        --target "{{target}}" \
+        --no-sync
+
 # Compose with symlinks instead of copying files (POSIX only — not supported on Windows)
 # Usage: just compose-linked typescript-hexagonal-microservice /path/to/project
 compose-linked profile target:

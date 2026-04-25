@@ -6,6 +6,16 @@ How to customize agentic for individual projects without modifying the shared li
 
 When you deploy a profile, a copy is saved to `.agentic/profile.yaml`. This is your project's own configuration that you can edit freely.
 
+If you want to start from scratch without a predefined profile, scaffold the
+local agentic workspace first:
+
+```bash
+agentic init
+```
+
+This creates `.agentic/config.yaml`, `.agentic/profile.yaml`,
+`.agentic/mcp.yaml`, and `.agentic/project-skills/`.
+
 ### What You Can Customize
 
 - Add or remove fragments
@@ -23,6 +33,29 @@ agentic sync
 ```
 
 This re-runs compose with your local profile, regenerates vendor files, and preserves your active vendors.
+
+## MCP Configuration (Pivot Model)
+
+Project MCP declarations live in `.agentic/mcp.yaml`:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/mcp.schema.json
+strategy: merge
+servers:
+  github:
+    type: stdio
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-github"]
+```
+
+`agentic sync` and `agentic compose` seed vendor MCP outputs from this file:
+
+- `.mcp.json` (Claude shape)
+- `opencode.json` (`mcp` block translation)
+- `.gemini/settings.json` (`mcpServers` translation)
+
+If `.agentic/mcp.yaml` is missing, legacy `mcp:` under `.agentic/profile.yaml`
+is still supported for backward compatibility, but deprecated.
 
 ## Project-Local Skills
 
@@ -144,6 +177,7 @@ are gitignored automatically.
 | `AGENTS.md` | ✅ commit | ✅ commit | Source of truth — review in PRs |
 | `.agentic/config.yaml` | ✅ commit | ✅ commit | Reproducibility anchor |
 | `.agentic/profile.yaml` | ✅ commit | ✅ commit | Per-project customization |
+| `.agentic/mcp.yaml` | ✅ commit | ✅ commit | MCP source-of-truth for seeding |
 | `.agentic/project-skills/` | ✅ commit | ✅ commit | Your code — treat as source |
 | `.agentic/skills/` | ✅ commit | 🚫 ignore | Real files vs symlink to library |
 | `.agentic/fragments/` | ✅ commit | 🚫 ignore | Real files vs symlink to library |

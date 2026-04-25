@@ -29,6 +29,7 @@ Usage:
 Commands:
   deploy <profile> [target] <vendors>   Full deploy: compose + vendor-gen + skills + activate
   compose <profile> [target]            Assemble AGENTS.md from a profile
+  init [target]                         Scaffold .agentic custom profile skeleton
   switch [target] <vendors>             Switch active vendor(s) via symlinks
   sync [target]                         Regenerate from local profile
   list <resource>                       List profiles, skills, fragments, or vendors
@@ -122,6 +123,34 @@ Examples:
   agentic switch ./my-project gemini
   agentic switch claude,copilot
   agentic switch list
+EOF
+}
+
+show_init_help() {
+  cat <<'EOF'
+agentic init — Scaffold .agentic custom profile skeleton
+
+Usage:
+  agentic init [target] [options]
+
+Arguments:
+  target      Target project directory (default: current directory)
+
+Options:
+  --sync      Run agentic sync immediately after scaffolding
+  --no-sync   Skip sync after scaffolding (non-interactive)
+
+Description:
+  Creates:
+  - .agentic/config.yaml
+  - .agentic/profile.yaml
+  - .agentic/mcp.yaml
+  - .agentic/project-skills/
+
+Examples:
+  agentic init
+  agentic init ./my-project
+  agentic init ./my-project --sync
 EOF
 }
 
@@ -331,6 +360,45 @@ cmd_switch() {
     "$vendors"
 }
 
+cmd_init() {
+  local target="."
+  local force_sync=""
+  local skip_sync=""
+  local args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help)    show_init_help; exit 0 ;;
+      --sync)    force_sync="--sync"; shift ;;
+      --no-sync) skip_sync="--no-sync"; shift ;;
+      -*)        die "Unknown option: $1" ;;
+      *)         args+=("$1"); shift ;;
+    esac
+  done
+
+  if [[ -n "$force_sync" && -n "$skip_sync" ]]; then
+    die "Cannot use both --sync and --no-sync"
+  fi
+
+  case "${#args[@]}" in
+    0) target="." ;;
+    1) target="${args[0]}" ;;
+    *) die "Usage: agentic init [target] [--sync|--no-sync]" ;;
+  esac
+
+  local library
+  library="$(discover_library)"
+
+  local init_args=(
+    "--library" "$library"
+    "--target" "$target"
+    "--prompt-sync"
+  )
+  [[ -n "$force_sync" ]] && init_args+=("$force_sync")
+  [[ -n "$skip_sync" ]] && init_args+=("$skip_sync")
+  bash "$library/tooling/lib/init.sh" "${init_args[@]}"
+}
+
 cmd_sync() {
   local target=""
   local args=()
@@ -483,17 +551,18 @@ main() {
   case "$command" in
     deploy)    cmd_deploy "$@" ;;
     compose)   cmd_compose "$@" ;;
+    init)      cmd_init "$@" ;;
     switch)    cmd_switch "$@" ;;
     sync)      cmd_sync "$@" ;;
     list)      cmd_list "$@" ;;
     uninstall) cmd_uninstall "$@" ;;
     version) cmd_version ;;
     help)
-      if [[ "${1:-}" == "uninstall" ]]; then
-        show_uninstall_help
-      else
-        show_help
-      fi
+      case "${1:-}" in
+        uninstall) show_uninstall_help ;;
+        init)      show_init_help ;;
+        *)         show_help ;;
+      esac
       ;;
     *)       die "Unknown command: $command. Use 'agentic --help' for usage." ;;
   esac

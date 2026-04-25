@@ -39,6 +39,16 @@ agentic sync
 Reads `.agentic/profile.yaml` and regenerates `AGENTS.md` and all vendor files.
 Active vendors are preserved.
 
+## Optional: start with a custom local profile
+
+```bash
+agentic init ~/code/my-api
+agentic sync ~/code/my-api
+```
+
+This scaffolds `.agentic/profile.yaml` and `.agentic/mcp.yaml` so you can
+customize fragments, commands, skills, and MCP servers from scratch.
+
 ## 4. Switch active vendor
 
 ```bash
@@ -56,6 +66,7 @@ After deploying, commit these files from your project:
 | `AGENTS.md` | yes — source of truth |
 | `.agentic/config.yaml` | yes — reproducibility anchor |
 | `.agentic/profile.yaml` | yes — your customisation |
+| `.agentic/mcp.yaml` | yes — MCP source-of-truth |
 | `.agentic/project-skills/` | yes — your custom skills |
 | `CLAUDE.md`, `GEMINI.md`, vendor symlinks | no — recreated by `agentic sync` |
 | `.agentic/skills/`, `.agentic/fragments/`, `.agentic/vendor-files/` | no (link mode) / yes (copy mode) |

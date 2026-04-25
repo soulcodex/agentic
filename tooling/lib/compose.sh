@@ -487,6 +487,38 @@ inject_local_override() {
   esac
 }
 
+# ── MCP seeding (new file first, profile fallback) ───────────────────────────
+seed_mcp_servers() {
+  local target_mcp_file="$TARGET/.agentic/mcp.yaml"
+
+  if [[ -f "$target_mcp_file" ]]; then
+    local has_mcp_file_servers mcp_strategy
+    has_mcp_file_servers=$(yq '.servers // "null"' "$target_mcp_file")
+    if [[ "$has_mcp_file_servers" != "null" && "$has_mcp_file_servers" != "{}" ]]; then
+      mcp_strategy=$(yq '.strategy // "merge"' "$target_mcp_file")
+      bash "$LIBRARY/tooling/lib/mcp.sh" \
+        --action seed \
+        --target "$TARGET" \
+        --mcp-file "$target_mcp_file" \
+        --strategy "$mcp_strategy"
+    fi
+    return 0
+  fi
+
+  local has_legacy_mcp
+  has_legacy_mcp=$(yq '.mcp.servers // "null"' "$PROFILE_FILE")
+  if [[ "$has_legacy_mcp" != "null" && "$has_legacy_mcp" != "{}" ]]; then
+    warn "Deprecated MCP declaration in profile detected. Move MCP config to $target_mcp_file"
+    local mcp_strategy
+    mcp_strategy=$(yq '.mcp.strategy // "merge"' "$PROFILE_FILE")
+    bash "$LIBRARY/tooling/lib/mcp.sh" \
+      --action seed \
+      --target "$TARGET" \
+      --profile-file "$PROFILE_FILE" \
+      --strategy "$mcp_strategy"
+  fi
+}
+
 # ── Shared OUTPUT header (used by both compose_flat and compose_nested) ───────
 OUTPUT=$(cat <<HEADER
 # Agent Instructions — ${PROJECT_NAME}
@@ -563,6 +595,7 @@ compose_flat() {
       local deploy_mode_str="copy"
       [[ "$LINK_MODE" == "true" ]] && deploy_mode_str="link"
       cat > "$LOCK_DIR/config.yaml" <<LOCK
+# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/config.schema.json
 # Managed by agentic library — do not edit manually
 # Regenerate with: just compose ${PROFILE} ${TARGET}
 library_commit: "$(cd "$LIBRARY" && git rev-parse HEAD 2>/dev/null || echo "unknown")"
@@ -577,6 +610,7 @@ LOCK
     else
       # Full mode: write lock with mode: full (no fragments copied)
       cat > "$LOCK_DIR/config.yaml" <<LOCK
+# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/config.schema.json
 # Managed by agentic library — do not edit manually
 # Regenerate with: just compose-full ${PROFILE} ${TARGET}
 library_commit: "$(cd "$LIBRARY" && git rev-parse HEAD 2>/dev/null || echo "unknown")"
@@ -603,18 +637,7 @@ LOCK
       cp "$PROFILE_FILE" "$profile_dst"
     fi
 
-    # Seed MCP servers from profile (no-op if mcp key absent)
-    local has_mcp
-    has_mcp=$(yq '.mcp.servers // "null"' "$PROFILE_FILE")
-    if [[ "$has_mcp" != "null" && "$has_mcp" != "{}" ]]; then
-      local mcp_strategy
-      mcp_strategy=$(yq '.mcp.strategy // "merge"' "$PROFILE_FILE")
-      bash "$LIBRARY/tooling/lib/mcp.sh" \
-        --action seed \
-        --target "$TARGET" \
-        --profile-file "$PROFILE_FILE" \
-        --strategy "$mcp_strategy"
-    fi
+    seed_mcp_servers
 
     update_gitignore
     echo "Composed AGENTS.md → $TARGET/AGENTS.md"
@@ -837,6 +860,7 @@ compose_nested() {
   local compose_mode="lean"
   [[ "$FULL_MODE" == "true" ]] && compose_mode="full"
   {
+    echo "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/config.schema.json"
     echo "# Managed by agentic library — do not edit manually"
     echo "# Regenerate with: just compose ${PROFILE} ${TARGET}"
     echo "library_commit: \"$(cd "$LIBRARY" && git rev-parse HEAD 2>/dev/null || echo unknown)\""
@@ -867,18 +891,7 @@ compose_nested() {
     cp "$PROFILE_FILE" "$profile_dst"
   fi
 
-  # Seed MCP servers from profile (no-op if mcp key absent)
-  local has_mcp
-  has_mcp=$(yq '.mcp.servers // "null"' "$PROFILE_FILE")
-  if [[ "$has_mcp" != "null" && "$has_mcp" != "{}" ]]; then
-    local mcp_strategy
-    mcp_strategy=$(yq '.mcp.strategy // "merge"' "$PROFILE_FILE")
-    bash "$LIBRARY/tooling/lib/mcp.sh" \
-      --action seed \
-      --target "$TARGET" \
-      --profile-file "$PROFILE_FILE" \
-      --strategy "$mcp_strategy"
-  fi
+  seed_mcp_servers
 
   update_gitignore
   echo "Composed AGENTS.md → $TARGET/AGENTS.md"

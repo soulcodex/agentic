@@ -103,6 +103,43 @@ agentic compose golang-hexagonal-cobra-cli ./my-cli
 agentic compose typescript-hexagonal-microservice --full
 ```
 
+### init
+
+Scaffold a local `.agentic/` skeleton for a custom profile workflow.
+
+```bash
+agentic init [target] [options]
+```
+
+| Argument | Required | Description |
+|---|---|---|
+| `target` | optional | Project directory, defaults to current directory |
+
+| Option | Description |
+|---|---|
+| `--sync` | Run `agentic sync` immediately after scaffolding |
+| `--no-sync` | Skip sync after scaffolding |
+
+Creates:
+
+- `.agentic/config.yaml`
+- `.agentic/profile.yaml`
+- `.agentic/mcp.yaml`
+- `.agentic/project-skills/`
+
+**Examples:**
+```bash
+agentic init
+agentic init ./my-project
+agentic init ./my-project --sync
+```
+
+Library recipe equivalent:
+
+```bash
+just init /path/to/project
+```
+
 ### switch
 
 Switch active vendor(s) via symlinks.
@@ -135,6 +172,9 @@ Active vendors are preserved after regeneration.
 agentic sync                # Auto-detect target from current directory
 agentic sync ./my-project   # Explicit target
 ```
+
+During sync, MCP seeding uses `.agentic/mcp.yaml` first. If absent, a legacy
+`mcp:` block inside `.agentic/profile.yaml` is still supported (deprecated).
 
 ### list
 
