@@ -7,6 +7,7 @@ ACTION=""
 TARGET=""
 NAME=""
 PROFILE_FILE=""
+MCP_FILE_INPUT=""
 STRATEGY="merge"
 
 while [[ $# -gt 0 ]]; do
@@ -15,6 +16,7 @@ while [[ $# -gt 0 ]]; do
     --target) TARGET="$2"; shift 2 ;;
     --name)   NAME="$2";   shift 2 ;;
     --profile-file) PROFILE_FILE="$2"; shift 2 ;;
+    --mcp-file) MCP_FILE_INPUT="$2"; shift 2 ;;
     --strategy)     STRATEGY="$2";   shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -293,17 +295,25 @@ action_remove() {
 
 # ── Action: seed ─────────────────────────────────────────────────────────────────
 action_seed() {
-  local profile_file="$1"
-  local strategy="${2:-merge}"
+  local source_file="$1"
+  local source_path="$2"
+  local strategy="${3:-merge}"
+  local servers_expr=""
+
+  if [[ "$source_path" == "." ]]; then
+    servers_expr=".servers"
+  else
+    servers_expr="${source_path}.servers"
+  fi
 
   # Get server names as array first
   local server_names=()
   while IFS= read -r name; do
     [[ -n "$name" && "$name" != "null" ]] && server_names+=("$name")
-  done < <(yq '.mcp.servers | keys | .[]' "$profile_file" 2>/dev/null || true)
+  done < <(yq "${servers_expr} | keys | .[]" "$source_file" 2>/dev/null || true)
 
   if [[ ${#server_names[@]} -eq 0 ]]; then
-    echo "No MCP servers declared in profile — skipping seed"
+    echo "No MCP servers declared — skipping seed"
     return 0
   fi
 
@@ -323,7 +333,7 @@ action_seed() {
       local name
       for name in "${server_names[@]}"; do
         local server_yaml server_json
-        server_yaml=$(yq -r ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "")
+        server_yaml=$(yq -r "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "")
         if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
           # Convert YAML to JSON using yq -o json
           server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
@@ -338,7 +348,7 @@ action_seed() {
         exists=$(jq -r --arg n "$name" 'has($n)' "$existing_servers" 2>/dev/null || echo "false")
         if [[ "$exists" == "false" ]]; then
           local server_yaml server_json
-          server_yaml=$(yq -r ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "")
+          server_yaml=$(yq -r "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "")
           if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
             # Convert YAML to JSON using yq -o json
             server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
@@ -404,7 +414,7 @@ action_seed() {
       local name
       for name in "${server_names[@]}"; do
         local server_json oc_entry
-        server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+        server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
         if [[ -n "$server_json" && "$server_json" != "null" ]]; then
           oc_entry=$(translate_to_opencode "$server_json")
           updated_oc=$(printf '%s' "$updated_oc" | jq --arg n "$name" --argjson s "$oc_entry" '. + {($n): $s}')
@@ -418,7 +428,7 @@ action_seed() {
         exists=$(printf '%s' "$existing_oc" | jq -r --arg n "$name" 'has($n)')
         if [[ "$exists" == "false" ]]; then
           local server_json oc_entry
-          server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+          server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
           if [[ -n "$server_json" && "$server_json" != "null" ]]; then
             oc_entry=$(translate_to_opencode "$server_json")
             existing_oc=$(printf '%s' "$existing_oc" | jq --arg n "$name" --argjson s "$oc_entry" '. + {($n): $s}')
@@ -446,7 +456,7 @@ action_seed() {
       local name
       for name in "${server_names[@]}"; do
         local server_json gs_entry
-        server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+        server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
         if [[ -n "$server_json" && "$server_json" != "null" ]]; then
           gs_entry=$(translate_to_gemini "$server_json")
           updated_gs=$(printf '%s' "$updated_gs" | jq --arg n "$name" --argjson s "$gs_entry" '. + {($n): $s}')
@@ -460,7 +470,7 @@ action_seed() {
         exists=$(printf '%s' "$existing_gs" | jq -r --arg n "$name" 'has($n)')
         if [[ "$exists" == "false" ]]; then
           local server_json gs_entry
-          server_json=$(yq -o json ".mcp.servers.$name" "$profile_file" 2>/dev/null || echo "{}")
+          server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
           if [[ -n "$server_json" && "$server_json" != "null" ]]; then
             gs_entry=$(translate_to_gemini "$server_json")
             existing_gs=$(printf '%s' "$existing_gs" | jq --arg n "$name" --argjson s "$gs_entry" '. + {($n): $s}')
@@ -484,16 +494,28 @@ case "$ACTION" in
   remove) action_remove ;;
   list)   action_list   ;;
   seed)
-    # Non-interactive seed from profile - uses globally parsed PROFILE_FILE and STRATEGY
-    # Set defaults if not provided
-    [[ -z "$PROFILE_FILE" ]] && { echo "Error: --profile-file required for seed action" >&2; exit 1; }
-    [[ -f "$PROFILE_FILE" ]] || { echo "Error: profile file not found: $PROFILE_FILE" >&2; exit 1; }
+    # Non-interactive seed from .agentic/mcp.yaml or legacy profile mcp key
+    seed_source_file=""
+    seed_source_path=""
+    if [[ -n "$MCP_FILE_INPUT" ]]; then
+      seed_source_file="$MCP_FILE_INPUT"
+      seed_source_path="."
+    elif [[ -n "$PROFILE_FILE" ]]; then
+      seed_source_file="$PROFILE_FILE"
+      seed_source_path=".mcp"
+    fi
+
+    [[ -z "$seed_source_file" ]] && {
+      echo "Error: --mcp-file or --profile-file required for seed action" >&2
+      exit 1
+    }
+    [[ -f "$seed_source_file" ]] || { echo "Error: seed source file not found: $seed_source_file" >&2; exit 1; }
     [[ -z "$TARGET" ]] && { echo "Error: --target required for seed action" >&2; exit 1; }
 
     # Use default strategy if not provided
     [[ -z "$STRATEGY" ]] && STRATEGY="merge"
 
-    action_seed "$PROFILE_FILE" "$STRATEGY"
+    action_seed "$seed_source_file" "$seed_source_path" "$STRATEGY"
     ;;
   *) echo "Error: unknown action '$ACTION' (expected add|remove|list|seed)" >&2; exit 1 ;;
 esac

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/soulcodex/agentic/schemas/config.schema.json",
+  "title": "Agentic Project Config",
+  "description": "Project-local lock/config metadata used by agentic sync/switch flows.",
+  "type": "object",
+  "required": [
+    "library_commit",
+    "profile",
+    "profile_version",
+    "composed_at",
+    "mode",
+    "agentic_root",
+    "active_vendors"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "library_commit": {
+      "type": "string",
+      "description": "Git commit hash of the library used to compose the target."
+    },
+    "profile": {
+      "type": "string",
+      "description": "Profile identifier or derived profile name."
+    },
+    "profile_version": {
+      "type": "string",
+      "description": "Version declared by the source profile."
+    },
+    "composed_at": {
+      "type": "string",
+      "description": "UTC timestamp when compose/sync last generated output."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["lean", "full"],
+      "description": "Composition mode."
+    },
+    "agentic_root": {
+      "type": "string",
+      "description": "Absolute path to the agentic library used by this project."
+    },
+    "deploy_mode": {
+      "type": "string",
+      "enum": ["copy", "link"],
+      "description": "How runtime assets are materialized in the project."
+    },
+    "active_vendors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["claude", "copilot", "codex", "gemini", "opencode"]
+      },
+      "description": "Vendors currently activated via symlinks."
+    },
+    "structure": {
+      "type": "string",
+      "enum": ["flat", "nested"],
+      "description": "Output structure used by composed instructions."
+    },
+    "tiers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Declared tiers when structure is nested."
+    }
+  }
+}

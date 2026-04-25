@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/soulcodex/agentic/schemas/mcp.schema.json",
+  "title": "Agentic MCP Declaration",
+  "description": "Project-local MCP declarations consumed by compose/sync seeding.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "strategy": {
+      "type": "string",
+      "enum": ["merge", "replace"],
+      "default": "merge",
+      "description": "merge: add missing servers. replace: fully replace existing vendor MCP blocks."
+    },
+    "servers": {
+      "type": "object",
+      "description": "MCP server entries keyed by server name.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string", "enum": ["stdio", "http"] },
+          "command": { "type": "string" },
+          "args": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "url": { "type": "string" },
+          "env": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "required": ["servers"]
+}

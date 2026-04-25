@@ -53,6 +53,26 @@ Skills are deployed natively to `.gemini/skills/` and activated lazily via the
 
 Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`. Opencode also supports `.claude/skills/` and `.agents/skills/` as compatibility fallbacks.
 
+## MCP Pivot Model
+
+MCP server declarations are authored once in `.agentic/mcp.yaml` and then
+translated per vendor when `agentic compose` / `agentic sync` runs.
+
+Source file:
+
+- `.agentic/mcp.yaml` (`strategy` + `servers`)
+
+Generated targets:
+
+- `.mcp.json` uses `mcpServers` (Claude-compatible shape)
+- `opencode.json` uses `mcp` with translated transport keys
+- `.gemini/settings.json` uses `mcpServers` with Gemini-specific field mapping
+
+Precedence and compatibility:
+
+1. `.agentic/mcp.yaml` (authoritative)
+2. Legacy `.agentic/profile.yaml` `mcp:` key (deprecated fallback with warning)
+
 ## Vendor Commands
 
 ### Generate Vendor Files

@@ -226,7 +226,7 @@
     },
     "mcp": {
       "type": "object",
-      "description": "Optional MCP server declarations. Written to all present vendor MCP config files on compose/sync.",
+      "description": "Deprecated legacy MCP declaration location. Prefer .agentic/mcp.yaml.",
       "additionalProperties": false,
       "properties": {
         "strategy": {

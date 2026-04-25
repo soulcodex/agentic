@@ -36,6 +36,7 @@ my-project/
 └── .agentic/
     ├── config.yaml                  ← locked config
     ├── profile.yaml                 ← customize per-project
+    ├── mcp.yaml                     ← MCP declarations (seed source)
     ├── project-skills/              ← your custom skills
     ├── fragments/                   ← on-demand context
     ├── skills/                      ← deployed skills
@@ -78,6 +79,7 @@ Run `agentic sync` from within any project to regenerate from the local profile.
 ```bash
 agentic deploy <profile> [target] <vendors>   # full deploy pipeline
 agentic compose <profile> [target]            # assemble AGENTS.md only
+agentic init [target]                         # scaffold local .agentic skeleton
 agentic switch [target] <vendors>             # switch active AI tool
 agentic sync [target]                         # regenerate from local profile
 agentic list profiles|skills|vendors          # list available resources
@@ -106,6 +108,7 @@ Claude, GitHub Copilot, Gemini CLI, OpenAI Codex, Opencode — all from one `AGE
 ## Customise
 
 Edit `.agentic/profile.yaml` and run `agentic sync` to update your project.
+Edit `.agentic/mcp.yaml` to declare MCP servers once and seed vendor formats.
 Add project-specific skills in `.agentic/project-skills/`.
 
 → [Customization guide](https://agentic.soulcodex.link/customization) · [Custom rules](https://agentic.soulcodex.link/custom-rules)
