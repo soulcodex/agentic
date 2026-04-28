@@ -16,6 +16,7 @@ nav:
   - Reference:
       - Commands: commands.md
       - Profiles: profiles.md
+      - Skills: skills.md
       - Vendors: vendors.md
       - Customization: customization.md
       - Custom Rules: custom-rules.md
