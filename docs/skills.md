@@ -42,6 +42,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 
 ## devops
 
+- `docker-compose-local-setup` — Configure local multi-service `docker compose` stacks with readiness, envs, volumes, migrations, and verification.
 - `write-dockerfile` — Generate production-ready Dockerfiles with secure, efficient build patterns.
 
 ## documentation

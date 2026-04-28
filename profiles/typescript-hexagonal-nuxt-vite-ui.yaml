@@ -84,6 +84,8 @@ tech_stack:
       description: "Core domain primitives shared across all services"
 
 skills:
+  - docker-compose-local-setup
+  - write-dockerfile
   - code-review
   - add-tests
   - write-adr

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-28T20:10:25Z",
+  "generated_at": "2026-04-28T21:50:07Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -336,11 +336,24 @@
       ]
     },
     {
+      "name": "docker-compose-local-setup",
+      "group": "devops",
+      "path": "skills/devops/docker-compose-local-setup/SKILL.md",
+      "description": "Creates or updates local multi-service orchestration using docker compose. Covers compose.yaml design, service health ch",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "docker",
+        "compose",
+        "local-development"
+      ]
+    },
+    {
       "name": "write-dockerfile",
       "group": "devops",
       "path": "skills/devops/write-dockerfile/SKILL.md",
-      "description": "Creates an optimized, production-ready Dockerfile for the current project. Detects the language and framework, applies b",
-      "version": "1.0.0",
+      "description": "Creates or updates an optimized, production-ready Dockerfile and .dockerignore. Focuses on image build strategy, runtime",
+      "version": "1.1.0",
       "tags": [
         "devops",
         "docker",

@@ -72,6 +72,8 @@ tech_stack:
     - "VueRouter"
 
 skills:
+  - docker-compose-local-setup
+  - write-dockerfile
   - code-review
   - add-tests
   - write-adr

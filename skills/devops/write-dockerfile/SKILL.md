@@ -1,11 +1,10 @@
 ---
 name: write-dockerfile
 description: >
-  Creates an optimized, production-ready Dockerfile for the current project.
-  Detects the language and framework, applies best practices (multi-stage builds,
-  non-root user, minimal base image, layer caching optimization).
-  Invoked when the user asks to write or create a Dockerfile, containerize an app, or add Docker support.
-version: 1.0.0
+  Creates or updates an optimized, production-ready Dockerfile and .dockerignore.
+  Focuses on image build strategy, runtime hardening, caching, and minimal production images.
+  Invoked when the user asks to write a Dockerfile, improve container image quality, or harden image builds.
+version: 1.1.0
 tags:
   - devops
   - docker
@@ -22,6 +21,9 @@ vendor_support:
 ## Write Dockerfile Skill
 
 Create a production-ready Dockerfile for the current project.
+Scope boundary: Dockerfile and image concerns only. For local multi-service orchestration
+(`compose.yaml`, service dependencies/readiness, env files, volumes, migrations/seeds),
+use `docker-compose-local-setup`.
 
 ### Step 1 — Detect Language and Framework
 
@@ -31,7 +33,7 @@ Identify:
 - Build process (compile, bundle, install dependencies)
 - Entry point / start command
 
-### Step 2 — Apply Dockerfile Best Practices
+### Step 2 — Apply Dockerfile Build and Runtime Best Practices
 
 **Multi-stage build**: separate build stage from runtime stage to keep the final image small.
 
@@ -42,7 +44,7 @@ dependency install layer and only invalidates it when dependencies change.
 
 **Minimal base image**: use official slim/alpine variants for the runtime stage.
 
-**Health check**: include a HEALTHCHECK instruction.
+**Health check**: include a `HEALTHCHECK` instruction when the runtime supports it.
 
 **No secrets in the image**: all secrets come from environment variables at runtime.
 
@@ -74,7 +76,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 CMD ["{start-command}"]
 ```
 
-### Step 4 — Write .dockerignore
+### Step 4 — Write `.dockerignore`
 
 Also create or update `.dockerignore` to exclude:
 - `.git/`
@@ -85,4 +87,10 @@ Also create or update `.dockerignore` to exclude:
 
 ### Step 5 — Verify
 
-State the final image size estimate and any security considerations specific to this project.
+Verify:
+- image builds successfully with `docker build`
+- runtime starts with expected command/entrypoint
+- image runs as non-root where applicable
+- no secrets are baked into the image layers
+
+State final image size considerations and production hardening notes specific to this project.

@@ -33,6 +33,8 @@ fragments:
   domains: []
 
 skills:
+  - docker-compose-local-setup
+  - write-dockerfile
   - relational-database-design
 
 output:
