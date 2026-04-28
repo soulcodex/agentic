@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-28T21:50:07Z",
+  "generated_at": "2026-04-28T22:41:42Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -296,6 +296,20 @@
         "monorepo",
         "workspace",
         "build"
+      ]
+    },
+    {
+      "name": "new-gh-issue-orchestration",
+      "group": "development",
+      "path": "skills/development/new-gh-issue-orchestration/SKILL.md",
+      "description": "Orchestrates a GitHub-issue-driven delivery workflow from issue intake to PR creation using reviewer-first then worker e",
+      "version": "1.0.0",
+      "tags": [
+        "workflow",
+        "github",
+        "issue",
+        "orchestration",
+        "automation"
       ]
     },
     {

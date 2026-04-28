@@ -36,6 +36,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `git-worktree-workspaces` — Use Git worktrees to run parallel branch workspaces safely.
 - `github-actions-workflow` — Create or improve GitHub Actions CI/CD workflows.
 - `monorepo-management` — Set up and govern monorepo layout, tooling, and CI strategy.
+- `new-gh-issue-orchestration` — Run an issue-driven workflow from intake to PR with reviewer-first delegation.
 - `pull-request-automation` — Improve PR process with templates, labels, checks, and branch policies.
 - `refactor` — Refactor code for clarity and structure without changing behavior.
 - `static-code-analysis` — Configure and integrate static analysis tooling into local and CI workflows.
