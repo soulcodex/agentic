@@ -6,13 +6,19 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 
 | Profile | What it's for | Language(s) |
 |---|---|---|
+| `typescript-react-spa` | Standalone React SPA with Vite, React Router. No SSR. | TypeScript |
+| `typescript-next-app` | Standalone Next.js app with SSR, App Router | TypeScript |
 | `typescript-vue-spa` | Standalone Vue 3 SPA with Vite, Pinia, Vue Router. No SSR. | TypeScript |
 | `typescript-nuxt-app` | Standalone Nuxt 3 app with SSR, file-based routing, Nitro | TypeScript |
 | `typescript-hexagonal-microservice` | TypeScript backend service with Hono, hexagonal architecture, DDD | TypeScript |
 | `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript |
+| `typescript-hexagonal-next-ui` | Hono backend + Next.js frontend (SSR) | TypeScript |
+| `typescript-hexagonal-react-vite-ui` | Hono backend + React SPA frontend (no SSR) | TypeScript |
 | `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend (SSR) | TypeScript |
 | `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend (no SSR) | TypeScript |
 | `go-hexagonal-microservice` | Go backend microservice, hexagonal + DDD | Go |
+| `golang-hexagonal-next-ui` | Go backend + Next.js frontend (SSR) | Go + TypeScript |
+| `golang-hexagonal-react-vite-ui` | Go backend + React SPA frontend (no SSR) | Go + TypeScript |
 | `golang-hexagonal-nuxt-vite-ui` | Go backend + Nuxt 3 / Vue 3 frontend (SSR) | Go + TypeScript |
 | `golang-hexagonal-vue-vite-ui` | Go backend + Vue 3 SPA frontend (no SSR) | Go + TypeScript |
 | `golang-hexagonal-cobra-cli` | Go CLI tool with Cobra + Viper, hexagonal + DDD | Go |
@@ -24,7 +30,7 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 
 ## Nested Output Mode
 
-Full-stack profiles (`*-nuxt-vite-ui`, `*-vue-vite-ui`) use `output.structure: nested`. Instead of a single `AGENTS.md`, they produce:
+Full-stack profiles (`*-next-ui`, `*-nuxt-vite-ui`, `*-react-vite-ui`, `*-vue-vite-ui`) use `output.structure: nested`. Instead of a single `AGENTS.md`, they produce:
 
 ```
 my-project/
@@ -52,7 +58,7 @@ tiers:
       lint_command:  "golangci-lint run"
   ui:
     languages: [typescript]
-    frameworks: [vue, nuxt]
+    frameworks: [react, next]
     architecture: []
     commands:
       build_command: "pnpm build"

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-20T21:19:08Z",
+  "generated_at": "2026-04-28T19:43:10Z",
   "fragments": [
     {
       "name": "bff",
@@ -94,6 +94,20 @@
       "words": 363
     },
     {
+      "name": "next-patterns",
+      "group": "frameworks",
+      "path": "agents/frameworks/next-patterns.md",
+      "heading": "Next.js App Router Patterns",
+      "words": 398
+    },
+    {
+      "name": "next",
+      "group": "frameworks",
+      "path": "agents/frameworks/next.md",
+      "heading": "Next.js App Router",
+      "words": 386
+    },
+    {
       "name": "nuxt-patterns",
       "group": "frameworks",
       "path": "agents/frameworks/nuxt-patterns.md",
@@ -106,6 +120,34 @@
       "path": "agents/frameworks/nuxt.md",
       "heading": "Nuxt 3",
       "words": 475
+    },
+    {
+      "name": "react-component-design",
+      "group": "frameworks",
+      "path": "agents/frameworks/react-component-design.md",
+      "heading": "React 19 Component Design",
+      "words": 378
+    },
+    {
+      "name": "react-styling",
+      "group": "frameworks",
+      "path": "agents/frameworks/react-styling.md",
+      "heading": "React 19 Styling Discipline",
+      "words": 301
+    },
+    {
+      "name": "react-testing",
+      "group": "frameworks",
+      "path": "agents/frameworks/react-testing.md",
+      "heading": "React 19 Testing Strategy",
+      "words": 314
+    },
+    {
+      "name": "react",
+      "group": "frameworks",
+      "path": "agents/frameworks/react.md",
+      "heading": "React 19 + TypeScript",
+      "words": 366
     },
     {
       "name": "typer",

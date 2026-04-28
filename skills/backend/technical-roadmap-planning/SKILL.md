@@ -111,7 +111,7 @@ Produce the roadmap in this format:
 | 1 | DB connection pooling | High | S | Platform | Week 1 | Planned |
 | 2 | Event-driven orders | High | L | Backend | Week 6 | Planned |
 | 3 | Remove legacy auth | Medium | M | Backend | Week 4 | Planned |
-| 4 | Upgrade Go 1.23 | Low | S | Platform | Week 2 | Planned |
+| 4 | Upgrade Go 1.26 | Low | S | Platform | Week 2 | Planned |
 
 ### Dependencies
 - Item 3 (Remove legacy auth) is blocked by item X (New auth rollout, owned by product).

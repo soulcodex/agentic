@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
-  name: "Go Hexagonal + Vue/Vite SPA"
+  name: "TypeScript Hexagonal + React/Vite SPA"
   description: >
-    Full-stack application with a Go hexagonal backend and a Vue 3 SPA
-    frontend. Go handles all business logic and HTTP APIs; Vue delivers a
+    Full-stack TypeScript application with a Hono hexagonal backend and a React
+    SPA frontend. Hono handles all business logic and HTTP APIs; React delivers a
     client-side single-page application with Vite for fast builds and Vitest
     for unit tests. No SSR.
   version: "1.0.0"
@@ -27,49 +27,47 @@ fragments:
     - api-design
     - observability
     - ci-cd
-    - go-standard-layout
 
   domains: []
 
 tiers:
   backend:
     languages:
-      - go
+      - typescript
     frameworks: []
     architecture:
       - hexagonal
       - ddd
       - microservices
     commands:
-      build_command: "go build ./..."
-      test_command:  "go test ./... -race -cover"
-      lint_command:  "golangci-lint run"
+      build_command: "pnpm --filter backend build"
+      test_command:  "pnpm --filter backend test"
+      lint_command:  "pnpm --filter backend lint"
   ui:
     languages:
       - typescript
     frameworks:
-      - vue
-      - vue-component-design
-      - vue-testing
-      - vue-styling
+      - react
+      - react-component-design
+      - react-testing
+      - react-styling
     architecture: []
     commands:
-      build_command: "pnpm build"
-      test_command:  "pnpm test"
-      lint_command:  "pnpm lint"
+      build_command: "pnpm --filter ui build"
+      test_command:  "pnpm --filter ui test"
+      lint_command:  "pnpm --filter ui lint"
 
 tech_stack:
-  language_runtime: "Go 1.26+ (backend) / Node 22+ (frontend)"
-  package_manager: "Go modules (backend) / pnpm (frontend)"
-  backend_framework: "gorilla/mux"
-  frontend_framework: "Vue 3 (SPA)"
-  ui_component_library: "shadcn/vue"
+  language_runtime: "Node 22+"
+  package_manager: "pnpm"
+  backend_framework: "Hono"
+  frontend_framework: "React (SPA)"
+  ui_component_library: "shadcn/ui"
   css_framework: "Tailwind CSS v4"
   build_tool: "Vite 6"
-  test_framework: "Vitest (frontend) / testify (backend)"
+  test_framework: "Vitest"
   additional:
-    - "pinia"
-    - "VueRouter"
+    - "React Router"
 
 skills:
   - code-review
@@ -77,25 +75,25 @@ skills:
   - write-adr
   - write-readme
   - relational-database-design
-  - vue-application-structure
-  - vue-component-design
-  - vue-component-testing
+  - react-application-structure
+  - react-component-design
+  - react-component-testing
   - internationalization-i18n
-  - sql-query-optimization
-  - health-check-endpoints
+  - wireframe-prototyping
   - static-code-analysis
+  - pull-request-automation
   - github-actions-workflow
   - monorepo-management
 
 output:
-  build_command: "go build ./... && pnpm build"
-  test_command: "go test ./... -race -cover && pnpm test"
-  lint_command: "golangci-lint run && pnpm lint"
+  build_command: "pnpm build"
+  test_command: "pnpm test"
+  lint_command: "pnpm lint"
   structure: nested
   project_header: |
-    Full-stack project: Go hexagonal backend + Vue 3 SPA frontend (no SSR).
-    Backend domain package must have zero external dependencies.
-    Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    Full-stack TypeScript project: Hono hexagonal backend + React SPA frontend (no SSR).
+    Backend domain layer must have zero framework dependencies.
+    Frontend uses strict TypeScript with functional components and hooks.
     All dependencies are injected via interfaces defined in the domain or application layer.
 
 vendors:

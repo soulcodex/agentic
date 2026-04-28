@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
-  name: "Go Hexagonal + Nuxt/Vite UI"
+  name: "Go Hexagonal + Next UI"
   description: >
-    Full-stack application with a Go hexagonal backend and a Nuxt 3 / Vue 3
-    frontend. Go handles all business logic and HTTP APIs; Nuxt delivers
-    SSR-capable pages with Vite for fast builds and Vitest for unit tests.
+    Full-stack application with a Go hexagonal backend and a Next.js
+    frontend. Go handles all business logic and HTTP APIs; Next.js delivers
+    SSR-capable pages with modern build performance and Vitest for unit tests.
   version: "1.0.0"
 
 fragments:
@@ -47,8 +47,8 @@ tiers:
     languages:
       - typescript
     frameworks:
-      - vue
-      - nuxt
+      - react
+      - next
     architecture: []
     commands:
       build_command: "pnpm build"
@@ -59,15 +59,14 @@ tech_stack:
   language_runtime: "Go 1.26+ (backend) / Node 22+ (frontend)"
   package_manager: "Go modules (backend) / pnpm (frontend)"
   backend_framework: "gorilla/mux"
-  frontend_framework: "Nuxt 3"
-  ui_component_library: "shadcn/vue"
+  frontend_framework: "Next.js"
+  ui_component_library: "shadcn/ui"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Vite 6"
+  build_tool: "Turbopack (Next.js)"
   test_framework: "Vitest (frontend) / testify (backend)"
   additional:
-    - "Vue 3"
-    - "pinia"
-    - "VueRouter"
+    - "React"
+    - "App Router"
 
 skills:
   - code-review
@@ -75,7 +74,7 @@ skills:
   - write-adr
   - write-readme
   - relational-database-design
-  - vue-application-structure
+  - react-application-structure
   - internationalization-i18n
   - sql-query-optimization
   - health-check-endpoints
@@ -89,9 +88,9 @@ output:
   lint_command: "golangci-lint run && pnpm lint"
   structure: nested
   project_header: |
-    Full-stack project: Go hexagonal backend + Nuxt 3 frontend.
+    Full-stack project: Go hexagonal backend + Next.js frontend.
     Backend domain package must have zero external dependencies.
-    Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    Frontend uses strict TypeScript with functional components and hooks.
     All dependencies are injected via interfaces defined in the domain or application layer.
 
 vendors:

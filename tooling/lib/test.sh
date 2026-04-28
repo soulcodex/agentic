@@ -384,7 +384,7 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 assert_file_contains "$TMP/t16/AGENTS.md" "## Technical Stack" "T16"
-assert_file_contains "$TMP/t16/AGENTS.md" "Go 1.23+" "T16"
+assert_file_contains "$TMP/t16/AGENTS.md" "Go 1.26+" "T16"
 assert_file_contains "$TMP/t16/AGENTS.md" "Cobra + Viper" "T16"
 
 # T17 — compose: profile with skills produces slim ## Skills listing
@@ -2302,6 +2302,102 @@ assert_exit_code 0 "$T103_EXIT" "T103"
 assert_stdout_contains "$T103_OUTPUT" "Deprecated MCP declaration in profile detected" "T103 warning"
 assert_file_exists "$TMP/t103/.mcp.json" "T103 mcp json"
 assert_file_contains "$TMP/t103/.mcp.json" "legacy-only" "T103 legacy server seeded"
+
+# T104 — compose: standalone typescript-react-spa profile
+run_test "T104 — compose: standalone typescript-react-spa profile"
+T104_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-react-spa \
+  --target "$TMP/t104" \
+  > /dev/null 2>&1 || T104_EXIT=$?
+
+assert_exit_code 0 "$T104_EXIT" "T104"
+assert_file_exists "$TMP/t104/AGENTS.md" "T104"
+assert_file_contains "$TMP/t104/AGENTS.md" ".agentic/fragments/react.md" "T104"
+assert_file_not_contains "$TMP/t104/AGENTS.md" ".agentic/fragments/next.md" "T104"
+
+# T105 — compose: standalone typescript-next-app profile
+run_test "T105 — compose: standalone typescript-next-app profile"
+T105_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-next-app \
+  --target "$TMP/t105" \
+  > /dev/null 2>&1 || T105_EXIT=$?
+
+assert_exit_code 0 "$T105_EXIT" "T105"
+assert_file_exists "$TMP/t105/AGENTS.md" "T105"
+assert_file_contains "$TMP/t105/AGENTS.md" ".agentic/fragments/next.md" "T105"
+assert_file_not_contains "$TMP/t105/AGENTS.md" ".agentic/fragments/react.md" "T105"
+
+# T106 — compose: nested typescript-hexagonal-react-vite-ui backend/ui split
+run_test "T106 — compose: nested typescript-hexagonal-react-vite-ui backend/ui split"
+T106_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-react-vite-ui \
+  --target "$TMP/t106" \
+  > /dev/null 2>&1 || T106_EXIT=$?
+
+assert_exit_code 0 "$T106_EXIT" "T106"
+assert_file_exists "$TMP/t106/backend/AGENTS.md" "T106"
+assert_file_exists "$TMP/t106/ui/AGENTS.md" "T106"
+assert_file_contains "$TMP/t106/backend/AGENTS.md" ".agentic/fragments/hexagonal.md" "T106"
+assert_file_not_contains "$TMP/t106/backend/AGENTS.md" ".agentic/fragments/react.md" "T106"
+assert_file_contains "$TMP/t106/ui/AGENTS.md" ".agentic/fragments/react.md" "T106"
+assert_file_not_contains "$TMP/t106/ui/AGENTS.md" ".agentic/fragments/hexagonal.md" "T106"
+
+# T107 — compose: nested golang-hexagonal-react-vite-ui backend/ui split
+run_test "T107 — compose: nested golang-hexagonal-react-vite-ui backend/ui split"
+T107_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-react-vite-ui \
+  --target "$TMP/t107" \
+  > /dev/null 2>&1 || T107_EXIT=$?
+
+assert_exit_code 0 "$T107_EXIT" "T107"
+assert_file_exists "$TMP/t107/backend/AGENTS.md" "T107"
+assert_file_exists "$TMP/t107/ui/AGENTS.md" "T107"
+assert_file_contains "$TMP/t107/backend/AGENTS.md" ".agentic/fragments/hexagonal.md" "T107"
+assert_file_not_contains "$TMP/t107/backend/AGENTS.md" ".agentic/fragments/react.md" "T107"
+assert_file_contains "$TMP/t107/ui/AGENTS.md" ".agentic/fragments/react.md" "T107"
+assert_file_not_contains "$TMP/t107/ui/AGENTS.md" ".agentic/fragments/hexagonal.md" "T107"
+
+# T108 — compose: nested typescript-hexagonal-next-ui backend/ui split
+run_test "T108 — compose: nested typescript-hexagonal-next-ui backend/ui split"
+T108_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-next-ui \
+  --target "$TMP/t108" \
+  > /dev/null 2>&1 || T108_EXIT=$?
+
+assert_exit_code 0 "$T108_EXIT" "T108"
+assert_file_exists "$TMP/t108/backend/AGENTS.md" "T108"
+assert_file_exists "$TMP/t108/ui/AGENTS.md" "T108"
+assert_file_contains "$TMP/t108/backend/AGENTS.md" ".agentic/fragments/hexagonal.md" "T108"
+assert_file_not_contains "$TMP/t108/backend/AGENTS.md" ".agentic/fragments/next.md" "T108"
+assert_file_contains "$TMP/t108/ui/AGENTS.md" ".agentic/fragments/next.md" "T108"
+assert_file_not_contains "$TMP/t108/ui/AGENTS.md" ".agentic/fragments/hexagonal.md" "T108"
+
+# T109 — compose: nested golang-hexagonal-next-ui backend/ui split
+run_test "T109 — compose: nested golang-hexagonal-next-ui backend/ui split"
+T109_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-next-ui \
+  --target "$TMP/t109" \
+  > /dev/null 2>&1 || T109_EXIT=$?
+
+assert_exit_code 0 "$T109_EXIT" "T109"
+assert_file_exists "$TMP/t109/backend/AGENTS.md" "T109"
+assert_file_exists "$TMP/t109/ui/AGENTS.md" "T109"
+assert_file_contains "$TMP/t109/backend/AGENTS.md" ".agentic/fragments/hexagonal.md" "T109"
+assert_file_not_contains "$TMP/t109/backend/AGENTS.md" ".agentic/fragments/next.md" "T109"
+assert_file_contains "$TMP/t109/ui/AGENTS.md" ".agentic/fragments/next.md" "T109"
+assert_file_not_contains "$TMP/t109/ui/AGENTS.md" ".agentic/fragments/hexagonal.md" "T109"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

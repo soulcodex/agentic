@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "TypeScript Hexagonal + Next UI"
+  description: >
+    Full-stack TypeScript application with a Hono hexagonal backend and a
+    Next.js frontend. Hono handles all business logic and HTTP APIs;
+    Next.js delivers SSR-capable pages with modern build performance and Vitest
+    for unit tests. Monorepo or split-repo — same language end to end.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+
+  languages: []       # ignored in nested mode — declared in tiers below
+
+  frameworks: []      # ignored in nested mode — declared in tiers below
+
+  architecture: []    # ignored in nested mode — each tier defines its own
+
+  practices:
+    - tdd
+    - api-design
+    - observability
+    - ci-cd
+
+  domains: []
+
+tiers:
+  backend:
+    languages:
+      - typescript
+    frameworks: []
+    architecture:
+      - hexagonal
+      - ddd
+      - microservices
+    commands:
+      build_command: "pnpm --filter backend build"
+      test_command:  "pnpm --filter backend test"
+      lint_command:  "pnpm --filter backend lint"
+    proprietary_libraries:
+      - name: "@acme/domain-kit"
+        description: "Backend domain kit"
+        url_doc: "https://docs.acme.internal/domain-kit"
+  ui:
+    languages:
+      - typescript
+    frameworks:
+      - react
+      - next
+      - react-component-design
+      - react-testing
+      - react-styling
+      - next-patterns
+    architecture: []
+    commands:
+      build_command: "pnpm --filter ui build"
+      test_command:  "pnpm --filter ui test"
+      lint_command:  "pnpm --filter ui lint"
+    proprietary_libraries:
+      - name: "@acme/ui-tokens"
+        description: "Design system tokens"
+
+tech_stack:
+  language_runtime: "Node 22+"
+  package_manager: "pnpm"
+  backend_framework: "Hono"
+  frontend_framework: "Next.js"
+  ui_component_library: "shadcn/ui"
+  css_framework: "Tailwind CSS v4"
+  build_tool: "Turbopack (Next.js)"
+  test_framework: "Vitest"
+  additional:
+    - "React"
+    - "App Router"
+  proprietary_libraries:
+    - name: "@acme/core"
+      description: "Core domain primitives shared across all services"
+
+skills:
+  - code-review
+  - add-tests
+  - write-adr
+  - write-readme
+  - relational-database-design
+  - react-application-structure
+  - react-component-design
+  - react-component-testing
+  - internationalization-i18n
+  - wireframe-prototyping
+  - static-code-analysis
+  - pull-request-automation
+  - github-actions-workflow
+  - monorepo-management
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test"
+  lint_command: "pnpm lint"
+  structure: nested
+  project_header: |
+    Full-stack TypeScript project: Hono hexagonal backend + Next.js frontend.
+    Backend domain layer must have zero framework dependencies.
+    Frontend uses strict TypeScript with functional components and hooks.
+    All dependencies are injected via interfaces defined in the domain or application layer.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode
