@@ -76,6 +76,7 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 - [**Quickstart**](getting-started/quickstart.md) — deploy examples, sync, vendor switching
 - [**Commands**](commands.md) — full CLI reference
 - [**Profiles**](profiles.md) — all available profiles and their fragments
+- [**Skills**](skills.md) — shared skill catalog plus persistent and ad hoc (selective) skill usage paths
 - [**Vendors**](vendors.md) — supported AI tools and their output files
 - [**Customization**](customization.md) — per-project overrides, project skills, proprietary libraries, link mode vs copy mode
 - [**Custom Rules**](custom-rules.md) — `AGENTS.local.md` injection

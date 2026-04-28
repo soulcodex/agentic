@@ -48,6 +48,9 @@ project repositories via the tooling provided here.
 - When adding a new `just` recipe or CLI command, add it to `docs/commands.md`.
 - When adding or updating a skill that references tooling paths or output filenames,
   verify those paths are still accurate before committing.
+- When skills are added, renamed, regrouped, removed, or their user-visible metadata
+  (for example `name`/`description` in skill frontmatter) changes under `skills/`,
+  update `docs/skills.md` in the same change.
 
 ### Profiles
 
