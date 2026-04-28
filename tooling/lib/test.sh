@@ -2407,6 +2407,102 @@ assert_file_not_contains "$TMP/t109/backend/AGENTS.md" ".agentic/fragments/next.
 assert_file_contains "$TMP/t109/ui/AGENTS.md" ".agentic/fragments/next.md" "T109"
 assert_file_not_contains "$TMP/t109/ui/AGENTS.md" ".agentic/fragments/hexagonal.md" "T109"
 
+# T110 — deploy-skills: all-skills deployment includes docker-compose-local-setup
+run_test "T110 — deploy-skills: all-skills includes docker-compose-local-setup"
+mkdir -p "$TMP/t110"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t110" \
+  --skills all \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t110/.agentic/skills/docker-compose-local-setup/SKILL.md" "T110"
+
+# T111 — index: skills index includes docker-compose-local-setup
+run_test "T111 — index: includes docker-compose-local-setup"
+bash "$INDEX" \
+  --library "$LIBRARY" \
+  > /dev/null 2>&1
+
+assert_file_contains "$LIBRARY/index/skills.json" "\"name\": \"docker-compose-local-setup\"" "T111"
+
+# T112 — compose: lean profile includes both docker skills
+run_test "T112 — compose: lean go-hexagonal-microservice includes docker skills"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile go-hexagonal-microservice \
+  --target "$TMP/t112" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t112/AGENTS.md" "docker-compose-local-setup" "T112"
+assert_file_contains "$TMP/t112/AGENTS.md" "write-dockerfile" "T112"
+
+# T113 — compose: full mode includes docker-compose-local-setup content
+run_test "T113 — compose: full mode inlines docker-compose-local-setup content"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile go-hexagonal-microservice \
+  --target "$TMP/t113" \
+  --full \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t113/AGENTS.md" "## Docker Compose Local Setup Skill" "T113"
+
+# T114 — deploy-skills: README includes docker-compose-local-setup
+run_test "T114 — deploy-skills: README includes docker-compose-local-setup"
+mkdir -p "$TMP/t114"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t114" \
+  --skills all \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t114/.agentic/skills/README.md" "T114"
+assert_file_contains "$TMP/t114/.agentic/skills/README.md" "docker-compose-local-setup" "T114"
+
+# T115 — compose: typescript-bff skills block regression
+run_test "T115 — compose: typescript-bff renders docker skills block"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-bff \
+  --target "$TMP/t115" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t115/AGENTS.md" "## Skills" "T115"
+assert_file_contains "$TMP/t115/AGENTS.md" "docker-compose-local-setup" "T115"
+assert_file_contains "$TMP/t115/AGENTS.md" "write-dockerfile" "T115"
+
+# T116 — profiles: targeted service profiles must reference both docker skills
+run_test "T116 — profiles: targeted service profiles include both docker skills"
+T116_EXIT=0
+for profile in \
+  go-hexagonal-microservice \
+  typescript-hexagonal-microservice \
+  python-fastapi-microservice \
+  php-hexagonal-ddd \
+  typescript-bff \
+  golang-hexagonal-vue-vite-ui \
+  golang-hexagonal-nuxt-vite-ui \
+  typescript-hexagonal-vue-vite-ui \
+  typescript-hexagonal-nuxt-vite-ui; do
+  profile_file="$LIBRARY/profiles/$profile.yaml"
+  skills_list="$(yq '.skills[]' "$profile_file" 2>/dev/null || true)"
+  if grep -qFx "docker-compose-local-setup" <<< "$skills_list"; then
+    :
+  else
+    T116_EXIT=1
+    break
+  fi
+  if grep -qFx "write-dockerfile" <<< "$skills_list"; then
+    :
+  else
+    T116_EXIT=1
+    break
+  fi
+done
+
+assert_exit_code 0 "$T116_EXIT" "T116"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"

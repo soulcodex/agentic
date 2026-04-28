@@ -30,6 +30,10 @@ fragments:
 
   domains: []
 
+skills:
+  - docker-compose-local-setup
+  - write-dockerfile
+
 output:
   build_command: "pnpm build"
   test_command: "pnpm test --run"
