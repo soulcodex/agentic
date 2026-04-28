@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-20T21:19:08Z",
+  "generated_at": "2026-04-28T19:43:09Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -394,6 +394,58 @@
         "i18n",
         "l10n",
         "frontend"
+      ]
+    },
+    {
+      "name": "next-application-structure",
+      "group": "ui",
+      "path": "skills/ui/next-application-structure/SKILL.md",
+      "description": "Establishes or reviews directory layout, server/client boundaries, routing, data-fetching strategy, and testing structur",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "nextjs",
+        "react",
+        "typescript"
+      ]
+    },
+    {
+      "name": "react-application-structure",
+      "group": "ui",
+      "path": "skills/ui/react-application-structure/SKILL.md",
+      "description": "Establishes or reviews the directory layout, feature boundaries, state design, routing approach, and data-fetching conve",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "react",
+        "typescript",
+        "architecture"
+      ]
+    },
+    {
+      "name": "react-component-design",
+      "group": "ui",
+      "path": "skills/ui/react-component-design/SKILL.md",
+      "description": "Designs or reviews React component APIs. Handles prop drilling decisions, composition patterns, controlled/uncontrolled ",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "react",
+        "typescript",
+        "composition"
+      ]
+    },
+    {
+      "name": "react-component-testing",
+      "group": "ui",
+      "path": "skills/ui/react-component-testing/SKILL.md",
+      "description": "Applies the three-tier test taxonomy for React applications: unit tests for hooks and pure logic, component tests for be",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "react",
+        "testing",
+        "vitest"
       ]
     },
     {

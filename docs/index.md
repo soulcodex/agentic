@@ -32,7 +32,7 @@ Installs the `agentic` CLI to `~/.local/bin`. The installer checks prerequisites
 
     Pick a profile and run `agentic deploy`. Claude, Copilot, Gemini, Codex and Opencode all configured instantly.
 
--   :material-shape:{ .lg .middle } **15 ready-made profiles**
+-   :material-shape:{ .lg .middle } **21 ready-made profiles**
 
     ---
 

@@ -34,7 +34,7 @@ fragments:
   domains: []
 
 tech_stack:
-  language_runtime: "Go 1.23+"
+  language_runtime: "Go 1.26+"
   package_manager: "Go modules"
   cli_framework: "Cobra + Viper"
   test_framework: "testify"

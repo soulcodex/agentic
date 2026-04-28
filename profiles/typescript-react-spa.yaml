@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "TypeScript React SPA"
+  description: >
+    Standalone React single-page application with Vite, React Router,
+    and Vitest. No server-side rendering. Covers component design, hooks
+    patterns, prop drilling prevention, Tailwind v4 styling discipline, and a
+    three-tier test strategy (unit / component / acceptance).
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+  languages:
+    - typescript
+  frameworks:
+    - react
+    - react-component-design
+    - react-testing
+    - react-styling
+  architecture: []
+  practices:
+    - tdd
+    - api-design
+    - ci-cd
+  domains: []
+
+tech_stack:
+  language_runtime: "Node 22+"
+  package_manager: "pnpm"
+  frontend_framework: "React (SPA)"
+  ui_component_library: "shadcn/ui"
+  css_framework: "Tailwind CSS v4"
+  build_tool: "Vite 6"
+  test_framework: "Vitest + @testing-library/react"
+  additional:
+    - "React Router"
+    - "Playwright (acceptance)"
+
+skills:
+  - code-review
+  - add-tests
+  - react-application-structure
+  - react-component-design
+  - react-component-testing
+  - wireframe-prototyping
+  - internationalization-i18n
+  - static-code-analysis
+  - write-readme
+  - github-actions-workflow
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test"
+  lint_command: "pnpm lint"
+  project_header: |
+    Standalone React SPA — no server-side rendering.
+    Components and hooks use TypeScript strictly, with functional components only.
+    Routing via React Router with explicit route ownership and boundaries.
+    Styling via Tailwind CSS v4 utility classes; shadcn/ui for UI primitives.
+    Three-tier testing: Vitest unit tests for hooks/utils, @testing-library/react
+    for component behaviour, Playwright for acceptance tests.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

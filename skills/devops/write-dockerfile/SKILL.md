@@ -27,7 +27,7 @@ Create a production-ready Dockerfile for the current project.
 
 Read: `package.json`, `go.mod`, `pyproject.toml`, `composer.json`, or other manifest files.
 Identify:
-- Runtime and version (Node 22, Go 1.23, Python 3.12, PHP 8.3)
+- Runtime and version (Node 22, Go 1.26, Python 3.12, PHP 8.3)
 - Build process (compile, bundle, install dependencies)
 - Entry point / start command
 
