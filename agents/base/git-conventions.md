@@ -46,8 +46,9 @@ test(orders): add edge case for zero-amount orders
 
 ### PR Workflow
 
-- Always branch from an updated `main` for new work.
+- Always branch from an updated `main` for new independent work.
 - Each logical change should result in a single PR ready for review.
+- Exception: when intentionally using stacked/chained PRs, branch child work from the parent feature branch and use `Refs #N` until the final PR.
 - Keep PRs small and focused — one PR = one logical change.
 - Avoid mixing unrelated changes to reduce review fatigue.
 - Prefer completing and merging smaller PRs over accumulating large diffs.
