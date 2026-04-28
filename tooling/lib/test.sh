@@ -340,6 +340,7 @@ bash "$DEPLOY_SKILLS" \
 
 assert_file_exists "$TMP/t12/.agentic/skills/code-review/SKILL.md" "T12"
 assert_file_exists "$TMP/t12/.agentic/skills/add-tests/SKILL.md" "T12"
+assert_file_exists "$TMP/t12/.agentic/skills/git-worktree-workspaces/SKILL.md" "T12"
 assert_file_exists "$TMP/t12/.agentic/skills/README.md" "T12"
 
 # T13 — deploy-skills: selective deployment to .agentic/skills/
@@ -374,6 +375,7 @@ assert_json_valid "$LIBRARY/index/skills.json" "T15"
 assert_json_valid "$LIBRARY/index/fragments.json" "T15"
 assert_json_min_count "$LIBRARY/index/skills.json" '.skills | length' 10 "T15 skills"
 assert_json_min_count "$LIBRARY/index/fragments.json" '.fragments | length' 19 "T15 fragments"
+assert_file_contains "$LIBRARY/index/skills.json" "\"name\": \"git-worktree-workspaces\"" "T15 skills"
 
 # T16 — compose: profile with tech_stack produces ## Technical Stack section
 run_test "T16 — compose: tech_stack profile produces ## Technical Stack"
@@ -729,7 +731,7 @@ mkdir -p "$TMP/t34"
 bash "$DEPLOY_SKILLS" \
   --library "$LIBRARY" \
   --target "$TMP/t34" \
-  --skills code-review \
+  --skills code-review,git-worktree-workspaces \
   > /dev/null 2>&1
 
 assert_file_exists "$TMP/t34/.agentic/skills/README.md" "T34"
@@ -737,6 +739,7 @@ assert_file_contains "$TMP/t34/.agentic/skills/README.md" "Vendor Compatibility"
 assert_file_contains "$TMP/t34/.agentic/skills/README.md" ".claude/skills" "T34"
 assert_file_contains "$TMP/t34/.agentic/skills/README.md" ".agents/skills" "T34"
 assert_file_contains "$TMP/t34/.agentic/skills/README.md" "code-review" "T34"
+assert_file_contains "$TMP/t34/.agentic/skills/README.md" "git-worktree-workspaces" "T34"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # LOCAL PROFILE SUPPORT TESTS
@@ -1582,6 +1585,11 @@ bash "$LINT" \
   > /dev/null 2>&1 || T73_EXIT=$?
 
 assert_exit_code 0 "$T73_EXIT" "T73"
+
+# T110 — CLI: list skills includes new worktree skill
+run_test "T110 — CLI: list skills includes git-worktree-workspaces"
+T110_OUTPUT=$(LIBRARY_ROOT="$LIBRARY" bash -c 'source "$1/tooling/lib/cli.sh"; cmd_list skills' -- "$LIBRARY" 2>&1)
+assert_stdout_contains "$T110_OUTPUT" "git-worktree-workspaces" "T110"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # INDEX STABILITY TESTS

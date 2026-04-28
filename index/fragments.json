@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-28T19:43:10Z",
+  "generated_at": "2026-04-28T20:18:29Z",
   "fragments": [
     {
       "name": "bff",
@@ -70,7 +70,7 @@
       "group": "base",
       "path": "agents/base/git-conventions.md",
       "heading": "Git Conventions",
-      "words": 244
+      "words": 268
     },
     {
       "name": "security",

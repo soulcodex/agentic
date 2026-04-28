@@ -3,10 +3,10 @@ name: git-flow-pr
 description: >
   Executes the full PR-driven development workflow: create an isolated feature
   branch from the current work, commit all staged changes, rebase cleanly onto
-  origin/main (skipping any ancestor commits already merged), push the branch,
-  and open a GitHub pull request linked to a related issue. Invoked when the
-  user says "open a PR", "create a pull request", "push and PR", or "branch,
-  rebase and PR".
+  the selected base branch (skipping any ancestor commits already merged), push
+  the branch, and open a GitHub pull request linked to a related issue.
+  Includes guidance for stacked/chained PRs. Invoked when the user says "open a
+  PR", "create a pull request", "push and PR", or "branch, rebase and PR".
 version: 1.0.0
 tags:
   - git
@@ -34,12 +34,13 @@ Before doing anything, understand what exists:
 git status --short          # Are there uncommitted changes?
 git log --oneline -10       # What commits exist on this branch?
 git branch --show-current   # Which branch are we on?
-git fetch origin main       # Get latest state of main
-git log --oneline origin/main..HEAD   # Commits unique to this branch
+BASE_BRANCH="<base-branch>" # e.g. main, develop, release/*
+git fetch origin "$BASE_BRANCH"
+git log --oneline "origin/$BASE_BRANCH"..HEAD   # Commits unique to this branch
 ```
 
 Identify:
-- The **base branch** (usually `main`)
+- The **base branch** (often `main`, but use the repo's actual target)
 - Any **uncommitted changes** that need to be staged
 - Whether the current branch's ancestor commits are **already merged into main**
   (this determines which `--onto` strategy to use in Step 4)
@@ -60,7 +61,8 @@ Closes #<issue-number>"
 Commit message rules:
 - Follow Conventional Commits: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`
 - Scope should reflect the area changed: `(gemini)`, `(tooling)`, `(docs)`, `(skills)`, etc.
-- Reference the issue with `Closes #N` or `Fixes #N` in the commit body
+- For final PRs that should auto-close the issue on merge, use `Closes #N` or `Fixes #N`
+- For stacked/chained PRs or partial work, use `Refs #N` to link without auto-closing
 - Keep the subject line ≤ 72 characters
 
 ### Step 3 — Create the Feature Branch
@@ -80,38 +82,38 @@ Branch naming convention:
 
 Use kebab-case. Keep it short but descriptive (3–5 words max).
 
-### Step 4 — Rebase onto origin/main
+### Step 4 — Rebase onto origin/<base-branch>
 
 **Critical:** determine the correct rebase strategy before running.
 
-#### Case A — No ancestor commits already in main (simple case)
+#### Case A — No ancestor commits already in the selected base branch (simple case)
 
-The branch was created fresh and diverged directly from main:
+The branch was created fresh and diverged directly from the selected base branch:
 
 ```bash
-git rebase origin/main
+git rebase "origin/$BASE_BRANCH"
 ```
 
-#### Case B — Ancestor commits are already merged into main (squash-merge or similar)
+#### Case B — Ancestor commits are already merged into the selected base branch (squash-merge or similar)
 
 This happens when:
 - The branch was created on top of another branch that was already merged
-- The repo uses squash-merge PRs, so commit SHAs on the branch differ from main
+- The repo uses squash-merge PRs, so commit SHAs on the branch differ from the selected base branch
 
-Identify the last commit **not** in main:
+Identify the last commit **not** in the selected base branch:
 
 ```bash
-# Find the oldest commit on this branch not present in main
-git log --oneline origin/main..HEAD
+# Find the oldest commit on this branch not present in the selected base branch
+git log --oneline "origin/$BASE_BRANCH"..HEAD
 # The last line shows the oldest unique commit — its *parent* is the rebase base
-ANCESTOR=$(git log --oneline origin/main..HEAD | tail -1 | awk '{print $1}')
+ANCESTOR=$(git log --oneline "origin/$BASE_BRANCH"..HEAD | tail -1 | awk '{print $1}')
 PARENT=$(git rev-parse "$ANCESTOR"^)
 ```
 
-Then rebase only the unique commits onto main:
+Then rebase only the unique commits onto the selected base branch:
 
 ```bash
-git rebase --onto origin/main "$PARENT" HEAD
+git rebase --onto "origin/$BASE_BRANCH" "$PARENT" HEAD
 ```
 
 This replays only the commits that are genuinely new, dropping the already-merged ones.
@@ -119,7 +121,7 @@ This replays only the commits that are genuinely new, dropping the already-merge
 #### After rebase — verify
 
 ```bash
-git log --oneline -5          # Should show: new commit(s) on top of origin/main HEAD
+git log --oneline -5          # Should show: new commit(s) on top of origin/<base-branch> HEAD
 git status                    # Should be clean
 ```
 
@@ -157,7 +159,7 @@ git push origin <branch-name> --force-with-lease
 ```bash
 gh pr create \
   --title "<type>(<scope>): <concise summary>" \
-  --base main \
+  --base "$BASE_BRANCH" \
   --head <branch-name> \
   --body "$(cat <<'EOF'
 ## Summary
@@ -172,7 +174,7 @@ gh pr create \
 |------|-------|
 | <area> | <files> |
 
-Closes #<issue-number>
+<issue-footer: Refs #<issue-number> | Closes #<issue-number>>
 EOF
 )"
 ```
@@ -185,7 +187,22 @@ PR title rules:
 Body rules:
 - 2–4 bullet summary (what + why, not just what)
 - Changes table for non-trivial diffs
-- `Closes #N` links the PR to the issue and auto-closes it on merge
+- Use `Refs #N` for stacked/chained PRs and intermediate slices
+- Use `Closes #N` only on the final PR that should auto-close the issue
+
+### Step 7.1 — Stacked/Chained PRs
+
+When a change is too large for one reviewable PR, split into a chain:
+
+1. Create `feat/<topic>-base` from the base branch and open PR A (`--base "$BASE_BRANCH"`).
+2. Create `feat/<topic>-part-2` from `feat/<topic>-base` and open PR B (`--base feat/<topic>-base`).
+3. Continue similarly for PR C, D, etc., each targeting the prior branch.
+
+Rules for stacked PRs:
+- Keep each PR independently reviewable and logically scoped.
+- PR body should include `Refs #N` (not `Closes #N`) until final branch in the chain.
+- After lower PRs merge, rebase higher branches onto the updated base branch and force-push with lease.
+- Update PR base with `gh pr edit --base <new-base>` when needed.
 
 ### Step 8 — Verify
 
@@ -197,7 +214,7 @@ gh pr view        # Confirm PR is open with correct title, base branch, and issu
 
 Check:
 - [ ] PR title follows Conventional Commits format
-- [ ] Base branch is `main` (not another feature branch)
-- [ ] Issue is linked via `Closes #N` in the body
+- [ ] Base branch is correct for the workflow (`$BASE_BRANCH` or parent branch for stacked PRs)
+- [ ] Issue linkage uses `Refs #N` for intermediate PRs and `Closes #N` only for final PRs
 - [ ] CI checks are triggered and passing (check `gh pr checks`)
-- [ ] Branch is up to date with `main` (no "behind by N commits" warning)
+- [ ] Branch is up to date with the selected base branch (no "behind by N commits" warning)

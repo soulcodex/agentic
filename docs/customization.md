@@ -110,6 +110,23 @@ agentic deploy <profile> [target] <vendors> --skills project:my-custom-workflow
 Project skills are copied to `.agentic/skills/` alongside library skills and
 symlinked to vendor-specific paths just like regular skills.
 
+### Example: Use a Library Skill for Parallel Branch Work
+
+Enable the shared `git-worktree-workspaces` skill in your local profile:
+
+```yaml
+# In .agentic/profile.yaml
+skills:
+  - git-worktree-workspaces
+  - git-flow-pr
+```
+
+Then regenerate:
+
+```bash
+agentic sync
+```
+
 ## Declare Proprietary Libraries
 
 List internal packages that agents need to be aware of. Agents are told to load
