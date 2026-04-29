@@ -2503,6 +2503,62 @@ done
 
 assert_exit_code 0 "$T116_EXIT" "T116"
 
+# T117 — index: skills index includes diagram-design
+run_test "T117 — index: includes diagram-design"
+bash "$INDEX" \
+  --library "$LIBRARY" \
+  > /dev/null 2>&1
+
+assert_file_contains "$LIBRARY/index/skills.json" "\"name\": \"diagram-design\"" "T117"
+
+# T118 — profile rollout: all targeted TypeScript UI profiles include diagram-design
+run_test "T118 — profile rollout: target profiles include diagram-design"
+T118_EXIT=0
+for profile in \
+  typescript-react-spa \
+  typescript-next-app \
+  typescript-vue-spa \
+  typescript-nuxt-app \
+  typescript-hexagonal-react-vite-ui \
+  typescript-hexagonal-next-ui \
+  typescript-hexagonal-vue-vite-ui \
+  typescript-hexagonal-nuxt-vite-ui; do
+  profile_file="$LIBRARY/profiles/$profile.yaml"
+  skills_list="$(yq '.skills[]' "$profile_file" 2>/dev/null || true)"
+  if grep -qFx "diagram-design" <<< "$skills_list"; then
+    :
+  else
+    T118_EXIT=1
+    break
+  fi
+done
+
+assert_exit_code 0 "$T118_EXIT" "T118"
+
+# T119 — compose: full mode includes diagram-design skill content
+run_test "T119 — compose: full mode inlines diagram-design content"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-react-spa \
+  --target "$TMP/t119" \
+  --full \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t119/AGENTS.md" "## Diagram Design Skill" "T119"
+
+# T120 — deploy-skills: README includes diagram-design
+run_test "T120 — deploy-skills: README includes diagram-design"
+mkdir -p "$TMP/t120"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t120" \
+  --skills all \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t120/.agentic/skills/diagram-design/SKILL.md" "T120"
+assert_file_exists "$TMP/t120/.agentic/skills/README.md" "T120"
+assert_file_contains "$TMP/t120/.agentic/skills/README.md" "diagram-design" "T120"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"

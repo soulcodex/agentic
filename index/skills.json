@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-28T22:41:42Z",
+  "generated_at": "2026-04-29T20:34:29Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -421,6 +421,19 @@
       "tags": [
         "documentation",
         "readme"
+      ]
+    },
+    {
+      "name": "diagram-design",
+      "group": "ui",
+      "path": "skills/ui/diagram-design/SKILL.md",
+      "description": "Designs implementation-grounded architecture, sequence, and flow diagrams from existing code and documentation. Ensures ",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "architecture",
+        "diagram",
+        "design"
       ]
     },
     {

@@ -93,6 +93,7 @@ skills:
   - react-component-testing
   - internationalization-i18n
   - wireframe-prototyping
+  - diagram-design
   - static-code-analysis
   - pull-request-automation
   - github-actions-workflow
