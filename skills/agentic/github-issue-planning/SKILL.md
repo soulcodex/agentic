@@ -98,15 +98,6 @@ gh api repos/{owner}/{repo}/issues/comments/$COMMENT_ID \
   or explicitly not desired by the user.
 - Report that the plan was saved locally and not persisted to the issue.
 
-### Agent Orchestration Rules
-
-- Wait for delegated agents to complete before advancing to dependent steps.
-  - Do not continue to commit/push/PR steps while required reviewer/worker tasks are still running.
-  - If an agent is still running, keep polling until completion or explicit timeout/escalation.
-- If work is parallelizable, spawn more than one agent.
-  - Use multiple agents only for independent subtasks with non-overlapping outputs.
-  - Avoid parallelizing tightly coupled or blocking subtasks where sequencing is required.
-
 ### Output Requirements
 
 Always report:
