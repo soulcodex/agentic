@@ -2,8 +2,6 @@
 
 A profile is a named YAML preset that selects which fragments, tech stack details, and skills to include. Pick one, run `agentic deploy`, done.
 
-TypeScript profiles enforce alias imports for cross-directory modules and ESM `import`/`export` syntax in TS/JS code.
-
 ## Available Profiles
 
 | Profile | What it's for | Language(s) |
