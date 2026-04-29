@@ -60,6 +60,7 @@ output:
   project_header: |
     Standalone React SPA — no server-side rendering.
     Components and hooks use TypeScript strictly, with functional components only.
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
     Routing via React Router with explicit route ownership and boundaries.
     Styling via Tailwind CSS v4 utility classes; shadcn/ui for UI primitives.
     Three-tier testing: Vitest unit tests for hooks/utils, @testing-library/react

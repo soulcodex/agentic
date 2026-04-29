@@ -15,7 +15,7 @@ Import the composable and call it directly — no component wrapper needed for p
 ```ts
 import { setActivePinia, createPinia } from 'pinia'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useCounter } from './useCounter'
+import { useCounter } from '<alias>/composables/useCounter'
 
 beforeEach(() => { setActivePinia(createPinia()) })
 
@@ -38,7 +38,7 @@ Use `setActivePinia(createPinia())` in `beforeEach` — always reset between tes
 ```ts
 import { setActivePinia, createPinia } from 'pinestest'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useCartStore } from './cart.store'
+import { useCartStore } from '<alias>/stores/cart.store'
 
 let store: ReturnType<typeof useCartStore>
 
@@ -68,10 +68,10 @@ Mount the real component (not shallow) unless the child is a heavy external libr
 import { render, screen, fireEvent } from '@testing-library/vue'
 import { createTestingPinia } from '@pinia/testing'
 import { describe, it, expect, vi } from 'vitest'
-import BaseButton from './BaseButton.vue'
+import BaseButton from '<alias>/components/BaseButton.vue'
 
 const mockTrack = vi.fn()
-vi.mock('./analytics', () => ({ track: mockTrack }))
+vi.mock('<alias>/lib/analytics', () => ({ track: mockTrack }))
 
 it('emits click and tracks analytics', async () => {
   render(BaseButton, {

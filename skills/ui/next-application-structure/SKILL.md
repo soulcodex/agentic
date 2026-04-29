@@ -61,6 +61,7 @@ src/
 - Keep data fetching and secrets in server modules/route handlers.
 - Pass serialized data to client components via props.
 - Avoid importing server-only modules into client components.
+- Use alias imports for cross-directory modules and ESM `import`/`export` syntax only.
 
 ### Step 3 — Data Fetching and Mutations
 

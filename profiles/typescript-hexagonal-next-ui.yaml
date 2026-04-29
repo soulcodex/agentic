@@ -107,6 +107,7 @@ output:
     Full-stack TypeScript project: Hono hexagonal backend + Next.js frontend.
     Backend domain layer must have zero framework dependencies.
     Frontend uses strict TypeScript with functional components and hooks.
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
     All dependencies are injected via interfaces defined in the domain or application layer.
 
 vendors:

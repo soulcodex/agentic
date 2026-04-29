@@ -61,15 +61,16 @@ it('login sets user', async () => {
 - Mount the real component (not shallow) unless the child is a heavy external library.
 - Assert: what the user sees (text, roles, visibility), which events are emitted, which store actions are called.
 - Do NOT assert: internal refs, CSS classes, snapshot blobs.
+- In TypeScript projects, keep TS/JS imports ESM-only and use aliases for cross-directory imports.
 
 ```ts
 import { render, screen, fireEvent } from '@testing-library/vue'
 import { createTestingPinia } from '@pinia/testing'
 import { describe, expect, it, vi } from 'vitest'
-import BaseButton from './BaseButton.vue'
+import BaseButton from '<alias>/components/BaseButton.vue'
 
 const mockTrack = vi.fn()
-vi.mock('./analytics', () => ({ trackEvent: mockTrack }))
+vi.mock('<alias>/lib/analytics', () => ({ trackEvent: mockTrack }))
 
 it('tracks click event on button press', async () => {
   render(BaseButton, {

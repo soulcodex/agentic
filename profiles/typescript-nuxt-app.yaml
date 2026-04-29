@@ -67,6 +67,7 @@ output:
   project_header: |
     Standalone Nuxt 3 application with SSR.
     All components use <script setup lang="ts"> exclusively — no Options API.
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
     State management via Pinia setup stores. File-based routing via Nuxt.
     Styling via Tailwind CSS v4; shadcn/vue for UI primitives.
     Server routes under server/api/ via Nitro. SSR safety rules apply everywhere.

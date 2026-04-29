@@ -31,7 +31,7 @@ const modelValue = defineModel<string>({ default: '' })
 
 ### Compound Components with `provide`/`inject`
 
-Export injection keys as typed Symbols from a dedicated `keys.ts` file. This prevents typos and gives TypeScript accurate type inference.
+Export injection keys as typed Symbols from a dedicated `keys.ts` file. This prevents typos and gives TypeScript accurate type inference. Same-folder relative imports like `./keys.ts` are acceptable; use aliases for cross-directory imports.
 
 ```ts
 // keys.ts

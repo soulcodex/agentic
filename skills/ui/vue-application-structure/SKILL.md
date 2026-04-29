@@ -56,6 +56,7 @@ src/
 - Use `<script setup lang="ts">` exclusively — no Options API, no `defineComponent`.
 - Declare `defineProps` and `defineEmits` with TypeScript interfaces, not runtime validators.
 - Keep template logic minimal — extract complex expressions into `computed` refs or composables.
+- Use alias imports for cross-directory modules and ESM `import`/`export` syntax only.
 
 ```vue
 <script setup lang="ts">

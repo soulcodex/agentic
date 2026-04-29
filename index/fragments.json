@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-28T20:18:29Z",
+  "generated_at": "2026-04-29T21:00:58Z",
   "fragments": [
     {
       "name": "bff",
@@ -161,7 +161,7 @@
       "group": "frameworks",
       "path": "agents/frameworks/vue-component-design.md",
       "heading": "Vue 3 Component Design",
-      "words": 591
+      "words": 603
     },
     {
       "name": "vue-styling",
@@ -210,7 +210,7 @@
       "group": "languages",
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
-      "words": 353
+      "words": 397
     },
     {
       "name": "api-design",

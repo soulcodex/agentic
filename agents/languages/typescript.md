@@ -42,11 +42,14 @@ Always enable strict mode in `tsconfig.json`:
 
 ### Module System
 
+- Use ES module syntax everywhere in TS/JS (`import` / `export` only).
+- Never introduce CommonJS syntax (`require`, `module.exports`, `exports.foo`) in TS/JS code.
 - Use ESModules (`"module": "ESNext"` or `"NodeNext"`). Avoid CommonJS for new code.
 - Avoid barrel files (`index.ts` re-exporting everything). They hurt tree-shaking and create
   circular dependency risks.
-- Use absolute imports configured via `paths` in tsconfig; avoid deeply nested relative imports
-  (`../../..`).
+- Use absolute alias imports configured via `paths` in tsconfig for cross-directory references.
+- Relative imports are only allowed for files in the same folder (`./foo`); avoid parent traversal
+  (`../`, `../../..`) and other cross-directory relative imports.
 
 ### Error Handling
 

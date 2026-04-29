@@ -94,6 +94,7 @@ output:
     Full-stack project: Go hexagonal backend + Nuxt 3 frontend.
     Backend domain package must have zero external dependencies.
     Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    Frontend TS convention: alias imports for cross-directory modules and ESM import/export syntax only.
     All dependencies are injected via interfaces defined in the domain or application layer.
 
 vendors:
