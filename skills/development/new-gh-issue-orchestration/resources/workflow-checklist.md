@@ -10,6 +10,6 @@
 6.2 If in-scope and required, send mitigation plan to worker
 6.3 Re-review after fixes
 6.4 Stop after 3 automatic iterations and request explicit developer direction
-7. Required validation (`just lint`, plus `just index` / `just test` as needed)
+7. Required repository validation (lint/static analysis, tests, and any type/schema/index checks relevant to changed files)
 8. Commit and push
 9. PR creation with non-empty body verification
