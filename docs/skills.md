@@ -7,6 +7,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `compose-agents-md` — Create project-specific `AGENTS.md` instructions from the agentic library.
 - `configure-mcp` — Set up and configure MCP servers for agent tool access.
 - `deploy-config` — Deploy composed config, vendor files, and skills to a target project.
+- `github-issue-planning` — Persist implementation plans on GitHub issues with MCP-first and `gh` fallback.
 - `persist-plan` — Save the current plan as a structured file under `.agentic/plans/`.
 - `write-plan` — Auto-persist generated plans and keep a local plans index updated.
 

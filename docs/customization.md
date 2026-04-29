@@ -57,6 +57,25 @@ servers:
 If `.agentic/mcp.yaml` is missing, legacy `mcp:` under `.agentic/profile.yaml`
 is still supported for backward compatibility, but deprecated.
 
+### Local vs Issue-Backed Planning
+
+Plan persistence supports two modes:
+
+- Local-file mode: `write-plan` / `persist-plan` store plans in `.agentic/plans/`.
+- Issue-backed mode: `github-issue-planning` stores and updates a managed comment on a GitHub issue.
+
+For issue-backed planning, use this decision order:
+
+1. GitHub MCP (preferred) when available/configured.
+2. `gh` CLI fallback when MCP is unavailable or misconfigured.
+3. Local-file fallback only when GitHub persistence is unavailable (or not desired).
+
+Prerequisites for issue-backed mode:
+
+- Issue URL or issue number with repository context.
+- MCP configured with GitHub access, or authenticated `gh` (`gh auth status`).
+- Permissions to read/write issue comments in the target repository.
+
 ## Project-Local Skills
 
 For skills specific to a single project that shouldn't live in the shared library,
