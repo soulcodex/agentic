@@ -27,7 +27,7 @@ if [[ ! -f "$CLI_LIB" ]]; then
   exit 1
 fi
 
-# shellcheck source=../tooling/lib/cli.sh
+# shellcheck source=tooling/lib/cli.sh
 source "$CLI_LIB"
 
 # Run the CLI
