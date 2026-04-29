@@ -84,14 +84,27 @@ Delegate to reviewer agent to:
 
 If reviewer finds blocking ambiguity, resolve it before coding.
 
-### Step 5 - Worker Execution
+### Step 5 - Worker Agent Execution
 
 Delegate to worker with reviewer-constrained checklist:
 - implement requested scope
 - run required validations
 - report changed files and tradeoffs
 
-### Step 6 - Validate and Finalize
+### Step 6 - Reviewer Agent Validation Gate
+
+After worker delivery, delegate to reviewer agent for a second-pass validation gate.
+
+Loop policy:
+- Maximum automatic iterations: 3.
+- If reviewer reports no blocking findings, proceed.
+- If reviewer reports blocking findings:
+  - acknowledge the developer with a concise findings summary
+  - if mitigation is possible, in-scope, and absolutely needed, pass a mitigation plan back to worker
+  - after worker fixes, run reviewer again
+- If still unresolved after 3 automatic iterations, stop and ask developer for clear next instructions.
+
+### Step 7 - Validation Gates
 
 Run required checks for the repository scope:
 - `just lint`
@@ -106,7 +119,7 @@ git commit -m "<conventional-commit-message>"
 git push -u origin <branch>
 ```
 
-### Step 7 - Open PR and Verify Body
+### Step 8 - Open PR and Verify Body
 
 Create PR with a real body (summary, changed files, validation, issue link):
 
