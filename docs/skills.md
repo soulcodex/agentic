@@ -64,6 +64,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `vue-component-design` — Design robust Vue component APIs with clear contracts.
 - `vue-component-testing` — Apply layered Vue testing strategy for logic, components, and flows.
 - `wireframe-prototyping` — Produce low-fidelity wireframes with interaction and acceptance notes.
+- `diagram-design` — Design implementation-grounded diagrams and flag ADR/RFC/code mismatches.
 
 ## Using a skill outside a profile
 
