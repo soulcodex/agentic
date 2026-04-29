@@ -44,6 +44,7 @@ output:
   lint_command: "pnpm lint"
   project_header: |
     This is a TypeScript microservice built with hexagonal architecture and DDD.
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
     The domain layer must remain free of framework dependencies.
     All external dependencies (HTTP, database, messaging) are adapters behind ports.
 

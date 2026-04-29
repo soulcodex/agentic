@@ -64,6 +64,7 @@ src/
 - Keep components thin; move reusable logic to custom hooks.
 - Name hooks with the `use` prefix and keep single responsibility.
 - Keep side effects in hooks/components where they are consumed; avoid hidden global effects.
+- Use alias imports for cross-directory modules and ESM `import`/`export` syntax only.
 
 ```tsx
 interface Props {

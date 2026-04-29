@@ -53,6 +53,7 @@ it('sets user on login success', () => {
 - Use `userEvent` for interactions, not low-level DOM event simulation unless necessary.
 - Wrap with providers used in production (router, query client, store) via a shared test render utility.
 - Assert user-visible output and callback side effects.
+- In TypeScript projects, keep TS/JS imports ESM-only and use aliases for cross-directory imports.
 
 ```tsx
 import { render, screen } from '@testing-library/react'

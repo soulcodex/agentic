@@ -97,6 +97,7 @@ output:
     Full-stack TypeScript project: Hono hexagonal backend + Vue 3 SPA frontend (no SSR).
     Backend domain layer must have zero framework dependencies.
     Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
     All dependencies are injected via interfaces defined in the domain or application layer.
 
 vendors:

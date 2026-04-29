@@ -25,7 +25,7 @@ vendor_support:
 
 | Language | Recommended tool | Config file |
 |----------|-----------------|-------------|
-| TypeScript / JavaScript | ESLint + typescript-eslint | `eslint.config.ts` |
+| TypeScript / JavaScript | ESLint + typescript-eslint (+ eslint-plugin-import if using `import/*` rules) | `eslint.config.ts` |
 | Go | golangci-lint | `.golangci.yml` |
 | Python | Ruff | `ruff.toml` or `pyproject.toml` |
 | PHP | PHPStan | `phpstan.neon` |
@@ -35,7 +35,8 @@ If a tool is already present, audit its configuration before making changes.
 
 ### Step 2 — Configure Rules
 
-Apply a strict baseline:
+Apply a strict baseline.
+If you use `import/*` rules, ensure `eslint-plugin-import` is installed and configured.
 
 **TypeScript (ESLint)**
 ```json
@@ -43,6 +44,7 @@ Apply a strict baseline:
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": "error",
+    "import/no-commonjs": "error",
     "no-console": "warn",
     "eqeqeq": ["error", "always"]
   }

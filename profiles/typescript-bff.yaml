@@ -40,6 +40,7 @@ output:
   lint_command: "pnpm lint"
   project_header: |
     This is a TypeScript BFF (Backend for Frontend).
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
     It aggregates data from downstream microservices and shapes it for a specific client.
     No business logic here — only aggregation, transformation, and caching.
     No database writes — state changes are delegated to downstream services.
