@@ -28,6 +28,10 @@ vendor_support:
 Capture a plan or architectural decision as a discoverable, structured file so that
 any agent or team member can find it later without re-deriving the context.
 
+When planning directly against a GitHub issue, use `github-issue-planning` for
+issue-comment persistence (MCP preferred, `gh` fallback). Use this skill for
+local `.agentic/plans/` persistence.
+
 ### Step 1 — Gather Plan Metadata
 
 Collect (or confirm) the following before writing:

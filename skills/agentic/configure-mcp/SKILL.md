@@ -22,6 +22,8 @@ vendor_support:
 ## Configure MCP Skill
 
 Guide the user through selecting and configuring an MCP server for their project.
+For GitHub issue planning workflows, MCP is the preferred persistence path; if MCP
+is unavailable or misconfigured, use `gh` CLI as the primary fallback.
 
 ### Step 1 — Understand the Stack
 

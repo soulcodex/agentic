@@ -2559,6 +2559,38 @@ assert_file_exists "$TMP/t120/.agentic/skills/diagram-design/SKILL.md" "T120"
 assert_file_exists "$TMP/t120/.agentic/skills/README.md" "T120"
 assert_file_contains "$TMP/t120/.agentic/skills/README.md" "diagram-design" "T120"
 
+# T121 — deploy-skills: all-skills includes github-issue-planning
+run_test "T121 — deploy-skills: all-skills includes github-issue-planning"
+mkdir -p "$TMP/t121"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t121" \
+  --skills all \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t121/.agentic/skills/github-issue-planning/SKILL.md" "T121"
+assert_file_exists "$TMP/t121/.agentic/skills/github-issue-planning/issue-comment-template.md" "T121"
+
+# T122 — index: skills index includes github-issue-planning
+run_test "T122 — index: includes github-issue-planning"
+bash "$INDEX" \
+  --library "$LIBRARY" \
+  > /dev/null 2>&1
+
+assert_file_contains "$LIBRARY/index/skills.json" "\"name\": \"github-issue-planning\"" "T122"
+
+# T123 — deploy-skills: README includes github-issue-planning
+run_test "T123 — deploy-skills: README includes github-issue-planning"
+mkdir -p "$TMP/t123"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t123" \
+  --skills all \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t123/.agentic/skills/README.md" "T123"
+assert_file_contains "$TMP/t123/.agentic/skills/README.md" "github-issue-planning" "T123"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
