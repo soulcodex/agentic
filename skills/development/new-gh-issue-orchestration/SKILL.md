@@ -104,6 +104,15 @@ Loop policy:
   - after worker fixes, run reviewer again
 - If still unresolved after 3 automatic iterations, stop and ask developer for clear next instructions.
 
+### Agent Orchestration Rules
+
+- Wait for delegated agents to complete before advancing to dependent steps.
+  - Do not continue to commit/push/PR steps while required reviewer/worker tasks are still running.
+  - If an agent is still running, keep polling until completion or explicit timeout/escalation.
+- If work is parallelizable, spawn more than one agent.
+  - Use multiple agents only for independent subtasks with non-overlapping outputs.
+  - Avoid parallelizing tightly coupled or blocking subtasks where sequencing is required.
+
 ### Step 7 - Validation Gates
 
 Run the repository's required quality gates before commit/push.
