@@ -106,10 +106,15 @@ Loop policy:
 
 ### Step 7 - Validation Gates
 
-Run required checks for the repository scope:
-- `just lint`
-- `just index` when skills/fragments changed
-- `just test` when tooling/tests changed
+Run the repository's required quality gates before commit/push.
+
+Examples (use only what the target repo defines):
+- lint/static analysis
+- tests (unit/integration/e2e as applicable)
+- type/schema/index generation checks when relevant to changed files
+
+Rule:
+- Do not push if required validation fails.
 
 Then:
 
