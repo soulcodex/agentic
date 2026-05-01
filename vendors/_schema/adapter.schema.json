@@ -9,7 +9,7 @@
   "properties": {
     "vendor": {
       "type": "string",
-      "enum": ["claude", "copilot", "codex", "gemini", "opencode"],
+      "enum": ["claude", "copilot", "codex", "gemini", "opencode", "cursor"],
       "description": "The vendor this adapter targets"
     },
     "version": {

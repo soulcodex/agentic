@@ -141,7 +141,7 @@ run_test() {
   num=$((10#$num))
   
   local tag="compose"
-  if (( num >= 8 && num <= 13 )) || (( num >= 28 && num <= 43 )) || (( num >= 42 && num <= 43 )); then
+  if (( num >= 8 && num <= 13 )) || (( num >= 28 && num <= 43 )) || (( num >= 42 && num <= 43 )) || (( num >= 124 && num <= 130 )); then
     tag="vendor"
   elif (( num == 14 )) || (( num == 73 )); then
     tag="lint"
@@ -621,6 +621,7 @@ assert_file_contains "$T29_TMPFILE" "copilot"  "T29"
 assert_file_contains "$T29_TMPFILE" "codex"    "T29"
 assert_file_contains "$T29_TMPFILE" "gemini"   "T29"
 assert_file_contains "$T29_TMPFILE" "opencode" "T29"
+assert_file_contains "$T29_TMPFILE" "cursor"   "T29"
 
 # T30 — deploy-skills: creates vendor skill symlinks when --vendor is specified
 run_test "T30 — deploy-skills: creates vendor skill symlinks"
@@ -890,6 +891,7 @@ assert_file_contains "$TMP/t41/.gitignore" "# agentic:end" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".claude/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".opencode/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".agents/skills" "T41"
+assert_file_contains "$TMP/t41/.gitignore" ".cursor/rules" "T41"
 # Project-owned files must NOT be ignored
 assert_file_not_contains "$TMP/t41/.gitignore" "AGENTS.md" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "config.yaml" "T41"
@@ -912,6 +914,7 @@ bash "$COMPOSE" \
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/fragments/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_LINK_MODE"
+assert_file_contains "$TMP/t_gl/.gitignore" ".cursor/rules" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" "# agentic:start" "T_GITIGNORE_LINK_MODE"
 
 # T_GITIGNORE_IDEMPOTENT — block not duplicated on re-run
@@ -1131,6 +1134,7 @@ assert_stdout_contains "$T47_OUTPUT" "Supported vendors:" "T47"
 assert_stdout_contains "$T47_OUTPUT" "claude" "T47"
 assert_stdout_contains "$T47_OUTPUT" "copilot" "T47"
 assert_stdout_contains "$T47_OUTPUT" "gemini" "T47"
+assert_stdout_contains "$T47_OUTPUT" "cursor" "T47"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # LIBRARY DISCOVERY TESTS
@@ -2590,6 +2594,108 @@ bash "$DEPLOY_SKILLS" \
 
 assert_file_exists "$TMP/t123/.agentic/skills/README.md" "T123"
 assert_file_contains "$TMP/t123/.agentic/skills/README.md" "github-issue-planning" "T123"
+
+# T124 — vendor-gen: cursor creates expected .mdc files
+run_test "T124 — vendor-gen: cursor creates expected .mdc files"
+mkdir -p "$TMP/t124"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t124" \
+  > /dev/null 2>&1
+
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t124" \
+  --vendors cursor \
+  > /dev/null 2>&1
+
+assert_file_exists "$TMP/t124/.agentic/vendor-files/cursor/rules/00-core.mdc" "T124 core"
+assert_file_exists "$TMP/t124/.agentic/vendor-files/cursor/rules/10-typescript.mdc" "T124 typescript"
+assert_file_not_exists "$TMP/t124/.cursorrules" "T124 no cursorrules"
+
+# T125 — vendor-gen: cursor frontmatter for always-on vs auto-attached rules
+run_test "T125 — vendor-gen: cursor frontmatter correctness"
+assert_file_contains "$TMP/t124/.agentic/vendor-files/cursor/rules/00-core.mdc" "alwaysApply: true" "T125 core always-on"
+assert_file_not_contains "$TMP/t124/.agentic/vendor-files/cursor/rules/10-typescript.mdc" "alwaysApply: true" "T125 ts not always-on"
+assert_file_contains "$TMP/t124/.agentic/vendor-files/cursor/rules/10-typescript.mdc" "globs:" "T125 ts globs"
+assert_file_contains "$TMP/t124/.agentic/vendor-files/cursor/rules/10-typescript.mdc" "**/*.ts" "T125 ts globs value"
+
+# T126 — vendor-switch: cursor manages only .cursor/rules symlink
+run_test "T126 — vendor-switch: cursor symlink behavior"
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t124" \
+  cursor \
+  > /dev/null 2>&1
+
+assert_symlink_exists "$TMP/t124/.cursor/rules" "T126 cursor rules symlink"
+assert_file_contains "$TMP/t124/.agentic/config.yaml" "  - cursor" "T126 active vendor"
+
+# T127 — vendor-switch: preserve unrelated .cursor/mcp.json
+run_test "T127 — vendor-switch: preserves .cursor/mcp.json"
+mkdir -p "$TMP/t127/.cursor"
+printf '%s\n' '{"mcpServers":{"demo":{"command":"node"}}}' > "$TMP/t127/.cursor/mcp.json"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t127" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127" \
+  --vendors cursor \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127" \
+  cursor \
+  > /dev/null 2>&1
+assert_file_exists "$TMP/t127/.cursor/mcp.json" "T127 mcp preserved"
+assert_not_symlink "$TMP/t127/.cursor/mcp.json" "T127 mcp not symlink"
+
+# T127B — vendor-switch: fail if .cursor/rules is a real directory
+run_test "T127B — vendor-switch: fails on real .cursor/rules dir"
+mkdir -p "$TMP/t127b/.cursor/rules"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t127b" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127b" \
+  --vendors cursor \
+  > /dev/null 2>&1
+set +e
+T127B_OUTPUT=$(bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127b" \
+  cursor \
+  2>&1)
+T127B_CODE=$?
+set -e
+if [[ "$T127B_CODE" -ne 0 ]]; then
+  pass "T127B — vendor-switch failed as expected"
+else
+  fail "T127B — vendor-switch should fail when .cursor/rules is a real directory"
+fi
+assert_stdout_contains "$T127B_OUTPUT" ".cursor/rules exists and is not a symlink" "T127B error message"
+
+# T128 — config schema: active_vendors enum includes cursor
+run_test "T128 — config schema: enum includes cursor"
+assert_file_contains "$LIBRARY/schemas/config.schema.json" "\"cursor\"" "T128"
+
+# T129 — deploy-skills: cursor vendor is rules-only (no native skill symlink)
+run_test "T129 — deploy-skills: cursor rules-only behavior"
+mkdir -p "$TMP/t129"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t129" \
+  --skills code-review \
+  --vendor cursor \
+  > /dev/null 2>&1
+assert_file_not_exists "$TMP/t129/.cursor/skills" "T129 no cursor skills symlink"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

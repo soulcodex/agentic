@@ -927,6 +927,7 @@ opencode.json
 .claude/skills
 .opencode/skills
 .agents/skills
+.cursor/rules
 
 $MARKER_END
 BLOCK
@@ -947,6 +948,7 @@ opencode.json
 .claude/skills
 .opencode/skills
 .agents/skills
+.cursor/rules
 
 # Agentic runtime directories — symlinks to library, recreated by \`agentic sync\`
 .agentic/skills/

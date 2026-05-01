@@ -59,7 +59,7 @@ agentic deploy <profile> [target] <vendors> [options]
 |---|---|---|
 | `profile` | ✅ | Profile name — see `agentic list profiles` |
 | `target` | optional | Project directory, auto-detected from current dir if omitted |
-| `vendors` | ✅ | Comma-separated vendors to activate: `claude`, `copilot`, `gemini`, `codex`, `opencode` |
+| `vendors` | ✅ | Comma-separated vendors to activate: `claude`, `copilot`, `gemini`, `codex`, `opencode`, `cursor` |
 
 | Option | Description |
 |---|---|
@@ -153,6 +153,7 @@ agentic switch [target] list
 ```bash
 agentic switch claude              # Activate only Claude
 agentic switch gemini              # Activate only Gemini
+agentic switch cursor              # Activate only Cursor
 agentic switch claude,copilot      # Activate multiple vendors
 agentic switch list                # Show available vendors
 ```

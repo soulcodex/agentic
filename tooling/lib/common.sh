@@ -111,7 +111,7 @@ require_arg() {
 # ══════════════════════════════════════════════════════════════════════════════
 
 # All supported vendors (single source of truth)
-export AGENTIC_VENDORS=(claude copilot codex gemini opencode)
+export AGENTIC_VENDORS=(claude copilot codex gemini opencode cursor)
 
 # Get vendor skill directory path
 # Usage: get_vendor_skill_dir <vendor>
@@ -122,6 +122,7 @@ get_vendor_skill_dir() {
     opencode) echo ".opencode/skills" ;;
     codex)    echo ".agents/skills" ;;
     gemini)   echo ".gemini/skills" ;;
+    cursor)   echo "" ;;           # Cursor rules-only adapter; no native skills path
     copilot)  echo "" ;;           # Copilot uses prompt-injected skills
     *)        echo "" ;;
   esac

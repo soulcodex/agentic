@@ -130,6 +130,7 @@ remove_all_vendor_symlinks() {
   [[ -L "$TARGET/.claude/skills" ]] && rm "$TARGET/.claude/skills"
   [[ -L "$TARGET/.opencode/skills" ]] && rm "$TARGET/.opencode/skills"
   [[ -L "$TARGET/.agents/skills" ]] && rm "$TARGET/.agents/skills"
+  [[ -L "$TARGET/.cursor/rules" ]] && rm "$TARGET/.cursor/rules"
   
   # Clean up empty directories (only if they exist and are empty)
   [[ -d "$TARGET/.github/instructions" ]] && rmdir "$TARGET/.github/instructions" 2>/dev/null || true
@@ -138,6 +139,7 @@ remove_all_vendor_symlinks() {
   [[ -d "$TARGET/.claude" ]] && rmdir "$TARGET/.claude" 2>/dev/null || true
   [[ -d "$TARGET/.opencode" ]] && rmdir "$TARGET/.opencode" 2>/dev/null || true
   [[ -d "$TARGET/.agents" ]] && rmdir "$TARGET/.agents" 2>/dev/null || true
+  [[ -d "$TARGET/.cursor" ]] && rmdir "$TARGET/.cursor" 2>/dev/null || true
 }
 
 # ── Create vendor-specific symlinks ────────────────────────────────────────────
@@ -209,6 +211,17 @@ create_vendor_symlinks() {
         echo "    Linked: .opencode/skills → ../.agentic/skills"
       fi
       ;;
+    cursor)
+      if [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]]; then
+        mkdir -p "$TARGET/.cursor"
+        if [[ -e "$TARGET/.cursor/rules" && ! -L "$TARGET/.cursor/rules" ]]; then
+          echo "Error: .cursor/rules exists and is not a symlink. Move or remove it, then rerun vendor switch." >&2
+          exit 1
+        fi
+        ln -sfn "../.agentic/vendor-files/cursor/rules" "$TARGET/.cursor/rules"
+        echo "    Linked: .cursor/rules → ../.agentic/vendor-files/cursor/rules"
+      fi
+      ;;
   esac
 }
 
@@ -221,6 +234,7 @@ vendor_files_exist() {
     codex)    [[ -d "$VENDOR_FILES_DIR/codex" ]] ;;
     gemini)   [[ -f "$VENDOR_FILES_DIR/gemini/GEMINI.md" ]] ;;
     opencode) [[ -d "$VENDOR_FILES_DIR/opencode" ]] ;;
+    cursor)   [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]] ;;
     *)        return 1 ;;
   esac
 }
