@@ -2682,6 +2682,75 @@ else
 fi
 assert_stdout_contains "$T127B_OUTPUT" ".cursor/rules exists and is not a symlink" "T127B error message"
 
+# T127C — vendor-switch: conflict must not remove currently active vendor symlinks
+run_test "T127C — vendor-switch: conflict keeps existing vendor state"
+mkdir -p "$TMP/t127c"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t127c" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127c" \
+  --vendors claude,cursor \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127c" \
+  claude \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t127c/.cursor/rules"
+set +e
+T127C_OUTPUT=$(bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127c" \
+  cursor \
+  2>&1)
+T127C_CODE=$?
+set -e
+if [[ "$T127C_CODE" -ne 0 ]]; then
+  pass "T127C — vendor-switch failed as expected"
+else
+  fail "T127C — vendor-switch should fail when .cursor/rules is a real directory"
+fi
+assert_stdout_contains "$T127C_OUTPUT" ".cursor/rules exists and is not a symlink" "T127C error message"
+assert_symlink_exists "$TMP/t127c/CLAUDE.md" "T127C claude symlink preserved"
+assert_file_contains "$TMP/t127c/.agentic/config.yaml" "  - claude" "T127C active vendor unchanged"
+assert_file_not_contains "$TMP/t127c/.agentic/config.yaml" "  - cursor" "T127C cursor not activated"
+
+# T127D — vendor-switch: multi-vendor conflict does not leave partial activation
+run_test "T127D — vendor-switch: no partial activation on cursor conflict"
+mkdir -p "$TMP/t127d"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t127d" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127d" \
+  --vendors claude,cursor \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t127d/.cursor/rules"
+set +e
+T127D_OUTPUT=$(bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127d" \
+  claude cursor \
+  2>&1)
+T127D_CODE=$?
+set -e
+if [[ "$T127D_CODE" -ne 0 ]]; then
+  pass "T127D — vendor-switch failed as expected"
+else
+  fail "T127D — vendor-switch should fail when .cursor/rules is a real directory"
+fi
+assert_stdout_contains "$T127D_OUTPUT" ".cursor/rules exists and is not a symlink" "T127D error message"
+assert_file_not_exists "$TMP/t127d/CLAUDE.md" "T127D no partial claude activation"
+assert_file_not_contains "$TMP/t127d/.agentic/config.yaml" "  - claude" "T127D config unchanged on failure"
+assert_file_not_contains "$TMP/t127d/.agentic/config.yaml" "  - cursor" "T127D config unchanged on failure"
+
 # T128 — config schema: active_vendors enum includes cursor
 run_test "T128 — config schema: enum includes cursor"
 assert_file_contains "$LIBRARY/schemas/config.schema.json" "\"cursor\"" "T128"

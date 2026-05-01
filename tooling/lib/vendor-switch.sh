@@ -225,6 +225,19 @@ create_vendor_symlinks() {
   esac
 }
 
+# ── Preflight vendor activation conflicts (must run before mutations) ─────────
+preflight_vendor_conflicts() {
+  local vendor="$1"
+  case "$vendor" in
+    cursor)
+      if [[ -e "$TARGET/.cursor/rules" && ! -L "$TARGET/.cursor/rules" ]]; then
+        echo "Error: .cursor/rules exists and is not a symlink. Move or remove it, then rerun vendor switch." >&2
+        exit 1
+      fi
+      ;;
+  esac
+}
+
 # ── Check if vendor files exist ────────────────────────────────────────────────
 vendor_files_exist() {
   local vendor="$1"
@@ -262,6 +275,11 @@ for vendor in "${VENDORS[@]}"; do
     echo "Generating $vendor files..."
     bash "$VENDOR_GEN" --library "$LIBRARY" --target "$TARGET" --vendors "$vendor"
   fi
+done
+
+# Preflight conflicts before mutating symlinks, to keep switches atomic on failure
+for vendor in "${VENDORS[@]}"; do
+  preflight_vendor_conflicts "$vendor"
 done
 
 # Remove existing symlinks
