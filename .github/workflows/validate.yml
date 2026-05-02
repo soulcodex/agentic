@@ -10,7 +10,7 @@ permissions: read-all
 
 jobs:
   validate:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -93,6 +93,7 @@ jobs:
             exit 1
           fi
           coverage_percent="$(awk "BEGIN { printf \"%.2f\", ${line_rate} * 100 }")"
+          echo "cobertura_file=${cobertura_file}" >> "$GITHUB_OUTPUT"
           echo "line_rate=${line_rate}" >> "$GITHUB_OUTPUT"
           echo "coverage_percent=${coverage_percent}" >> "$GITHUB_OUTPUT"
           {
@@ -101,6 +102,14 @@ jobs:
             echo "Cobertura file: \`$cobertura_file\`"
             echo "Total line coverage: ${coverage_percent}%"
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "Coverage: ${coverage_percent}%"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@3f20e214133d0983f9a10f3d63b0faf9241a3daa # v6.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.coverage.outputs.cobertura_file }}
+          fail_ci_if_error: true
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
