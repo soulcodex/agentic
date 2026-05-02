@@ -3,6 +3,8 @@
 Cursor vendor adapter for `.cursor/rules/*.mdc` output.
 
 - Generated source files live in `.agentic/vendor-files/cursor/rules/`.
+- In nested profiles, additional tier rules are generated under
+  `.agentic/vendor-files/cursor/rules/<tier>/`.
 - `agentic switch cursor` only manages the `.cursor/rules` symlink.
 - Unrelated `.cursor/*` files (for example `.cursor/mcp.json`) are preserved.
 - If a real `.cursor/rules` directory already exists, `agentic switch cursor` migrates it

@@ -59,6 +59,8 @@ Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`.
 Cursor uses `.cursor/rules/*.mdc`. The adapter generates files into
 `.agentic/vendor-files/cursor/rules/`, then `agentic switch cursor` symlinks only
 `.cursor/rules`. This preserves unrelated `.cursor/*` files such as `.cursor/mcp.json`.
+For nested profiles, vendor-gen also emits tier-specific rule trees under
+`.agentic/vendor-files/cursor/rules/<tier>/`.
 If a real `.cursor/rules` directory already exists, switch migrates it to
 `.cursor/rules.backup` (or `.cursor/rules.backup.N`) before linking.
 If a multi-vendor switch fails after mutation begins, agentic rolls back prior
