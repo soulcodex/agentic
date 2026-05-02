@@ -2962,6 +2962,23 @@ bash "$VENDOR_SWITCH" \
 assert_file_exists "$TMP/t133/.cursor/rules.backup/first.mdc" "T133 first backup"
 assert_file_exists "$TMP/t133/.cursor/rules.backup.1/second.mdc" "T133 second backup"
 
+# T134 — vendor-gen: nested profile generates tier-specific cursor rules
+run_test "T134 — vendor-gen: nested cursor rules generation"
+mkdir -p "$TMP/t134"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-next-ui \
+  --target "$TMP/t134" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t134" \
+  --vendors cursor \
+  > /dev/null 2>&1
+assert_file_exists "$TMP/t134/.agentic/vendor-files/cursor/rules/00-core.mdc" "T134 root core"
+assert_file_exists "$TMP/t134/.agentic/vendor-files/cursor/rules/backend/00-core.mdc" "T134 backend core"
+assert_file_exists "$TMP/t134/.agentic/vendor-files/cursor/rules/ui/00-core.mdc" "T134 ui core"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
