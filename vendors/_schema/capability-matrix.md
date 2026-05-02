@@ -75,6 +75,11 @@ The agentic library uses a symlink-based vendor switching system:
 4. **Switching**: Only symlinks change — no file movement or copying
 5. **Git**: Symlinks are gitignored; recreate locally via `agentic switch <vendor>`
 
+Cursor-specific switch behavior:
+- Only `.cursor/rules` is managed (rules-only; no `.cursor/skills` support).
+- Existing real `.cursor/rules` directories are migrated to `.cursor/rules.backup`, then `.backup.N`.
+- If switch activation fails mid-run, agentic rolls back prior symlinks/config and restores migrated Cursor rules.
+
 ## Update Log
 
 | Date | Change |
@@ -82,3 +87,4 @@ The agentic library uses a symlink-based vendor switching system:
 | 2026-03-01 | Initial capability matrix created |
 | 2026-03-02 | Added Opencode column; added Gemini awk note |
 | 2026-03-03 | Updated for symlink-based vendor switching; added Codex skills support; documented canonical .agentic/ paths |
+| 2026-05-02 | Documented Cursor rules-only backup migration and rollback-safe switch behavior |

@@ -82,5 +82,5 @@
   "unsupported_sections": [],
   "character_limit_per_file": null,
   "total_character_limit": null,
-  "notes": "Cursor adapter targets .cursor/rules/*.mdc. One always-on core rule is generated and language rules are generated only when matching language sections exist."
+  "notes": "Cursor adapter targets .cursor/rules/*.mdc. One always-on core rule is generated and language rules are generated only when matching language sections exist. Vendor switching manages only .cursor/rules and migrates pre-existing real directories to deterministic backups (.backup, .backup.N) before symlink activation."
 }

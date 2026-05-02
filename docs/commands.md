@@ -158,6 +158,12 @@ agentic switch claude,copilot      # Activate multiple vendors
 agentic switch list                # Show available vendors
 ```
 
+Cursor-specific behavior:
+- `switch` manages only `.cursor/rules` (no `.cursor/skills` behavior).
+- If `.cursor/rules` is a real directory, it is migrated to deterministic backups:
+  `.cursor/rules.backup`, then `.cursor/rules.backup.N`.
+- If activation fails mid-switch, agentic rolls back to the prior symlink/config state.
+
 ### sync
 
 Regenerate AGENTS.md and vendor files from the local `.agentic/profile.yaml`.

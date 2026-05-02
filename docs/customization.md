@@ -223,6 +223,11 @@ are gitignored automatically.
 > **Note**: vendor entry-point files (`CLAUDE.md`, `.github/copilot-instructions.md`,
 > `.gemini/system.md`, `.cursor/rules`, etc.) are always gitignored in both modes — they are always
 > regenerated and have no standalone value in git history.
+>
+> For Cursor specifically, `agentic switch cursor` only manages `.cursor/rules`. If a
+> real `.cursor/rules` directory exists, agentic migrates it to
+> `.cursor/rules.backup` (or `.backup.N`) before linking, and restores it if switch
+> activation later fails and triggers rollback.
 
 ### Switching between modes
 
