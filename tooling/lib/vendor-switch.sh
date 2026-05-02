@@ -9,6 +9,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=tooling/lib/common.sh
 source "$SCRIPT_DIR/common.sh"
+# shellcheck source=tooling/lib/vendors/claude/switch.sh
+source "$SCRIPT_DIR/vendors/claude/switch.sh"
+# shellcheck source=tooling/lib/vendors/copilot/switch.sh
+source "$SCRIPT_DIR/vendors/copilot/switch.sh"
+# shellcheck source=tooling/lib/vendors/codex/switch.sh
+source "$SCRIPT_DIR/vendors/codex/switch.sh"
+# shellcheck source=tooling/lib/vendors/gemini/switch.sh
+source "$SCRIPT_DIR/vendors/gemini/switch.sh"
+# shellcheck source=tooling/lib/vendors/opencode/switch.sh
+source "$SCRIPT_DIR/vendors/opencode/switch.sh"
+# shellcheck source=tooling/lib/vendors/cursor/switch.sh
+source "$SCRIPT_DIR/vendors/cursor/switch.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
@@ -119,53 +131,6 @@ migrate_active_vendor_format() {
       echo "Migrating config: active_vendor → active_vendors..."
       yq -i 'del(.active_vendor) | .active_vendors = ["'"$old_vendor"'"]' "$CONFIG"
     fi
-  fi
-}
-
-add_cursor_managed_path() {
-  local rel_path="$1"
-  [[ -z "$rel_path" || "$rel_path" == "null" ]] && return
-  local existing
-  for existing in "${CURSOR_MANAGED_PATHS[@]}"; do
-    [[ "$existing" == "$rel_path" ]] && return
-  done
-  CURSOR_MANAGED_PATHS+=("$rel_path")
-}
-
-load_cursor_managed_paths() {
-  CURSOR_MANAGED_PATHS=()
-  add_cursor_managed_path ".cursor/rules"
-
-  if [[ -f "$CURSOR_SWITCH_MANIFEST" ]] && jq -e '.managed_paths | type == "array"' "$CURSOR_SWITCH_MANIFEST" > /dev/null 2>&1; then
-    local rel_path
-    while IFS= read -r rel_path; do
-      add_cursor_managed_path "$rel_path"
-    done < <(jq -r '.managed_paths[]?.target // empty' "$CURSOR_SWITCH_MANIFEST")
-  fi
-
-  local existing_cursor_symlink
-  while IFS= read -r existing_cursor_symlink; do
-    existing_cursor_symlink="${existing_cursor_symlink#"$TARGET"/}"
-    add_cursor_managed_path "$existing_cursor_symlink"
-  done < <(find "$TARGET" -type l -path '*/.cursor/rules' 2>/dev/null || true)
-}
-
-record_cursor_backup_move() {
-  local original="$1"
-  local backup="$2"
-  mkdir -p "$ROLLBACK_DIR"
-  printf '%s\t%s\n' "$original" "$backup" >> "$ROLLBACK_CURSOR_MOVES_FILE"
-}
-
-prepare_cursor_rules_path() {
-  local rel_path="$1"
-  local cursor_rules="$TARGET/$rel_path"
-  if [[ -e "$cursor_rules" && ! -L "$cursor_rules" ]]; then
-    local backup_path
-    backup_path="$(next_backup_path "$cursor_rules")"
-    mv "$cursor_rules" "$backup_path"
-    record_cursor_backup_move "$cursor_rules" "$backup_path"
-    echo "  Migrated: $rel_path → ${backup_path#"$TARGET"/}"
   fi
 }
 
@@ -290,116 +255,30 @@ remove_all_vendor_symlinks() {
 create_vendor_symlinks() {
   local vendor="$1"
   echo "  Creating symlinks for $vendor..."
-  
-  case "$vendor" in
-    claude)
-      if [[ -f "$VENDOR_FILES_DIR/claude/CLAUDE.md" ]]; then
-        ln -sf ".agentic/vendor-files/claude/CLAUDE.md" "$TARGET/CLAUDE.md"
-        echo "    Linked: CLAUDE.md → .agentic/vendor-files/claude/CLAUDE.md"
-      fi
-      # Skills symlink
-      if [[ -d "$TARGET/.agentic/skills" ]]; then
-        mkdir -p "$TARGET/.claude"
-        ln -sf "../.agentic/skills" "$TARGET/.claude/skills"
-        echo "    Linked: .claude/skills → ../.agentic/skills"
-      fi
-      ;;
-    copilot)
-      if [[ -f "$VENDOR_FILES_DIR/copilot/copilot-instructions.md" ]]; then
-        mkdir -p "$TARGET/.github"
-        ln -sf "../.agentic/vendor-files/copilot/copilot-instructions.md" "$TARGET/.github/copilot-instructions.md"
-        echo "    Linked: .github/copilot-instructions.md"
-      fi
-      if [[ -d "$VENDOR_FILES_DIR/copilot/instructions" ]]; then
-        mkdir -p "$TARGET/.github"
-        ln -sfn "../../.agentic/vendor-files/copilot/instructions" "$TARGET/.github/instructions"
-        echo "    Linked: .github/instructions/"
-      fi
-      # Copilot uses prompt-injected skills, no symlink needed
-      ;;
-    codex)
-      # Codex uses AGENTS.md natively - no file symlink needed
-      echo "    Codex reads AGENTS.md natively — no file symlink needed"
-      # Skills symlink
-      if [[ -d "$TARGET/.agentic/skills" ]]; then
-        mkdir -p "$TARGET/.agents"
-        ln -sf "../.agentic/skills" "$TARGET/.agents/skills"
-        echo "    Linked: .agents/skills → ../.agentic/skills"
-      fi
-      ;;
-    gemini)
-      # Primary context file (auto-discovered, zero config)
-      if [[ -f "$VENDOR_FILES_DIR/gemini/GEMINI.md" ]]; then
-        ln -sf ".agentic/vendor-files/gemini/GEMINI.md" "$TARGET/GEMINI.md"
-        echo "    Linked: GEMINI.md → .agentic/vendor-files/gemini/GEMINI.md"
-      fi
-      # System prompt override (requires GEMINI_SYSTEM_MD=1)
-      if [[ -f "$VENDOR_FILES_DIR/gemini/system.md" ]]; then
-        mkdir -p "$TARGET/.gemini"
-        ln -sf "../.agentic/vendor-files/gemini/system.md" "$TARGET/.gemini/system.md"
-        echo "    Linked: .gemini/system.md → ../.agentic/vendor-files/gemini/system.md"
-      fi
-      # Native skills directory
-      if [[ -d "$TARGET/.agentic/skills" ]]; then
-        mkdir -p "$TARGET/.gemini"
-        ln -sf "../.agentic/skills" "$TARGET/.gemini/skills"
-        echo "    Linked: .gemini/skills → ../.agentic/skills"
-      fi
-      ;;
-    opencode)
-      # NOTE: opencode.json is intentionally not generated — users manage their own config.
-      # Skills symlink - OpenCode reads from .opencode/skills
-      if [[ -d "$TARGET/.agentic/skills" ]]; then
-        mkdir -p "$TARGET/.opencode"
-        ln -sf "../.agentic/skills" "$TARGET/.opencode/skills"
-        echo "    Linked: .opencode/skills → ../.agentic/skills"
-      fi
-      ;;
-    cursor)
-      if [[ -f "$CURSOR_SWITCH_MANIFEST" ]] && jq -e '.managed_paths | type == "array"' "$CURSOR_SWITCH_MANIFEST" > /dev/null 2>&1; then
-        local rel_target rel_source abs_target abs_source
-        while IFS=$'\t' read -r rel_target rel_source; do
-          [[ -z "$rel_target" || -z "$rel_source" ]] && continue
-          abs_target="$TARGET/$rel_target"
-          abs_source="$TARGET/$rel_source"
-          mkdir -p "$(dirname "$abs_target")"
-          ln -sfn "$abs_source" "$abs_target"
-          echo "    Linked: $rel_target → $rel_source"
-        done < <(jq -r '.managed_paths[]? | [.target, .source] | @tsv' "$CURSOR_SWITCH_MANIFEST")
-      elif [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]]; then
-        mkdir -p "$TARGET/.cursor"
-        ln -sfn "../.agentic/vendor-files/cursor/rules" "$TARGET/.cursor/rules"
-        echo "    Linked: .cursor/rules → ../.agentic/vendor-files/cursor/rules"
-      fi
-      ;;
-  esac
+  local fn="vendor_${vendor}_create_symlinks"
+  if declare -F "$fn" > /dev/null 2>&1; then
+    "$fn"
+  fi
 }
 
 # ── Preflight vendor activation conflicts (must run before mutations) ─────────
 preflight_vendor_conflicts() {
   local vendor="$1"
-  case "$vendor" in
-    cursor)
-      local rel_path
-      for rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
-        prepare_cursor_rules_path "$rel_path"
-      done
-      ;;
-  esac
+  local fn="vendor_${vendor}_preflight_conflicts"
+  if declare -F "$fn" > /dev/null 2>&1; then
+    "$fn"
+  fi
 }
 
 # ── Check if vendor files exist ────────────────────────────────────────────────
 vendor_files_exist() {
   local vendor="$1"
-  case "$vendor" in
-    claude)   [[ -f "$VENDOR_FILES_DIR/claude/CLAUDE.md" ]] ;;
-    copilot)  [[ -f "$VENDOR_FILES_DIR/copilot/copilot-instructions.md" ]] ;;
-    codex)    [[ -d "$VENDOR_FILES_DIR/codex" ]] ;;
-    gemini)   [[ -f "$VENDOR_FILES_DIR/gemini/GEMINI.md" ]] ;;
-    opencode) [[ -d "$VENDOR_FILES_DIR/opencode" ]] ;;
-    cursor)   [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]] ;;
-    *)        return 1 ;;
-  esac
+  local fn="vendor_${vendor}_files_exist"
+  if declare -F "$fn" > /dev/null 2>&1; then
+    "$fn"
+    return $?
+  fi
+  return 1
 }
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -427,7 +306,7 @@ for vendor in "${VENDORS[@]}"; do
   fi
 done
 
-load_cursor_managed_paths
+vendor_cursor_load_managed_paths
 snapshot_current_switch_state
 trap on_switch_exit EXIT
 

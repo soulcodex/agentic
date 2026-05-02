@@ -1394,6 +1394,7 @@ bash "$COMPOSE" \
 
 assert_file_exists "$TMP/t67/.mcp.json" "T67"
 assert_json_valid "$TMP/t67/.mcp.json" "T67"
+assert_file_contains "$TMP/t67/.mcp.json" '"mcpServers"' "T67 claude shape"
 assert_file_contains "$TMP/t67/.mcp.json" "github" "T67"
 assert_file_contains "$TMP/t67/.mcp.json" "postgres" "T67"
 assert_file_contains "$TMP/t67/.mcp.json" '"command": "npx"' "T67"
@@ -1436,6 +1437,7 @@ bash "$COMPOSE" \
 
 assert_file_exists "$TMP/t68/opencode.json" "T68"
 assert_file_contains "$TMP/t68/opencode.json" '"local"' "T68"
+assert_file_contains "$TMP/t68/opencode.json" '"command": [' "T68 command array"
 assert_file_contains "$TMP/t68/opencode.json" '"environment"' "T68"
 
 # T69 — compose: MCP seed writes to .gemini/settings.json without type field
@@ -1480,6 +1482,7 @@ assert_file_not_contains "$TMP/t69/.gemini/settings.json" '"type"' "T69"
 assert_file_exists "$TMP/t69/.cursor/mcp.json" "T69 cursor"
 assert_file_contains "$TMP/t69/.cursor/mcp.json" "http-server" "T69 cursor server"
 assert_file_contains "$TMP/t69/.cursor/mcp.json" '"mcpServers"' "T69 cursor shape"
+assert_file_contains "$TMP/t69/.cursor/mcp.json" '"type": "http"' "T69 cursor transport"
 
 # T70 — compose: MCP merge strategy preserves existing servers
 run_test "T70 — compose: MCP merge preserves existing servers"
@@ -2235,20 +2238,20 @@ bash "$DEPLOY_SKILLS" \
 
 assert_symlink_exists "$TMP/t96/.gemini/skills" "T96 .gemini/skills symlink"
 
-# T97 — vendor isolation: vendors/gemini.sh exists and is a regular file
-run_test "T97 — vendor isolation: vendors/gemini.sh exists"
-if [[ -f "$LIBRARY/tooling/lib/vendors/gemini.sh" ]]; then
-  pass "T97 — vendors/gemini.sh exists"
+# T97 — vendor isolation: vendors/gemini/gen.sh exists and is a regular file
+run_test "T97 — vendor isolation: vendors/gemini/gen.sh exists"
+if [[ -f "$LIBRARY/tooling/lib/vendors/gemini/gen.sh" ]]; then
+  pass "T97 — vendors/gemini/gen.sh exists"
 else
-  fail "T97 — vendors/gemini.sh should exist"
+  fail "T97 — vendors/gemini/gen.sh should exist"
 fi
 
-# T98 — vendor isolation: vendors/claude.sh exists and is a regular file
-run_test "T98 — vendor isolation: vendors/claude.sh exists"
-if [[ -f "$LIBRARY/tooling/lib/vendors/claude.sh" ]]; then
-  pass "T98 — vendors/claude.sh exists"
+# T98 — vendor isolation: vendors/claude/gen.sh exists and is a regular file
+run_test "T98 — vendor isolation: vendors/claude/gen.sh exists"
+if [[ -f "$LIBRARY/tooling/lib/vendors/claude/gen.sh" ]]; then
+  pass "T98 — vendors/claude/gen.sh exists"
 else
-  fail "T98 — vendors/claude.sh should exist"
+  fail "T98 — vendors/claude/gen.sh should exist"
 fi
 
 # T99 — init: creates .agentic skeleton files

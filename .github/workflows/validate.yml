@@ -31,8 +31,92 @@ jobs:
       - name: Lint fragments, profiles, and adapters
         run: just lint
 
-      - name: Run integration tests
-        run: just test
+      - name: Install kcov
+        id: cache-kcov
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.2.2
+        with:
+          path: /tmp/kcov-install
+          key: kcov-${{ runner.os }}-v43
+          restore-keys: |
+            kcov-${{ runner.os }}-
+
+      - name: Build and install kcov (cache miss)
+        if: steps.cache-kcov.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            binutils-dev \
+            build-essential \
+            cmake \
+            git \
+            libcurl4-openssl-dev \
+            libdw-dev \
+            libelf-dev \
+            libiberty-dev \
+            libssl-dev \
+            libstdc++-12-dev \
+            zlib1g-dev
+
+          git clone --depth 1 --branch v43 https://github.com/SimonKagstrom/kcov.git /tmp/kcov-src
+          cmake -S /tmp/kcov-src -B /tmp/kcov-build -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/kcov-build --parallel
+          cmake --install /tmp/kcov-build --prefix /tmp/kcov-install
+
+      - name: Add kcov to PATH
+        run: echo "/tmp/kcov-install/bin" >> "$GITHUB_PATH"
+
+      - name: Verify kcov
+        run: kcov --version
+
+      - name: Run integration tests with coverage
+        run: |
+          rm -rf coverage
+          kcov \
+            --include-path="${PWD}/tooling/lib" \
+            --exclude-path="${PWD}/tests,${PWD}/coverage" \
+            ./coverage \
+            ./tooling/lib/test.sh --library "${PWD}"
+
+      - name: Read total coverage
+        id: coverage
+        run: |
+          cobertura_file="$(find coverage -type f -name 'cobertura.xml' | head -n1)"
+          if [[ -z "$cobertura_file" ]]; then
+            echo "Error: cobertura.xml not found under coverage/." >&2
+            echo "Coverage directory contents:" >&2
+            find coverage -maxdepth 4 -type f >&2 || true
+            exit 1
+          fi
+          line_rate="$(grep -m1 -o 'line-rate=\"[0-9.]*\"' "$cobertura_file" | cut -d'"' -f2)"
+          if [[ -z "$line_rate" ]]; then
+            echo "Error: line-rate not found in $cobertura_file" >&2
+            exit 1
+          fi
+          coverage_percent="$(awk "BEGIN { printf \"%.2f\", ${line_rate} * 100 }")"
+          echo "cobertura_file=${cobertura_file}" >> "$GITHUB_OUTPUT"
+          echo "line_rate=${line_rate}" >> "$GITHUB_OUTPUT"
+          echo "coverage_percent=${coverage_percent}" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Test Coverage"
+            echo ""
+            echo "Cobertura file: \`$cobertura_file\`"
+            echo "Total line coverage: ${coverage_percent}%"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Coverage: ${coverage_percent}%"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@3f20e214133d0983f9a10f3d63b0faf9241a3daa # v6.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.coverage.outputs.cobertura_file }}
+          fail_ci_if_error: true
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: kcov-html-report
+          path: coverage/
+          if-no-files-found: error
 
       - name: Rebuild indexes
         run: just index

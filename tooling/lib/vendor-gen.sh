@@ -121,9 +121,9 @@ HDR
 # ── Vendor script loader ─────────────────────────────────────────────────────────
 load_vendor_script() {
   local vendor="$1"
-  local script_path="$SCRIPT_DIR/vendors/${vendor}.sh"
+  local script_path="$SCRIPT_DIR/vendors/${vendor}/gen.sh"
   if [[ -f "$script_path" ]]; then
-    # shellcheck source=tooling/lib/vendors/claude.sh
+    # shellcheck source=tooling/lib/vendors/claude/gen.sh
     source "$script_path"
   else
     echo "Warning: vendor script not found: $script_path" >&2
@@ -131,18 +131,18 @@ load_vendor_script() {
 }
 
 # Load all vendor scripts
-# shellcheck source=tooling/lib/vendors/claude.sh
-source "$SCRIPT_DIR/vendors/claude.sh"
-# shellcheck source=tooling/lib/vendors/copilot.sh
-source "$SCRIPT_DIR/vendors/copilot.sh"
-# shellcheck source=tooling/lib/vendors/codex.sh
-source "$SCRIPT_DIR/vendors/codex.sh"
-# shellcheck source=tooling/lib/vendors/gemini.sh
-source "$SCRIPT_DIR/vendors/gemini.sh"
-# shellcheck source=tooling/lib/vendors/opencode.sh
-source "$SCRIPT_DIR/vendors/opencode.sh"
-# shellcheck source=tooling/lib/vendors/cursor.sh
-source "$SCRIPT_DIR/vendors/cursor.sh"
+# shellcheck source=tooling/lib/vendors/claude/gen.sh
+source "$SCRIPT_DIR/vendors/claude/gen.sh"
+# shellcheck source=tooling/lib/vendors/copilot/gen.sh
+source "$SCRIPT_DIR/vendors/copilot/gen.sh"
+# shellcheck source=tooling/lib/vendors/codex/gen.sh
+source "$SCRIPT_DIR/vendors/codex/gen.sh"
+# shellcheck source=tooling/lib/vendors/gemini/gen.sh
+source "$SCRIPT_DIR/vendors/gemini/gen.sh"
+# shellcheck source=tooling/lib/vendors/opencode/gen.sh
+source "$SCRIPT_DIR/vendors/opencode/gen.sh"
+# shellcheck source=tooling/lib/vendors/cursor/gen.sh
+source "$SCRIPT_DIR/vendors/cursor/gen.sh"
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 mkdir -p "$VENDOR_FILES_DIR"

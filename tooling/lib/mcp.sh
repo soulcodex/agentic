@@ -29,6 +29,20 @@ MCP_FILE="$TARGET/.mcp.json"
 OPENCODE_FILE="$TARGET/opencode.json"
 GEMINI_SETTINGS="$TARGET/.gemini/settings.json"
 CURSOR_MCP_FILE="$TARGET/.cursor/mcp.json"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SEED_SOURCE_FILE=""
+SEED_SERVERS_EXPR=""
+SEED_STRATEGY="merge"
+SEED_SERVER_NAMES=()
+
+# shellcheck source=tooling/lib/vendors/claude/mcp.sh
+source "$SCRIPT_DIR/vendors/claude/mcp.sh"
+# shellcheck source=tooling/lib/vendors/cursor/mcp.sh
+source "$SCRIPT_DIR/vendors/cursor/mcp.sh"
+# shellcheck source=tooling/lib/vendors/opencode/mcp.sh
+source "$SCRIPT_DIR/vendors/opencode/mcp.sh"
+# shellcheck source=tooling/lib/vendors/gemini/mcp.sh
+source "$SCRIPT_DIR/vendors/gemini/mcp.sh"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -318,224 +332,26 @@ action_seed() {
     return 0
   fi
 
-  # ── Seed .mcp.json (Claude) ──────────────────────────────────────────
-  local mcp_file="$TARGET/.mcp.json"
-  # Create or update .mcp.json if: file exists OR strategy is replace OR mcp.servers declared in profile
-  if [[ -f "$mcp_file" || "$strategy" == "replace" || "${#server_names[@]}" -gt 0 ]]; then
-    local existing_servers updated_servers
-    existing_servers="{}"
-    if [[ -f "$mcp_file" ]]; then
-      existing_servers=$(jq '.mcpServers // {}' "$mcp_file" 2>/dev/null || echo "{}")
-    fi
+  SEED_SOURCE_FILE="$source_file"
+  SEED_SERVERS_EXPR="$servers_expr"
+  SEED_STRATEGY="$strategy"
+  SEED_SERVER_NAMES=("${server_names[@]}")
 
-    if [[ "$strategy" == "replace" ]]; then
-      # Build fresh JSON from profile - start with empty
-      updated_servers="{}"
-      local name
-      for name in "${server_names[@]}"; do
-        local server_yaml server_json
-        server_yaml=$(yq -r "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "")
-        if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
-          # Convert YAML to JSON using yq -o json
-          server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
-          updated_servers=$(printf '%s' "$updated_servers" | jq --arg n "$name" --argjson s "$server_json" '. + {($n): $s}')
-        fi
-      done
-    else
-      # Merge: add only if key doesn't exist
-      local name
-      for name in "${server_names[@]}"; do
-        local exists
-        exists=$(jq -r --arg n "$name" 'has($n)' "$existing_servers" 2>/dev/null || echo "false")
-        if [[ "$exists" == "false" ]]; then
-          local server_yaml server_json
-          server_yaml=$(yq -r "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "")
-          if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
-            # Convert YAML to JSON using yq -o json
-            server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
-            existing_servers=$(printf '%s' "$existing_servers" | jq --arg n "$name" --argjson s "$server_json" '. + {($n): $s}')
-          fi
-        fi
-      done
-      updated_servers="$existing_servers"
-    fi
+  seed_claude_mcp_target
+  seed_cursor_mcp_target
+  seed_opencode_mcp_target
+  seed_gemini_mcp_target
+}
 
-    local final_json
-    final_json=$(printf '{"mcpServers": %s}' "$updated_servers")
-    write_json "$mcp_file" "$final_json"
-    echo "  ✔  Seeded ${#server_names[@]} server(s) to .mcp.json (strategy: $strategy)"
+get_seed_server_json() {
+  local name="$1"
+  local server_yaml server_json
+  server_yaml=$(yq -r "${SEED_SERVERS_EXPR}[\"$name\"]" "$SEED_SOURCE_FILE" 2>/dev/null || echo "")
+  if [[ -z "$server_yaml" || "$server_yaml" == "null" ]]; then
+    return 0
   fi
-
-  # ── Seed .cursor/mcp.json (Cursor) ───────────────────────────────────
-  local cursor_mcp_file="$CURSOR_MCP_FILE"
-  if [[ -f "$cursor_mcp_file" ]]; then
-    if ! jq -e '.mcpServers // {}' "$cursor_mcp_file" > /dev/null 2>&1; then
-      echo "Error: existing .cursor/mcp.json is invalid JSON; refusing to overwrite" >&2
-      exit 1
-    fi
-  fi
-  if [[ -f "$cursor_mcp_file" || "$strategy" == "replace" || "${#server_names[@]}" -gt 0 ]]; then
-    local existing_cursor updated_cursor
-    existing_cursor="{}"
-    if [[ -f "$cursor_mcp_file" ]]; then
-      existing_cursor=$(jq '.mcpServers // {}' "$cursor_mcp_file")
-    fi
-
-    if [[ "$strategy" == "replace" ]]; then
-      updated_cursor="{}"
-      local name
-      for name in "${server_names[@]}"; do
-        local server_yaml server_json
-        server_yaml=$(yq -r "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "")
-        if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
-          server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
-          updated_cursor=$(printf '%s' "$updated_cursor" | jq --arg n "$name" --argjson s "$server_json" '. + {($n): $s}')
-        fi
-      done
-    else
-      local name
-      for name in "${server_names[@]}"; do
-        local exists
-        exists=$(jq -r --arg n "$name" 'has($n)' "$existing_cursor" 2>/dev/null || echo "false")
-        if [[ "$exists" == "false" ]]; then
-          local server_yaml server_json
-          server_yaml=$(yq -r "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "")
-          if [[ -n "$server_yaml" && "$server_yaml" != "null" ]]; then
-            server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
-            existing_cursor=$(printf '%s' "$existing_cursor" | jq --arg n "$name" --argjson s "$server_json" '. + {($n): $s}')
-          fi
-        fi
-      done
-      updated_cursor="$existing_cursor"
-    fi
-
-    local final_cursor_json
-    final_cursor_json=$(printf '{"mcpServers": %s}' "$updated_cursor")
-    write_json "$cursor_mcp_file" "$final_cursor_json"
-    echo "  ✔  Seeded ${#server_names[@]} server(s) to .cursor/mcp.json (strategy: $strategy)"
-  fi
-
-  # ── Helper: translate a profile server entry to Opencode format ─────────
-  # Opencode differences from Claude/profile format:
-  #   - type: stdio→local, http→remote
-  #   - command+args → combined array under "command"
-  #   - env → environment
-  translate_to_opencode() {
-    local server_json="$1"
-    jq '
-      if .type == "stdio" then .type = "local"
-      elif .type == "http" then .type = "remote"
-      else . end
-      |
-      if .command != null then
-        . + { "command": ([ .command ] + (if .args != null then .args else [] end)) }
-        | del(.args)
-      else . end
-      |
-      if .env != null then
-        . + { "environment": .env } | del(.env)
-      else . end
-    ' <<< "$server_json"
-  }
-
-  # ── Helper: translate a profile server entry to Gemini format ────────────
-  # Gemini differences from Claude/profile format:
-  #   - No "type" field (transport inferred from field presence)
-  #   - url → httpUrl for http entries
-  translate_to_gemini() {
-    local server_json="$1"
-    jq '
-      if .type == "http" and .url != null then
-        . + { "httpUrl": .url } | del(.url)
-      else . end
-      |
-      del(.type)
-    ' <<< "$server_json"
-  }
-
-  # ── Seed opencode.json (Opencode) ────────────────────────────────────────
-  local opencode_file="$TARGET/opencode.json"
-  if [[ -f "$opencode_file" ]]; then
-    local existing_oc updated_oc
-    existing_oc=$(jq '.mcp // {}' "$opencode_file" 2>/dev/null || echo "{}")
-
-    if [[ "$strategy" == "replace" ]]; then
-      updated_oc="{}"
-      local name
-      for name in "${server_names[@]}"; do
-        local server_json oc_entry
-        server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
-        if [[ -n "$server_json" && "$server_json" != "null" ]]; then
-          oc_entry=$(translate_to_opencode "$server_json")
-          updated_oc=$(printf '%s' "$updated_oc" | jq --arg n "$name" --argjson s "$oc_entry" '. + {($n): $s}')
-        fi
-      done
-    else
-      # Merge: add only if key doesn't already exist
-      local name
-      for name in "${server_names[@]}"; do
-        local exists
-        exists=$(printf '%s' "$existing_oc" | jq -r --arg n "$name" 'has($n)')
-        if [[ "$exists" == "false" ]]; then
-          local server_json oc_entry
-          server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
-          if [[ -n "$server_json" && "$server_json" != "null" ]]; then
-            oc_entry=$(translate_to_opencode "$server_json")
-            existing_oc=$(printf '%s' "$existing_oc" | jq --arg n "$name" --argjson s "$oc_entry" '. + {($n): $s}')
-          fi
-        fi
-      done
-      updated_oc="$existing_oc"
-    fi
-
-    local opencode_base final_opencode
-    opencode_base=$(cat "$opencode_file")
-    final_opencode=$(printf '%s' "$opencode_base" | jq --argjson mcp "$updated_oc" '. + {mcp: $mcp}')
-    write_json "$opencode_file" "$final_opencode"
-    echo "  ✔  Seeded ${#server_names[@]} server(s) to opencode.json (strategy: $strategy)"
-  fi
-
-  # ── Seed .gemini/settings.json (Gemini) ──────────────────────────────────
-  local gemini_file="$TARGET/.gemini/settings.json"
-  if [[ -f "$gemini_file" ]]; then
-    local existing_gs updated_gs
-    existing_gs=$(jq '.mcpServers // {}' "$gemini_file" 2>/dev/null || echo "{}")
-
-    if [[ "$strategy" == "replace" ]]; then
-      updated_gs="{}"
-      local name
-      for name in "${server_names[@]}"; do
-        local server_json gs_entry
-        server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
-        if [[ -n "$server_json" && "$server_json" != "null" ]]; then
-          gs_entry=$(translate_to_gemini "$server_json")
-          updated_gs=$(printf '%s' "$updated_gs" | jq --arg n "$name" --argjson s "$gs_entry" '. + {($n): $s}')
-        fi
-      done
-    else
-      # Merge: add only if key doesn't already exist
-      local name
-      for name in "${server_names[@]}"; do
-        local exists
-        exists=$(printf '%s' "$existing_gs" | jq -r --arg n "$name" 'has($n)')
-        if [[ "$exists" == "false" ]]; then
-          local server_json gs_entry
-          server_json=$(yq -o json "${servers_expr}[\"$name\"]" "$source_file" 2>/dev/null || echo "{}")
-          if [[ -n "$server_json" && "$server_json" != "null" ]]; then
-            gs_entry=$(translate_to_gemini "$server_json")
-            existing_gs=$(printf '%s' "$existing_gs" | jq --arg n "$name" --argjson s "$gs_entry" '. + {($n): $s}')
-          fi
-        fi
-      done
-      updated_gs="$existing_gs"
-    fi
-
-    local gemini_base final_gemini
-    gemini_base=$(cat "$gemini_file")
-    final_gemini=$(printf '%s' "$gemini_base" | jq --argjson mcpServers "$updated_gs" '. + {mcpServers: $mcpServers}')
-    write_json "$gemini_file" "$final_gemini"
-    echo "  ✔  Seeded ${#server_names[@]} server(s) to .gemini/settings.json (strategy: $strategy)"
-  fi
+  server_json=$(echo "$server_yaml" | yq -o json '.' 2>/dev/null || echo "{}")
+  printf '%s' "$server_json"
 }
 
 # ── Dispatch ──────────────────────────────────────────────────────────────────
