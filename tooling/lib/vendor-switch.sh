@@ -44,7 +44,9 @@ ROLLBACK_DIR="$TARGET/.agentic/.switch-rollback"
 ROLLBACK_LINKS_FILE="$ROLLBACK_DIR/links.tsv"
 ROLLBACK_CONFIG_FILE="$ROLLBACK_DIR/config.yaml"
 ROLLBACK_CURSOR_MOVES_FILE="$ROLLBACK_DIR/cursor-moves.tsv"
+CURSOR_SWITCH_MANIFEST="$VENDOR_FILES_DIR/cursor/switch-manifest.json"
 SWITCH_COMMITTED=0
+CURSOR_MANAGED_PATHS=()
 
 # Use AGENTIC_VENDORS from common.sh (single source of truth)
 
@@ -120,6 +122,34 @@ migrate_active_vendor_format() {
   fi
 }
 
+add_cursor_managed_path() {
+  local rel_path="$1"
+  [[ -z "$rel_path" || "$rel_path" == "null" ]] && return
+  local existing
+  for existing in "${CURSOR_MANAGED_PATHS[@]}"; do
+    [[ "$existing" == "$rel_path" ]] && return
+  done
+  CURSOR_MANAGED_PATHS+=("$rel_path")
+}
+
+load_cursor_managed_paths() {
+  CURSOR_MANAGED_PATHS=()
+  add_cursor_managed_path ".cursor/rules"
+
+  if [[ -f "$CURSOR_SWITCH_MANIFEST" ]] && jq -e '.managed_paths | type == "array"' "$CURSOR_SWITCH_MANIFEST" > /dev/null 2>&1; then
+    local rel_path
+    while IFS= read -r rel_path; do
+      add_cursor_managed_path "$rel_path"
+    done < <(jq -r '.managed_paths[]?.target // empty' "$CURSOR_SWITCH_MANIFEST")
+  fi
+
+  local existing_cursor_symlink
+  while IFS= read -r existing_cursor_symlink; do
+    existing_cursor_symlink="${existing_cursor_symlink#"$TARGET"/}"
+    add_cursor_managed_path "$existing_cursor_symlink"
+  done < <(find "$TARGET" -type l -path '*/.cursor/rules' 2>/dev/null || true)
+}
+
 record_cursor_backup_move() {
   local original="$1"
   local backup="$2"
@@ -128,13 +158,14 @@ record_cursor_backup_move() {
 }
 
 prepare_cursor_rules_path() {
-  local cursor_rules="$TARGET/.cursor/rules"
+  local rel_path="$1"
+  local cursor_rules="$TARGET/$rel_path"
   if [[ -e "$cursor_rules" && ! -L "$cursor_rules" ]]; then
     local backup_path
     backup_path="$(next_backup_path "$cursor_rules")"
     mv "$cursor_rules" "$backup_path"
     record_cursor_backup_move "$cursor_rules" "$backup_path"
-    echo "  Migrated: .cursor/rules → ${backup_path#"$TARGET"/}"
+    echo "  Migrated: $rel_path → ${backup_path#"$TARGET"/}"
   fi
 }
 
@@ -149,8 +180,12 @@ snapshot_current_switch_state() {
     "$TARGET/.claude/skills"
     "$TARGET/.opencode/skills"
     "$TARGET/.agents/skills"
-    "$TARGET/.cursor/rules"
   )
+
+  local cursor_rel_path
+  for cursor_rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
+    managed_paths+=("$TARGET/$cursor_rel_path")
+  done
 
   rm -rf "$ROLLBACK_DIR"
   mkdir -p "$ROLLBACK_DIR"
@@ -235,7 +270,11 @@ remove_all_vendor_symlinks() {
   [[ -L "$TARGET/.claude/skills" ]] && rm "$TARGET/.claude/skills"
   [[ -L "$TARGET/.opencode/skills" ]] && rm "$TARGET/.opencode/skills"
   [[ -L "$TARGET/.agents/skills" ]] && rm "$TARGET/.agents/skills"
-  [[ -L "$TARGET/.cursor/rules" ]] && rm "$TARGET/.cursor/rules"
+  local cursor_rel_path cursor_abs_path
+  for cursor_rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
+    cursor_abs_path="$TARGET/$cursor_rel_path"
+    [[ -L "$cursor_abs_path" ]] && rm "$cursor_abs_path"
+  done
   
   # Clean up empty directories (only if they exist and are empty)
   [[ -d "$TARGET/.github/instructions" ]] && rmdir "$TARGET/.github/instructions" 2>/dev/null || true
@@ -317,7 +356,17 @@ create_vendor_symlinks() {
       fi
       ;;
     cursor)
-      if [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]]; then
+      if [[ -f "$CURSOR_SWITCH_MANIFEST" ]] && jq -e '.managed_paths | type == "array"' "$CURSOR_SWITCH_MANIFEST" > /dev/null 2>&1; then
+        local rel_target rel_source abs_target abs_source
+        while IFS=$'\t' read -r rel_target rel_source; do
+          [[ -z "$rel_target" || -z "$rel_source" ]] && continue
+          abs_target="$TARGET/$rel_target"
+          abs_source="$TARGET/$rel_source"
+          mkdir -p "$(dirname "$abs_target")"
+          ln -sfn "$abs_source" "$abs_target"
+          echo "    Linked: $rel_target → $rel_source"
+        done < <(jq -r '.managed_paths[]? | [.target, .source] | @tsv' "$CURSOR_SWITCH_MANIFEST")
+      elif [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]]; then
         mkdir -p "$TARGET/.cursor"
         ln -sfn "../.agentic/vendor-files/cursor/rules" "$TARGET/.cursor/rules"
         echo "    Linked: .cursor/rules → ../.agentic/vendor-files/cursor/rules"
@@ -331,7 +380,10 @@ preflight_vendor_conflicts() {
   local vendor="$1"
   case "$vendor" in
     cursor)
-      prepare_cursor_rules_path
+      local rel_path
+      for rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
+        prepare_cursor_rules_path "$rel_path"
+      done
       ;;
   esac
 }
@@ -375,6 +427,7 @@ for vendor in "${VENDORS[@]}"; do
   fi
 done
 
+load_cursor_managed_paths
 snapshot_current_switch_state
 trap on_switch_exit EXIT
 

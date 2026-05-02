@@ -5,9 +5,10 @@ gen_cursor() {
   echo "  Generating Cursor adapter..."
   local vendor_dir="$VENDOR_FILES_DIR/cursor"
   local rules_dir="$vendor_dir/rules"
-  local adapter="$LIBRARY/vendors/cursor/adapter.json"
   local lock_file="$TARGET/.agentic/config.yaml"
+  local manifest_file="$vendor_dir/switch-manifest.json"
   local structure="flat"
+  local manifest_entries='[{"target":".cursor/rules","source":".agentic/vendor-files/cursor/rules"}]'
 
   mkdir -p "$rules_dir"
   if [[ -f "$lock_file" ]]; then
@@ -31,9 +32,13 @@ gen_cursor() {
       local tier_rules_dir="$rules_dir/$tier"
       mkdir -p "$tier_rules_dir"
       generate_cursor_ruleset "$tier_rules_dir" "$tier_agents"
+      manifest_entries=$(printf '%s' "$manifest_entries" | jq --arg t "$tier" '. + [{"target":($t + "/.cursor/rules"),"source":(".agentic/vendor-files/cursor/rules/" + $t)}]')
       echo "  Created: .agentic/vendor-files/cursor/rules/$tier/00-core.mdc"
     done
   fi
+
+  jq -n --argjson managed "$manifest_entries" '{version: 1, managed_paths: $managed}' > "$manifest_file"
+  echo "  Created: .agentic/vendor-files/cursor/switch-manifest.json"
 }
 
 generate_cursor_ruleset() {

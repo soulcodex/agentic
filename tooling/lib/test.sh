@@ -2979,6 +2979,60 @@ assert_file_exists "$TMP/t134/.agentic/vendor-files/cursor/rules/00-core.mdc" "T
 assert_file_exists "$TMP/t134/.agentic/vendor-files/cursor/rules/backend/00-core.mdc" "T134 backend core"
 assert_file_exists "$TMP/t134/.agentic/vendor-files/cursor/rules/ui/00-core.mdc" "T134 ui core"
 
+# T135 — vendor-switch: cursor uses manifest-driven multi-path symlinks
+run_test "T135 — vendor-switch: cursor manifest multi-path activation"
+mkdir -p "$TMP/t135"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-next-ui \
+  --target "$TMP/t135" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t135" \
+  --vendors cursor \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t135" \
+  cursor \
+  > /dev/null 2>&1
+assert_file_exists "$TMP/t135/.agentic/vendor-files/cursor/switch-manifest.json" "T135 manifest"
+assert_symlink_exists "$TMP/t135/.cursor/rules" "T135 root symlink"
+assert_symlink_exists "$TMP/t135/backend/.cursor/rules" "T135 backend symlink"
+assert_symlink_exists "$TMP/t135/ui/.cursor/rules" "T135 ui symlink"
+
+# T136 — vendor-switch: cursor multi-path failure rolls back cleanly
+run_test "T136 — vendor-switch: cursor multi-path rollback on partial failure"
+mkdir -p "$TMP/t136"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-next-ui \
+  --target "$TMP/t136" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t136" \
+  --vendors claude,cursor \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t136" \
+  claude \
+  > /dev/null 2>&1
+printf '%s\n' "blocker" > "$TMP/t136/ui/.cursor"
+T136_OUTPUT=$(bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t136" \
+  cursor 2>&1) || T136_EXIT=$?
+T136_EXIT=${T136_EXIT:-0}
+assert_exit_code 1 "$T136_EXIT" "T136"
+assert_stdout_contains "$T136_OUTPUT" "rolling back state" "T136 rollback message"
+assert_symlink_exists "$TMP/t136/CLAUDE.md" "T136 claude restored"
+assert_file_not_exists "$TMP/t136/.cursor/rules" "T136 root cursor link removed"
+assert_file_not_exists "$TMP/t136/backend/.cursor/rules" "T136 backend cursor link removed"
+assert_file_contains "$TMP/t136/ui/.cursor" "blocker" "T136 blocker file preserved"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────"
