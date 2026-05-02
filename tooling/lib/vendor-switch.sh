@@ -134,7 +134,7 @@ prepare_cursor_rules_path() {
     backup_path="$(next_backup_path "$cursor_rules")"
     mv "$cursor_rules" "$backup_path"
     record_cursor_backup_move "$cursor_rules" "$backup_path"
-    echo "  Migrated: .cursor/rules → ${backup_path#$TARGET/}"
+    echo "  Migrated: .cursor/rules → ${backup_path#"$TARGET"/}"
   fi
 }
 
