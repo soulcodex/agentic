@@ -141,7 +141,7 @@ run_test() {
   num=$((10#$num))
   
   local tag="compose"
-  if (( num >= 8 && num <= 13 )) || (( num >= 28 && num <= 43 )) || (( num >= 42 && num <= 43 )) || (( num >= 124 && num <= 130 )); then
+  if (( num >= 8 && num <= 13 )) || (( num >= 28 && num <= 43 )) || (( num >= 42 && num <= 43 )) || (( num >= 124 && num <= 133 )); then
     tag="vendor"
   elif (( num == 14 )) || (( num == 73 )); then
     tag="lint"
@@ -2654,9 +2654,10 @@ bash "$VENDOR_SWITCH" \
 assert_file_exists "$TMP/t127/.cursor/mcp.json" "T127 mcp preserved"
 assert_not_symlink "$TMP/t127/.cursor/mcp.json" "T127 mcp not symlink"
 
-# T127B — vendor-switch: fail if .cursor/rules is a real directory
-run_test "T127B — vendor-switch: fails on real .cursor/rules dir"
+# T127B — vendor-switch: migrate real .cursor/rules directory to deterministic backup
+run_test "T127B — vendor-switch: migrates real .cursor/rules dir to backup"
 mkdir -p "$TMP/t127b/.cursor/rules"
+printf '%s\n' "legacy rules" > "$TMP/t127b/.cursor/rules/custom.mdc"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
@@ -2667,24 +2668,22 @@ bash "$VENDOR_GEN" \
   --target "$TMP/t127b" \
   --vendors cursor \
   > /dev/null 2>&1
-set +e
-T127B_OUTPUT=$(bash "$VENDOR_SWITCH" \
+bash "$VENDOR_SWITCH" \
   --library "$LIBRARY" \
   --target "$TMP/t127b" \
   cursor \
-  2>&1)
-T127B_CODE=$?
-set -e
-if [[ "$T127B_CODE" -ne 0 ]]; then
-  pass "T127B — vendor-switch failed as expected"
-else
-  fail "T127B — vendor-switch should fail when .cursor/rules is a real directory"
-fi
-assert_stdout_contains "$T127B_OUTPUT" ".cursor/rules exists and is not a symlink" "T127B error message"
+  > /dev/null 2>&1
+assert_symlink_exists "$TMP/t127b/.cursor/rules" "T127B rules symlink created"
+assert_file_exists "$TMP/t127b/.cursor/rules.backup/custom.mdc" "T127B backup created"
+assert_file_contains "$TMP/t127b/.agentic/config.yaml" "  - cursor" "T127B active vendor updated"
 
-# T127C — vendor-switch: conflict must not remove currently active vendor symlinks
-run_test "T127C — vendor-switch: conflict keeps existing vendor state"
+# T127C — vendor-switch: migration chooses .backup.N when .backup exists
+run_test "T127C — vendor-switch: uses incremental backup suffix"
 mkdir -p "$TMP/t127c"
+mkdir -p "$TMP/t127c/.cursor/rules"
+mkdir -p "$TMP/t127c/.cursor/rules.backup"
+printf '%s\n' "old backup" > "$TMP/t127c/.cursor/rules.backup/existing.txt"
+printf '%s\n' "legacy rules" > "$TMP/t127c/.cursor/rules/custom.mdc"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
@@ -2693,34 +2692,19 @@ bash "$COMPOSE" \
 bash "$VENDOR_GEN" \
   --library "$LIBRARY" \
   --target "$TMP/t127c" \
-  --vendors claude,cursor \
+  --vendors cursor \
   > /dev/null 2>&1
 bash "$VENDOR_SWITCH" \
   --library "$LIBRARY" \
   --target "$TMP/t127c" \
-  claude \
-  > /dev/null 2>&1
-mkdir -p "$TMP/t127c/.cursor/rules"
-set +e
-T127C_OUTPUT=$(bash "$VENDOR_SWITCH" \
-  --library "$LIBRARY" \
-  --target "$TMP/t127c" \
   cursor \
-  2>&1)
-T127C_CODE=$?
-set -e
-if [[ "$T127C_CODE" -ne 0 ]]; then
-  pass "T127C — vendor-switch failed as expected"
-else
-  fail "T127C — vendor-switch should fail when .cursor/rules is a real directory"
-fi
-assert_stdout_contains "$T127C_OUTPUT" ".cursor/rules exists and is not a symlink" "T127C error message"
-assert_symlink_exists "$TMP/t127c/CLAUDE.md" "T127C claude symlink preserved"
-assert_file_contains "$TMP/t127c/.agentic/config.yaml" "  - claude" "T127C active vendor unchanged"
-assert_file_not_contains "$TMP/t127c/.agentic/config.yaml" "  - cursor" "T127C cursor not activated"
+  > /dev/null 2>&1
+assert_symlink_exists "$TMP/t127c/.cursor/rules" "T127C rules symlink created"
+assert_file_exists "$TMP/t127c/.cursor/rules.backup.1/custom.mdc" "T127C incremental backup created"
+assert_file_exists "$TMP/t127c/.cursor/rules.backup/existing.txt" "T127C existing backup retained"
 
-# T127D — vendor-switch: multi-vendor conflict does not leave partial activation
-run_test "T127D — vendor-switch: no partial activation on cursor conflict"
+# T127D — vendor-switch: rollback restores prior vendor state on post-mutation failure
+run_test "T127D — vendor-switch: rollback restores prior state on failure"
 mkdir -p "$TMP/t127d"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -2730,26 +2714,38 @@ bash "$COMPOSE" \
 bash "$VENDOR_GEN" \
   --library "$LIBRARY" \
   --target "$TMP/t127d" \
-  --vendors claude,cursor \
+  --vendors claude,cursor,gemini \
   > /dev/null 2>&1
 mkdir -p "$TMP/t127d/.cursor/rules"
+printf '%s\n' "legacy rules" > "$TMP/t127d/.cursor/rules/custom.mdc"
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127d" \
+  claude \
+  > /dev/null 2>&1
+printf '%s\n' "block gemini dir" > "$TMP/t127d/.gemini"
 set +e
 T127D_OUTPUT=$(bash "$VENDOR_SWITCH" \
   --library "$LIBRARY" \
   --target "$TMP/t127d" \
-  claude cursor \
+  cursor gemini \
   2>&1)
 T127D_CODE=$?
 set -e
 if [[ "$T127D_CODE" -ne 0 ]]; then
   pass "T127D — vendor-switch failed as expected"
 else
-  fail "T127D — vendor-switch should fail when .cursor/rules is a real directory"
+  fail "T127D — vendor-switch should fail when gemini path is blocked"
 fi
-assert_stdout_contains "$T127D_OUTPUT" ".cursor/rules exists and is not a symlink" "T127D error message"
-assert_file_not_exists "$TMP/t127d/CLAUDE.md" "T127D no partial claude activation"
-assert_file_not_contains "$TMP/t127d/.agentic/config.yaml" "  - claude" "T127D config unchanged on failure"
-assert_file_not_contains "$TMP/t127d/.agentic/config.yaml" "  - cursor" "T127D config unchanged on failure"
+assert_stdout_contains "$T127D_OUTPUT" "rolling back state" "T127D rollback message"
+assert_symlink_exists "$TMP/t127d/CLAUDE.md" "T127D claude symlink restored"
+assert_not_symlink "$TMP/t127d/.cursor/rules" "T127D cursor rules restored as directory"
+assert_file_exists "$TMP/t127d/.cursor/rules/custom.mdc" "T127D cursor rules content restored"
+assert_file_not_exists "$TMP/t127d/GEMINI.md" "T127D gemini root link removed on rollback"
+assert_file_not_exists "$TMP/t127d/.gemini/system.md" "T127D gemini system link removed on rollback"
+assert_file_not_exists "$TMP/t127d/.gemini/skills" "T127D gemini skills link removed on rollback"
+assert_file_contains "$TMP/t127d/.agentic/config.yaml" "  - claude" "T127D active vendor unchanged"
+assert_file_not_contains "$TMP/t127d/.agentic/config.yaml" "  - cursor" "T127D cursor not activated"
 
 # T128 — config schema: active_vendors enum includes cursor
 run_test "T128 — config schema: enum includes cursor"
@@ -2765,6 +2761,107 @@ bash "$DEPLOY_SKILLS" \
   --vendor cursor \
   > /dev/null 2>&1
 assert_file_not_exists "$TMP/t129/.cursor/skills" "T129 no cursor skills symlink"
+
+# T130 — vendor-switch: rollback restores single-vendor state on gemini failure
+run_test "T130 — vendor-switch: rollback with existing cursor-only state"
+mkdir -p "$TMP/t130"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t130" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t130" \
+  --vendors cursor,gemini \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t130" \
+  cursor \
+  > /dev/null 2>&1
+printf '%s\n' "block gemini dir" > "$TMP/t130/.gemini"
+set +e
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t130" \
+  cursor gemini \
+  > /dev/null 2>&1
+T130_CODE=$?
+set -e
+assert_exit_code 1 "$T130_CODE" "T130"
+assert_symlink_exists "$TMP/t130/.cursor/rules" "T130 cursor symlink preserved"
+assert_file_not_exists "$TMP/t130/GEMINI.md" "T130 gemini root link removed on rollback"
+assert_file_not_exists "$TMP/t130/.gemini/system.md" "T130 gemini system link removed on rollback"
+assert_file_not_exists "$TMP/t130/.gemini/skills" "T130 gemini skills link removed on rollback"
+assert_file_contains "$TMP/t130/.agentic/config.yaml" "  - cursor" "T130 active vendor unchanged"
+assert_file_not_contains "$TMP/t130/.agentic/config.yaml" "  - gemini" "T130 gemini not activated"
+
+# T131 — vendor-switch: cursor remains rules-only (no .cursor/skills)
+run_test "T131 — vendor-switch: no .cursor/skills on activation"
+mkdir -p "$TMP/t131"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t131" \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t131" \
+  cursor \
+  > /dev/null 2>&1
+assert_file_not_exists "$TMP/t131/.cursor/skills" "T131 no cursor skills symlink"
+
+# T132 — vendor-switch: cursor backup migration preserves unrelated .cursor files
+run_test "T132 — vendor-switch: migration preserves .cursor/mcp.json"
+mkdir -p "$TMP/t132/.cursor/rules"
+printf '%s\n' "legacy rules" > "$TMP/t132/.cursor/rules/custom.mdc"
+printf '%s\n' '{"mcpServers":{"demo":{"command":"node"}}}' > "$TMP/t132/.cursor/mcp.json"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t132" \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t132" \
+  cursor \
+  > /dev/null 2>&1
+assert_file_exists "$TMP/t132/.cursor/mcp.json" "T132 mcp preserved"
+assert_file_exists "$TMP/t132/.cursor/rules.backup/custom.mdc" "T132 backup created"
+assert_symlink_exists "$TMP/t132/.cursor/rules" "T132 rules symlink created"
+
+# T133 — vendor-switch: backup naming increments across repeated migrations
+run_test "T133 — vendor-switch: deterministic incremental backup naming"
+mkdir -p "$TMP/t133"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t133" \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t133" \
+  cursor \
+  > /dev/null 2>&1
+rm "$TMP/t133/.cursor/rules"
+mkdir -p "$TMP/t133/.cursor/rules"
+printf '%s\n' "first legacy" > "$TMP/t133/.cursor/rules/first.mdc"
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t133" \
+  cursor \
+  > /dev/null 2>&1
+rm "$TMP/t133/.cursor/rules"
+mkdir -p "$TMP/t133/.cursor/rules"
+printf '%s\n' "second legacy" > "$TMP/t133/.cursor/rules/second.mdc"
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t133" \
+  cursor \
+  > /dev/null 2>&1
+assert_file_exists "$TMP/t133/.cursor/rules.backup/first.mdc" "T133 first backup"
+assert_file_exists "$TMP/t133/.cursor/rules.backup.1/second.mdc" "T133 second backup"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

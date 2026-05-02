@@ -106,6 +106,21 @@ require_arg() {
   fi
 }
 
+# Returns a deterministic backup path for a filesystem entry.
+# Example: /x/.cursor/rules -> /x/.cursor/rules.backup, then .backup.1, .backup.2...
+next_backup_path() {
+  local original="$1"
+  local candidate="${original}.backup"
+  local index=1
+
+  while [[ -e "$candidate" || -L "$candidate" ]]; do
+    candidate="${original}.backup.${index}"
+    index=$((index + 1))
+  done
+
+  echo "$candidate"
+}
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Vendor registry
 # ══════════════════════════════════════════════════════════════════════════════

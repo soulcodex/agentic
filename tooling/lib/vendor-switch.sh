@@ -40,6 +40,11 @@ VENDOR_GEN="$LIBRARY/tooling/lib/vendor-gen.sh"
 SYNC_SCRIPT="$LIBRARY/tooling/lib/sync.sh"
 CONFIG="$TARGET/.agentic/config.yaml"
 VENDOR_FILES_DIR="$TARGET/.agentic/vendor-files"
+ROLLBACK_DIR="$TARGET/.agentic/.switch-rollback"
+ROLLBACK_LINKS_FILE="$ROLLBACK_DIR/links.tsv"
+ROLLBACK_CONFIG_FILE="$ROLLBACK_DIR/config.yaml"
+ROLLBACK_CURSOR_MOVES_FILE="$ROLLBACK_DIR/cursor-moves.tsv"
+SWITCH_COMMITTED=0
 
 # Use AGENTIC_VENDORS from common.sh (single source of truth)
 
@@ -115,6 +120,106 @@ migrate_active_vendor_format() {
   fi
 }
 
+record_cursor_backup_move() {
+  local original="$1"
+  local backup="$2"
+  mkdir -p "$ROLLBACK_DIR"
+  printf '%s\t%s\n' "$original" "$backup" >> "$ROLLBACK_CURSOR_MOVES_FILE"
+}
+
+prepare_cursor_rules_path() {
+  local cursor_rules="$TARGET/.cursor/rules"
+  if [[ -e "$cursor_rules" && ! -L "$cursor_rules" ]]; then
+    local backup_path
+    backup_path="$(next_backup_path "$cursor_rules")"
+    mv "$cursor_rules" "$backup_path"
+    record_cursor_backup_move "$cursor_rules" "$backup_path"
+    echo "  Migrated: .cursor/rules → ${backup_path#$TARGET/}"
+  fi
+}
+
+snapshot_current_switch_state() {
+  local managed_paths=(
+    "$TARGET/CLAUDE.md"
+    "$TARGET/.github/copilot-instructions.md"
+    "$TARGET/.github/instructions"
+    "$TARGET/GEMINI.md"
+    "$TARGET/.gemini/system.md"
+    "$TARGET/.gemini/skills"
+    "$TARGET/.claude/skills"
+    "$TARGET/.opencode/skills"
+    "$TARGET/.agents/skills"
+    "$TARGET/.cursor/rules"
+  )
+
+  rm -rf "$ROLLBACK_DIR"
+  mkdir -p "$ROLLBACK_DIR"
+  : > "$ROLLBACK_LINKS_FILE"
+  : > "$ROLLBACK_CURSOR_MOVES_FILE"
+
+  if [[ -f "$CONFIG" ]]; then
+    cp "$CONFIG" "$ROLLBACK_CONFIG_FILE"
+  fi
+
+  local path
+  for path in "${managed_paths[@]}"; do
+    if [[ -L "$path" ]]; then
+      printf '%s\t%s\n' "$path" "$(readlink "$path")" >> "$ROLLBACK_LINKS_FILE"
+    fi
+  done
+}
+
+rollback_switch_state() {
+  local original backup link_path link_target
+
+  remove_all_vendor_symlinks
+
+  if [[ -f "$ROLLBACK_LINKS_FILE" ]]; then
+    while IFS=$'\t' read -r link_path link_target; do
+      [[ -z "$link_path" || -z "$link_target" ]] && continue
+      mkdir -p "$(dirname "$link_path")"
+      ln -sfn "$link_target" "$link_path"
+    done < "$ROLLBACK_LINKS_FILE"
+  fi
+
+  if [[ -f "$ROLLBACK_CONFIG_FILE" ]]; then
+    cp "$ROLLBACK_CONFIG_FILE" "$CONFIG"
+  fi
+
+  if [[ -f "$ROLLBACK_CURSOR_MOVES_FILE" ]]; then
+    while IFS=$'\t' read -r original backup; do
+      [[ -z "$original" || -z "$backup" ]] && continue
+      if [[ -L "$original" ]]; then
+        rm "$original"
+      fi
+      if [[ ! -e "$original" && -e "$backup" ]]; then
+        mv "$backup" "$original"
+      fi
+    done < "$ROLLBACK_CURSOR_MOVES_FILE"
+  fi
+}
+
+cleanup_rollback_artifacts() {
+  rm -rf "$ROLLBACK_DIR"
+}
+
+on_switch_error() {
+  local exit_code="$1"
+  set +e
+  if [[ "$exit_code" -ne 0 && "$SWITCH_COMMITTED" -eq 0 ]]; then
+    echo "Switch failed; rolling back state..." >&2
+    rollback_switch_state
+  fi
+  cleanup_rollback_artifacts
+  set -e
+}
+
+on_switch_exit() {
+  local exit_code=$?
+  on_switch_error "$exit_code"
+  exit "$exit_code"
+}
+
 # ── Remove all vendor symlinks ─────────────────────────────────────────────────
 remove_all_vendor_symlinks() {
   # Remove vendor entrypoint symlinks (check if symlink before removing)
@@ -122,7 +227,7 @@ remove_all_vendor_symlinks() {
 
   [[ -L "$TARGET/.github/copilot-instructions.md" ]] && rm "$TARGET/.github/copilot-instructions.md"
   [[ -L "$TARGET/.github/instructions" ]] && rm "$TARGET/.github/instructions"
-  [[ -L "$TARGET/.gemini/GEMINI.md" ]] && rm "$TARGET/GEMINI.md"
+  [[ -L "$TARGET/GEMINI.md" ]] && rm "$TARGET/GEMINI.md"
   [[ -L "$TARGET/.gemini/system.md" ]] && rm "$TARGET/.gemini/system.md"
   [[ -L "$TARGET/.gemini/skills" ]] && rm "$TARGET/.gemini/skills"
   
@@ -214,10 +319,6 @@ create_vendor_symlinks() {
     cursor)
       if [[ -d "$VENDOR_FILES_DIR/cursor/rules" ]]; then
         mkdir -p "$TARGET/.cursor"
-        if [[ -e "$TARGET/.cursor/rules" && ! -L "$TARGET/.cursor/rules" ]]; then
-          echo "Error: .cursor/rules exists and is not a symlink. Move or remove it, then rerun vendor switch." >&2
-          exit 1
-        fi
         ln -sfn "../.agentic/vendor-files/cursor/rules" "$TARGET/.cursor/rules"
         echo "    Linked: .cursor/rules → ../.agentic/vendor-files/cursor/rules"
       fi
@@ -230,10 +331,7 @@ preflight_vendor_conflicts() {
   local vendor="$1"
   case "$vendor" in
     cursor)
-      if [[ -e "$TARGET/.cursor/rules" && ! -L "$TARGET/.cursor/rules" ]]; then
-        echo "Error: .cursor/rules exists and is not a symlink. Move or remove it, then rerun vendor switch." >&2
-        exit 1
-      fi
+      prepare_cursor_rules_path
       ;;
   esac
 }
@@ -277,6 +375,9 @@ for vendor in "${VENDORS[@]}"; do
   fi
 done
 
+snapshot_current_switch_state
+trap on_switch_exit EXIT
+
 # Preflight conflicts before mutating symlinks, to keep switches atomic on failure
 for vendor in "${VENDORS[@]}"; do
   preflight_vendor_conflicts "$vendor"
@@ -305,6 +406,9 @@ if [[ -f "$CONFIG" ]]; then
   # Remove old active_vendor if present, set active_vendors array
   yq -i "del(.active_vendor) | .active_vendors = $yaml_array" "$CONFIG"
 fi
+
+SWITCH_COMMITTED=1
+cleanup_rollback_artifacts
 
 echo ""
 echo "Activated vendors: ${VENDORS[*]}"
