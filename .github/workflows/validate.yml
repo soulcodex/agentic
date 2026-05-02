@@ -78,13 +78,25 @@ jobs:
       - name: Read total coverage
         id: coverage
         run: |
-          line_rate="$(grep -m1 -o 'line-rate=\"[0-9.]*\"' coverage/cobertura.xml | cut -d'"' -f2)"
+          cobertura_file="$(find coverage -type f -name 'cobertura.xml' | head -n1)"
+          if [[ -z "$cobertura_file" ]]; then
+            echo "Error: cobertura.xml not found under coverage/." >&2
+            echo "Coverage directory contents:" >&2
+            find coverage -maxdepth 4 -type f >&2 || true
+            exit 1
+          fi
+          line_rate="$(grep -m1 -o 'line-rate=\"[0-9.]*\"' "$cobertura_file" | cut -d'"' -f2)"
+          if [[ -z "$line_rate" ]]; then
+            echo "Error: line-rate not found in $cobertura_file" >&2
+            exit 1
+          fi
           coverage_percent="$(awk "BEGIN { printf \"%.2f\", ${line_rate} * 100 }")"
           echo "line_rate=${line_rate}" >> "$GITHUB_OUTPUT"
           echo "coverage_percent=${coverage_percent}" >> "$GITHUB_OUTPUT"
           {
             echo "## Test Coverage"
             echo ""
+            echo "Cobertura file: \`$cobertura_file\`"
             echo "Total line coverage: ${coverage_percent}%"
           } >> "$GITHUB_STEP_SUMMARY"
 
