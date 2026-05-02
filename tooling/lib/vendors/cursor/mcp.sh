@@ -2,7 +2,7 @@
 # cursor/mcp.sh — MCP seeding target for .cursor/mcp.json
 
 seed_cursor_mcp_target() {
-  local cursor_mcp_file="$CURSOR_MCP_FILE"
+  local cursor_mcp_file="${CURSOR_MCP_FILE:-$TARGET/.cursor/mcp.json}"
   if [[ -f "$cursor_mcp_file" ]]; then
     if ! jq -e '.mcpServers // {}' "$cursor_mcp_file" > /dev/null 2>&1; then
       echo "Error: existing .cursor/mcp.json is invalid JSON; refusing to overwrite" >&2
