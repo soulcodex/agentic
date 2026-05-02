@@ -31,8 +31,39 @@ jobs:
       - name: Lint fragments, profiles, and adapters
         run: just lint
 
-      - name: Run integration tests
-        run: just test
+      - name: Install kcov
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y kcov
+
+      - name: Run integration tests with coverage
+        run: |
+          rm -rf coverage
+          kcov \
+            --include-path="${PWD}/tooling/lib" \
+            --exclude-path="${PWD}/tests,${PWD}/coverage" \
+            ./coverage \
+            ./tooling/lib/test.sh --library "${PWD}"
+
+      - name: Read total coverage
+        id: coverage
+        run: |
+          line_rate="$(grep -m1 -o 'line-rate=\"[0-9.]*\"' coverage/cobertura.xml | cut -d'"' -f2)"
+          coverage_percent="$(awk "BEGIN { printf \"%.2f\", ${line_rate} * 100 }")"
+          echo "line_rate=${line_rate}" >> "$GITHUB_OUTPUT"
+          echo "coverage_percent=${coverage_percent}" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Test Coverage"
+            echo ""
+            echo "Total line coverage: ${coverage_percent}%"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: kcov-html-report
+          path: coverage/
+          if-no-files-found: error
 
       - name: Rebuild indexes
         run: just index
