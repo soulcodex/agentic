@@ -54,6 +54,8 @@ Behavior:
 - If `.agentic/providers.yaml` is missing, behavior is unchanged (backward compatible).
 - If present but invalid, `agentic compose` and `agentic sync` fail with a clear error.
 - This file influences runtime pivot preferences only; `AGENTS.md` remains canonical.
+- Cursor provider/model mapping is intentionally unsupported until Cursor publishes
+  an official project-local contract for that configuration surface.
 
 ## MCP Configuration (Pivot Model)
 
