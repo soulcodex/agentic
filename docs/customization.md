@@ -74,6 +74,7 @@ servers:
 - `.mcp.json` (Claude shape)
 - `opencode.json` (`mcp` block translation)
 - `.gemini/settings.json` (`mcpServers` translation)
+- `.cursor/mcp.json` (`mcpServers` translation)
 
 If `.agentic/mcp.yaml` is missing, legacy `mcp:` under `.agentic/profile.yaml`
 is still supported for backward compatibility, but deprecated.

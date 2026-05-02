@@ -1442,6 +1442,8 @@ assert_file_contains "$TMP/t68/opencode.json" '"environment"' "T68"
 run_test "T69 — compose: MCP seed translates for .gemini/settings.json"
 mkdir -p "$TMP/t69/.gemini"
 echo '{"mcpServers":{}}' > "$TMP/t69/.gemini/settings.json"
+mkdir -p "$TMP/t69/.cursor"
+echo '{"mcpServers":{}}' > "$TMP/t69/.cursor/mcp.json"
 
 cat > "$TMP/t69-profile.yaml" <<'EOF'
 meta:
@@ -1475,6 +1477,9 @@ assert_file_contains "$TMP/t69/.gemini/settings.json" "http-server" "T69"
 assert_file_contains "$TMP/t69/.gemini/settings.json" "httpUrl" "T69"
 # Should NOT contain 'type' field
 assert_file_not_contains "$TMP/t69/.gemini/settings.json" '"type"' "T69"
+assert_file_exists "$TMP/t69/.cursor/mcp.json" "T69 cursor"
+assert_file_contains "$TMP/t69/.cursor/mcp.json" "http-server" "T69 cursor server"
+assert_file_contains "$TMP/t69/.cursor/mcp.json" '"mcpServers"' "T69 cursor shape"
 
 # T70 — compose: MCP merge strategy preserves existing servers
 run_test "T70 — compose: MCP merge preserves existing servers"
@@ -1518,6 +1523,8 @@ assert_file_contains "$TMP/t70/.mcp.json" "new-server" "T70"
 run_test "T71 — compose: MCP replace removes old servers"
 mkdir -p "$TMP/t71"
 echo '{"mcpServers":{"old-server":{"type":"stdio","command":"old","args":["old"]}}}' > "$TMP/t71/.mcp.json"
+mkdir -p "$TMP/t71/.cursor"
+echo '{"mcpServers":{"old-server":{"type":"stdio","command":"old","args":["old"]}}}' > "$TMP/t71/.cursor/mcp.json"
 
 cat > "$TMP/t71-profile.yaml" <<'EOF'
 meta:
@@ -1549,6 +1556,43 @@ bash "$COMPOSE" \
 
 assert_file_contains "$TMP/t71/.mcp.json" "brand-new" "T71"
 assert_file_not_contains "$TMP/t71/.mcp.json" "old-server" "T71"
+assert_file_contains "$TMP/t71/.cursor/mcp.json" "brand-new" "T71 cursor"
+assert_file_not_contains "$TMP/t71/.cursor/mcp.json" "old-server" "T71 cursor replace"
+
+# T71B — compose: invalid existing .cursor/mcp.json fails safely
+run_test "T71B — compose: invalid .cursor/mcp.json fails"
+mkdir -p "$TMP/t71b/.cursor"
+cat > "$TMP/t71b-profile.yaml" <<'EOF'
+meta:
+  name: Test Cursor MCP Invalid
+  description: Test invalid existing cursor mcp json
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+mcp:
+  strategy: merge
+  servers:
+    server-a:
+      type: stdio
+      command: npx
+      args: ["-y", "foo"]
+EOF
+printf '%s\n' '{invalid' > "$TMP/t71b/.cursor/mcp.json"
+T71B_EXIT=0
+T71B_OUTPUT=$(bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t71b-profile.yaml" \
+  --target "$TMP/t71b" \
+  2>&1) || T71B_EXIT=$?
+assert_exit_code 1 "$T71B_EXIT" "T71B"
+assert_stdout_contains "$T71B_OUTPUT" "existing .cursor/mcp.json is invalid JSON" "T71B error"
 
 # T72 — compose: profile without mcp key produces no MCP files
 run_test "T72 — compose: profile without mcp key is no-op"

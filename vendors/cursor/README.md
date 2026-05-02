@@ -14,5 +14,4 @@ Cursor vendor adapter for `.cursor/rules/*.mdc` output.
 Not in scope for this adapter:
 
 - `.agentic/providers.yaml` integration
-- `.agentic/mcp.yaml` to `.cursor/mcp.json` translation
 - nested `.cursor/rules` support
