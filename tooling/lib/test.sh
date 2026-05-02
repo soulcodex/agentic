@@ -2238,20 +2238,20 @@ bash "$DEPLOY_SKILLS" \
 
 assert_symlink_exists "$TMP/t96/.gemini/skills" "T96 .gemini/skills symlink"
 
-# T97 — vendor isolation: vendors/gemini.sh exists and is a regular file
-run_test "T97 — vendor isolation: vendors/gemini.sh exists"
-if [[ -f "$LIBRARY/tooling/lib/vendors/gemini.sh" ]]; then
-  pass "T97 — vendors/gemini.sh exists"
+# T97 — vendor isolation: vendors/gemini/gen.sh exists and is a regular file
+run_test "T97 — vendor isolation: vendors/gemini/gen.sh exists"
+if [[ -f "$LIBRARY/tooling/lib/vendors/gemini/gen.sh" ]]; then
+  pass "T97 — vendors/gemini/gen.sh exists"
 else
-  fail "T97 — vendors/gemini.sh should exist"
+  fail "T97 — vendors/gemini/gen.sh should exist"
 fi
 
-# T98 — vendor isolation: vendors/claude.sh exists and is a regular file
-run_test "T98 — vendor isolation: vendors/claude.sh exists"
-if [[ -f "$LIBRARY/tooling/lib/vendors/claude.sh" ]]; then
-  pass "T98 — vendors/claude.sh exists"
+# T98 — vendor isolation: vendors/claude/gen.sh exists and is a regular file
+run_test "T98 — vendor isolation: vendors/claude/gen.sh exists"
+if [[ -f "$LIBRARY/tooling/lib/vendors/claude/gen.sh" ]]; then
+  pass "T98 — vendors/claude/gen.sh exists"
 else
-  fail "T98 — vendors/claude.sh should exist"
+  fail "T98 — vendors/claude/gen.sh should exist"
 fi
 
 # T99 — init: creates .agentic skeleton files
