@@ -165,6 +165,8 @@ Cursor-specific behavior:
 - If a managed Cursor rules path is a real directory, it is migrated to deterministic backups:
   `<path>.backup`, then `<path>.backup.N`.
 - If activation fails mid-switch, agentic rolls back to the prior symlink/config state.
+- Cursor provider/model mapping from `.agentic/providers.yaml` is intentionally unsupported
+  until Cursor publishes an official project-local contract.
 
 ### sync
 

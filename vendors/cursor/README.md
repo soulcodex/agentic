@@ -17,3 +17,4 @@ Cursor vendor adapter for `.cursor/rules/*.mdc` output.
 Not in scope for this adapter:
 
 - `.agentic/providers.yaml` integration
+- Cursor provider/model mapping from `.agentic/providers.yaml` (intentionally unsupported until Cursor publishes an official project-local contract)

@@ -65,6 +65,8 @@ If a real `.cursor/rules` directory already exists, switch migrates it to
 `.cursor/rules.backup` (or `.cursor/rules.backup.N`) before linking.
 If a multi-vendor switch fails after mutation begins, agentic rolls back prior
 symlinks/config and restores migrated Cursor rules.
+Cursor provider/model mapping is intentionally unsupported until Cursor publishes
+an official project-local contract for that configuration surface.
 
 ## MCP Pivot Model
 
