@@ -21,87 +21,36 @@ jobs:
 
       - name: Install yq
         run: |
-          sudo wget -qO /usr/local/bin/yq \
+          wget -qO /usr/local/bin/yq \
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
 
       - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+        run: sudo apt-get install -y jq
 
       - name: Lint fragments, profiles, and adapters
         run: just lint
+
+      - name: Run integration tests
+        run: just test
 
       - name: Rebuild indexes
         run: just index
 
       - name: Check index files are up to date
         run: |
+          # generated_at is a wall-clock timestamp that always differs in CI.
+          # Restore it to the committed value before diffing so only substantive
+          # changes (added/removed fragments or skills) cause a failure.
           for file in index/fragments.json index/skills.json; do
             committed_at=$(git show HEAD:"$file" | jq -r '.generated_at')
             jq --arg t "$committed_at" '.generated_at = $t' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
           done
-
           if ! git diff --quiet index/; then
             echo "Index files are out of date. Run 'just index' and commit the result."
             git diff index/
             exit 1
           fi
-
-  coverage:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Install yq
-        run: |
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Install kcov
-        run: |
-          wget -q https://github.com/SimonKagstrom/kcov/releases/download/v43/kcov-amd64.tar.gz
-          tar -xzf kcov-amd64.tar.gz
-          sudo cp kcov-amd64/usr/local/bin/kcov /usr/local/bin/kcov
-          kcov --version
-
-      - name: Prepare coverage runner
-        run: |
-          cat > ./coverage-test.sh <<EOF
-          #!/usr/bin/env bash
-          set -euo pipefail
-
-          "${GITHUB_WORKSPACE}/tooling/lib/test.sh" \
-            --library "${GITHUB_WORKSPACE}"
-          EOF
-
-          chmod +x ./coverage-test.sh
-          cat ./coverage-test.sh
-
-      - name: Run tests with coverage
-        run: |
-          rm -rf coverage
-
-          kcov \
-            --dump-summary \
-            --include-path="${GITHUB_WORKSPACE}" \
-            --exclude-path="${GITHUB_WORKSPACE}/tests,${GITHUB_WORKSPACE}/coverage" \
-            ./coverage \
-            ./coverage-test.sh
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
-        with:
-          name: kcov-html-report
-          path: coverage/
-          if-no-files-found: error
 
   docs-build:
     runs-on: ubuntu-latest
