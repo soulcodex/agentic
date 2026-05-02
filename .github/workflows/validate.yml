@@ -52,7 +52,7 @@ jobs:
             libelf-dev \
             libiberty-dev \
             libssl-dev \
-            libstdc++-dev \
+            libstdc++-12-dev \
             zlib1g-dev
 
           git clone --depth 1 --branch v43 https://github.com/SimonKagstrom/kcov.git /tmp/kcov-src
