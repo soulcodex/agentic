@@ -7,6 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=tooling/lib/common.sh
 source "$SCRIPT_DIR/common.sh"
+# shellcheck source=tooling/lib/providers.sh
+source "$SCRIPT_DIR/providers.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 LIBRARY=""
@@ -45,6 +47,8 @@ done
 [[ -z "$LIBRARY" ]] && { echo "Error: --library required" >&2; exit 1; }
 [[ -z "$PROFILE" && -z "$PROFILE_FILE" ]] && { echo "Error: --profile or --profile-file required" >&2; exit 1; }
 [[ -z "$TARGET"  ]] && { echo "Error: --target required" >&2; exit 1; }
+
+validate_providers_config "$TARGET"
 
 # ── Profile resolution ────────────────────────────────────────────────────────
 # If --profile-file is provided, use it directly; otherwise lookup by name
