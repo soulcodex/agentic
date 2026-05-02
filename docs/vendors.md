@@ -11,6 +11,7 @@ agentic generates vendor-specific instruction files from a single `AGENTS.md` so
 | **OpenAI Codex** | `AGENTS.md` | `AGENTS.md` natively; hierarchical for monorepos (tier AGENTS.md files) |
 | **Gemini CLI** | `GEMINI.md`, `.gemini/system.md` | Root context file (auto-discovered) + system-prompt override |
 | **Opencode** | `AGENTS.md` | `AGENTS.md` natively; skills in `.opencode/skills/` |
+| **Cursor** | `.cursor/rules/*.mdc` | Rules model with one always-on core rule + auto-attached language rules |
 
 ## How Each Vendor Uses AGENTS.md
 
@@ -52,6 +53,16 @@ Skills are deployed natively to `.gemini/skills/` and activated lazily via the
 ### Opencode
 
 Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`. Opencode also supports `.claude/skills/` and `.agents/skills/` as compatibility fallbacks.
+
+### Cursor
+
+Cursor uses `.cursor/rules/*.mdc`. The adapter generates files into
+`.agentic/vendor-files/cursor/rules/`, then `agentic switch cursor` symlinks only
+`.cursor/rules`. This preserves unrelated `.cursor/*` files such as `.cursor/mcp.json`.
+If a real `.cursor/rules` directory already exists, switch migrates it to
+`.cursor/rules.backup` (or `.cursor/rules.backup.N`) before linking.
+If a multi-vendor switch fails after mutation begins, agentic rolls back prior
+symlinks/config and restores migrated Cursor rules.
 
 ## MCP Pivot Model
 
@@ -108,3 +119,4 @@ Multiple vendors can be active simultaneously since their symlink paths don't co
 | `codex` | `.agents/skills` (reads `AGENTS.md` natively) |
 | `gemini` | `GEMINI.md`, `.gemini/system.md`, `.gemini/skills` |
 | `opencode` | `.opencode/skills` |
+| `cursor` | `.cursor/rules` |

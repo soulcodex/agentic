@@ -106,12 +106,27 @@ require_arg() {
   fi
 }
 
+# Returns a deterministic backup path for a filesystem entry.
+# Example: /x/.cursor/rules -> /x/.cursor/rules.backup, then .backup.1, .backup.2...
+next_backup_path() {
+  local original="$1"
+  local candidate="${original}.backup"
+  local index=1
+
+  while [[ -e "$candidate" || -L "$candidate" ]]; do
+    candidate="${original}.backup.${index}"
+    index=$((index + 1))
+  done
+
+  echo "$candidate"
+}
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Vendor registry
 # ══════════════════════════════════════════════════════════════════════════════
 
 # All supported vendors (single source of truth)
-export AGENTIC_VENDORS=(claude copilot codex gemini opencode)
+export AGENTIC_VENDORS=(claude copilot codex gemini opencode cursor)
 
 # Get vendor skill directory path
 # Usage: get_vendor_skill_dir <vendor>
@@ -122,6 +137,7 @@ get_vendor_skill_dir() {
     opencode) echo ".opencode/skills" ;;
     codex)    echo ".agents/skills" ;;
     gemini)   echo ".gemini/skills" ;;
+    cursor)   echo "" ;;           # Cursor rules-only adapter; no native skills path
     copilot)  echo "" ;;           # Copilot uses prompt-injected skills
     *)        echo "" ;;
   esac

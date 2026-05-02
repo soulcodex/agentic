@@ -99,7 +99,7 @@ agentic list profiles|skills|vendors          # list available resources
 
 ## Supported AI Tools
 
-Claude, GitHub Copilot, Gemini CLI, OpenAI Codex, Opencode — all from one `AGENTS.md`.
+Claude, GitHub Copilot, Gemini CLI, OpenAI Codex, Opencode, Cursor (rules-only) — all from one `AGENTS.md`.
 
 → [Vendor details](https://agentic.soulcodex.link/vendors)
 

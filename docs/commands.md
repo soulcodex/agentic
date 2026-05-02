@@ -59,7 +59,7 @@ agentic deploy <profile> [target] <vendors> [options]
 |---|---|---|
 | `profile` | ✅ | Profile name — see `agentic list profiles` |
 | `target` | optional | Project directory, auto-detected from current dir if omitted |
-| `vendors` | ✅ | Comma-separated vendors to activate: `claude`, `copilot`, `gemini`, `codex`, `opencode` |
+| `vendors` | ✅ | Comma-separated vendors to activate: `claude`, `copilot`, `gemini`, `codex`, `opencode`, `cursor` |
 
 | Option | Description |
 |---|---|
@@ -153,9 +153,16 @@ agentic switch [target] list
 ```bash
 agentic switch claude              # Activate only Claude
 agentic switch gemini              # Activate only Gemini
+agentic switch cursor              # Activate only Cursor
 agentic switch claude,copilot      # Activate multiple vendors
 agentic switch list                # Show available vendors
 ```
+
+Cursor-specific behavior:
+- `switch` manages only `.cursor/rules` (no `.cursor/skills` behavior).
+- If `.cursor/rules` is a real directory, it is migrated to deterministic backups:
+  `.cursor/rules.backup`, then `.cursor/rules.backup.N`.
+- If activation fails mid-switch, agentic rolls back to the prior symlink/config state.
 
 ### sync
 

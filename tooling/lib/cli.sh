@@ -482,8 +482,9 @@ cmd_list() {
       echo "  claude     Claude Code (CLAUDE.md, .claude/)"
       echo "  copilot    GitHub Copilot (.github/copilot-instructions.md)"
       echo "  codex      OpenAI Codex (AGENTS.md, .agents/)"
-      echo "  gemini     Gemini CLI (.gemini/systemPrompt.md)"
-      echo "  opencode   Opencode (opencode.json, .opencode/)"
+      echo "  gemini     Gemini CLI (GEMINI.md, .gemini/system.md)"
+      echo "  opencode   Opencode (AGENTS.md, .opencode/)"
+      echo "  cursor     Cursor (.cursor/rules/*.mdc)"
       ;;
     *)
       die "Unknown resource: $resource. Use: profiles, skills, fragments, vendors"

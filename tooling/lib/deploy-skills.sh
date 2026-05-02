@@ -109,6 +109,7 @@ This directory contains reusable agent skills deployed by the agentic library.
 | Codex | `.agents/skills/` (symlinked here) | Native |
 | Copilot | Injected into copilot-instructions.md | Prompt-injected |
 | Gemini | `.gemini/skills/` (symlinked here) | Native (lazy via activate_skill) |
+| Cursor | Rules-only (`.cursor/rules/*.mdc`) | No native skills path |
 
 ## How It Works
 
@@ -202,6 +203,9 @@ create_skill_symlinks() {
       rm -f "$TARGET/.gemini/skills"
       ln -s "../.agentic/skills" "$TARGET/.gemini/skills"
       echo "  Linked: .gemini/skills → ../.agentic/skills"
+      ;;
+    cursor)
+      echo "  cursor uses .cursor/rules only — no skill symlink needed"
       ;;
     *)
       echo "  Unknown vendor '$vendor' — skipping skill symlinks"

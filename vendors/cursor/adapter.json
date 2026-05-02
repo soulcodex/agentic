@@ -1,0 +1,86 @@
+{
+  "$schema": "../_schema/adapter.schema.json",
+  "vendor": "cursor",
+  "version": "1.0.0",
+  "output_paths": {
+    "base": ".cursor/rules"
+  },
+  "section_mappings": [
+    {
+      "agents_md_heading": "## Git Conventions",
+      "output_file": "00-core.mdc",
+      "activation_mode": "always-on",
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    {
+      "agents_md_heading": "## Security",
+      "output_file": "00-core.mdc",
+      "activation_mode": "always-on",
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    {
+      "agents_md_heading": "## Code Review",
+      "output_file": "00-core.mdc",
+      "activation_mode": "always-on",
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    {
+      "agents_md_heading": "## Testing Philosophy",
+      "output_file": "00-core.mdc",
+      "activation_mode": "always-on",
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    {
+      "agents_md_heading": "## Documentation",
+      "output_file": "00-core.mdc",
+      "activation_mode": "always-on",
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    {
+      "agents_md_heading": "## TypeScript",
+      "output_file": "10-typescript.mdc",
+      "activation_mode": "glob-scoped",
+      "frontmatter": {
+        "globs": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"]
+      }
+    },
+    {
+      "agents_md_heading": "## Go",
+      "output_file": "20-go.mdc",
+      "activation_mode": "glob-scoped",
+      "frontmatter": {
+        "globs": ["**/*.go"]
+      }
+    },
+    {
+      "agents_md_heading": "## Python",
+      "output_file": "30-python.mdc",
+      "activation_mode": "glob-scoped",
+      "frontmatter": {
+        "globs": ["**/*.py"]
+      }
+    },
+    {
+      "agents_md_heading": "## PHP",
+      "output_file": "40-php.mdc",
+      "activation_mode": "glob-scoped",
+      "frontmatter": {
+        "globs": ["**/*.php"]
+      }
+    }
+  ],
+  "unsupported_sections": [],
+  "character_limit_per_file": null,
+  "total_character_limit": null,
+  "notes": "Cursor adapter targets .cursor/rules/*.mdc. One always-on core rule is generated and language rules are generated only when matching language sections exist. Vendor switching manages only .cursor/rules and migrates pre-existing real directories to deterministic backups (.backup, .backup.N) before symlink activation."
+}

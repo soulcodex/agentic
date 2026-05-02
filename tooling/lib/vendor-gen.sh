@@ -141,6 +141,8 @@ source "$SCRIPT_DIR/vendors/codex.sh"
 source "$SCRIPT_DIR/vendors/gemini.sh"
 # shellcheck source=tooling/lib/vendors/opencode.sh
 source "$SCRIPT_DIR/vendors/opencode.sh"
+# shellcheck source=tooling/lib/vendors/cursor.sh
+source "$SCRIPT_DIR/vendors/cursor.sh"
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 mkdir -p "$VENDOR_FILES_DIR"
@@ -153,6 +155,7 @@ for vendor in $(resolve_vendors); do
     codex)    gen_codex    ;;
     gemini)   gen_gemini   ;;
     opencode) gen_opencode ;;
+    cursor)   gen_cursor   ;;
     *) echo "Warning: unknown vendor '$vendor' — skipping" >&2 ;;
   esac
 done
