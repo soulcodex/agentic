@@ -246,10 +246,12 @@ are gitignored automatically.
 > `.gemini/system.md`, `.cursor/rules`, etc.) are always gitignored in both modes — they are always
 > regenerated and have no standalone value in git history.
 >
-> For Cursor specifically, `agentic switch cursor` only manages `.cursor/rules`. If a
-> real `.cursor/rules` directory exists, agentic migrates it to
-> `.cursor/rules.backup` (or `.backup.N`) before linking, and restores it if switch
-> activation later fails and triggers rollback.
+> For Cursor specifically, `agentic switch cursor` reads
+> `.agentic/vendor-files/cursor/switch-manifest.json` and manages all declared Cursor rule
+> paths (for example `.cursor/rules`, `backend/.cursor/rules`, `ui/.cursor/rules`).
+> If any managed path already exists as a real directory, agentic migrates it to
+> `<path>.backup` (or `.backup.N`) before linking, and restores prior state if activation
+> later fails and triggers rollback.
 
 ### Switching between modes
 
