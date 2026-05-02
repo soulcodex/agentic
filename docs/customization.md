@@ -14,7 +14,7 @@ agentic init
 ```
 
 This creates `.agentic/config.yaml`, `.agentic/profile.yaml`,
-`.agentic/mcp.yaml`, and `.agentic/project-skills/`.
+`.agentic/mcp.yaml`, `.agentic/providers.yaml`, and `.agentic/project-skills/`.
 
 ### What You Can Customize
 
@@ -33,6 +33,27 @@ agentic sync
 ```
 
 This re-runs compose with your local profile, regenerates vendor files, and preserves your active vendors.
+
+## Providers Configuration
+
+Optional provider preferences live in `.agentic/providers.yaml`:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/providers.schema.json
+version: "1"
+default_provider: "claude"
+providers:
+  claude:
+    enabled: true
+  cursor:
+    enabled: true
+```
+
+Behavior:
+
+- If `.agentic/providers.yaml` is missing, behavior is unchanged (backward compatible).
+- If present but invalid, `agentic compose` and `agentic sync` fail with a clear error.
+- This file influences runtime pivot preferences only; `AGENTS.md` remains canonical.
 
 ## MCP Configuration (Pivot Model)
 

@@ -9,6 +9,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=tooling/lib/common.sh
 source "$SCRIPT_DIR/common.sh"
+# shellcheck source=tooling/lib/providers.sh
+source "$SCRIPT_DIR/providers.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 TARGET=""
@@ -35,6 +37,8 @@ LOCAL_PROFILE="$TARGET/.agentic/profile.yaml"
   echo "Error: $LOCAL_PROFILE not found. Run 'just compose' first to copy the profile." >&2
   exit 1
 }
+
+validate_providers_config "$TARGET"
 
 # ── Resolve library path ────────────────────────────────────────────────────────
 # Use discover_library_from_target function which reads from target's config

@@ -2214,6 +2214,7 @@ AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" init "$TMP/t99" --no-sync > /dev/null 2>&1
 assert_file_exists "$TMP/t99/.agentic/config.yaml" "T99 config"
 assert_file_exists "$TMP/t99/.agentic/profile.yaml" "T99 profile"
 assert_file_exists "$TMP/t99/.agentic/mcp.yaml" "T99 mcp"
+assert_file_exists "$TMP/t99/.agentic/providers.yaml" "T99 providers"
 if [[ -d "$TMP/t99/.agentic/project-skills" ]]; then
   pass "T99 project-skills directory exists"
 else
@@ -2225,6 +2226,7 @@ run_test "T100 — init: YAML schema headers are present"
 assert_file_contains "$TMP/t99/.agentic/config.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/config.schema.json" "T100 config schema"
 assert_file_contains "$TMP/t99/.agentic/profile.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json" "T100 profile schema"
 assert_file_contains "$TMP/t99/.agentic/mcp.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/mcp.schema.json" "T100 mcp schema"
+assert_file_contains "$TMP/t99/.agentic/providers.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/providers.schema.json" "T100 providers schema"
 
 # T101 — init --sync: scaffolds and composes immediately
 run_test "T101 — init --sync composes project"
@@ -2314,6 +2316,59 @@ assert_exit_code 0 "$T103_EXIT" "T103"
 assert_stdout_contains "$T103_OUTPUT" "Deprecated MCP declaration in profile detected" "T103 warning"
 assert_file_exists "$TMP/t103/.mcp.json" "T103 mcp json"
 assert_file_contains "$TMP/t103/.mcp.json" "legacy-only" "T103 legacy server seeded"
+
+# T103B — compose: invalid providers.yaml fails clearly
+run_test "T103B — compose: invalid providers config fails"
+mkdir -p "$TMP/t103b/.agentic"
+cat > "$TMP/t103b/.agentic/providers.yaml" <<'EOF'
+version: "1"
+default_provider: "not-a-vendor"
+providers: {}
+EOF
+cat > "$TMP/t103b-profile.yaml" <<'EOF'
+meta:
+  name: Test Providers Validation
+  description: Test providers validation
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  build_command: ""
+  test_command: ""
+  lint_command: ""
+vendors:
+  enabled: []
+EOF
+T103B_EXIT=0
+T103B_OUTPUT=$(bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t103b-profile.yaml" \
+  --target "$TMP/t103b" \
+  2>&1) || T103B_EXIT=$?
+assert_exit_code 1 "$T103B_EXIT" "T103B"
+assert_stdout_contains "$T103B_OUTPUT" "Invalid default_provider" "T103B"
+
+# T103C — sync: invalid providers.yaml fails clearly
+run_test "T103C — sync: invalid providers config fails"
+mkdir -p "$TMP/t103c"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103c" \
+  > /dev/null 2>&1
+cat > "$TMP/t103c/.agentic/providers.yaml" <<'EOF'
+version: "1"
+providers:
+  claude:
+    enabled: "yes"
+EOF
+T103C_EXIT=0
+T103C_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103c" \
+  2>&1) || T103C_EXIT=$?
+assert_exit_code 1 "$T103C_EXIT" "T103C"
+assert_stdout_contains "$T103C_OUTPUT" "must be boolean" "T103C"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"

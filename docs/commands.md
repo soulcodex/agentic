@@ -125,6 +125,7 @@ Creates:
 - `.agentic/config.yaml`
 - `.agentic/profile.yaml`
 - `.agentic/mcp.yaml`
+- `.agentic/providers.yaml`
 - `.agentic/project-skills/`
 
 **Examples:**
