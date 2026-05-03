@@ -106,14 +106,6 @@ sync_portable_agents() {
   local all_mappings=()
   local tmp_files=()
 
-  cleanup_tmp_files() {
-    local file
-    for file in "${tmp_files[@]}"; do
-      rm -f "$file"
-    done
-  }
-  trap cleanup_tmp_files RETURN
-
   [[ ! -f "$agents_file" ]] && return 0
 
   validate_agents_config "$target" || return 1
@@ -147,8 +139,19 @@ sync_portable_agents() {
     tmp_files+=("$rendered_file")
   done
 
-  preflight_portable_agents_mappings all_mappings || return 1
+  if ! preflight_portable_agents_mappings all_mappings; then
+    local file
+    for file in "${tmp_files[@]}"; do
+      rm -f "$file"
+    done
+    return 1
+  fi
 
-  apply_codex_agent_mappings codex_mappings
-  apply_opencode_agent_mappings opencode_mappings
+  apply_codex_agent_mappings "${codex_mappings[@]}"
+  apply_opencode_agent_mappings "${opencode_mappings[@]}"
+
+  local file
+  for file in "${tmp_files[@]}"; do
+    rm -f "$file"
+  done
 }

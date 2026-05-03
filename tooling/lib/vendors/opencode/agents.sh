@@ -57,10 +57,9 @@ collect_opencode_agent_mappings() {
 }
 
 apply_opencode_agent_mappings() {
-  local -n mappings_ref="$1"
   local entry source_abs target_abs target_rel
 
-  for entry in "${mappings_ref[@]}"; do
+  for entry in "$@"; do
     IFS=$'\t' read -r source_abs target_abs target_rel <<< "$entry"
     mkdir -p "$(dirname "$target_abs")"
     cp "$source_abs" "$target_abs"
