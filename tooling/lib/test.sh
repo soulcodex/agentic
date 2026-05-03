@@ -2482,9 +2482,11 @@ agents:
       codex:
         enabled: true
         model: "gpt-5.3-codex"
+        reasoning_effort: "extra_high"
       opencode:
         enabled: true
         model: "openai/gpt-5"
+        reasoning_effort: "extra_high"
 EOF
 T103F_EXIT=0
 bash "$LIBRARY/tooling/lib/sync.sh" \
@@ -2497,6 +2499,8 @@ assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "You are th
 assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "You are the architect agent." "T103F opencode content"
 assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "model: gpt-5.3-codex" "T103F codex model"
 assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "model: openai/gpt-5" "T103F opencode model"
+assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "reasoning_effort: xhigh" "T103F codex reasoning mapping"
+assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "reasoning_effort: xhigh" "T103F opencode reasoning mapping"
 
 # T103G — sync: enabled with no agent definitions warns and performs no mutations
 run_test "T103G — sync: enabled with empty agents is warning/no-op"
@@ -2698,6 +2702,32 @@ T103M_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   2>&1) || T103M_EXIT=$?
 assert_exit_code 0 "$T103M_EXIT" "T103M"
 assert_stdout_contains "$T103M_OUTPUT" "no provider outputs resolved; no mutations applied" "T103M"
+
+# T103N — sync: invalid reasoning_effort fails validation
+run_test "T103N — sync: invalid reasoning_effort fails"
+mkdir -p "$TMP/t103n"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103n" \
+  > /dev/null 2>&1
+cat > "$TMP/t103n/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Invalid reasoning test."
+    prompt: "text"
+    providers:
+      codex:
+        reasoning_effort: "mediumg"
+EOF
+T103N_EXIT=0
+T103N_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103n" \
+  2>&1) || T103N_EXIT=$?
+assert_exit_code 1 "$T103N_EXIT" "T103N"
+assert_stdout_contains "$T103N_OUTPUT" "invalid reasoning_effort" "T103N"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"

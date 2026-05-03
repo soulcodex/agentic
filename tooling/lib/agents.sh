@@ -46,7 +46,7 @@ validate_agents_config() {
     agent_keys+=("$agent")
   done < <(yq '.agents | keys | .[]' "$agents_file" 2>/dev/null || true)
 
-  local key desc prompt provider_keys provider
+  local key desc prompt provider_keys provider reasoning
   for key in "${agent_keys[@]}"; do
     if [[ ! "$key" =~ ^[a-z]+$ ]]; then
       echo "Error: Invalid agent key '$key' in $agents_file (expected lowercase letters only)" >&2
@@ -74,6 +74,17 @@ validate_agents_config() {
           return 1
           ;;
       esac
+
+      reasoning=$(yq -r ".agents.\"$key\".providers.\"$provider\".reasoning_effort" "$agents_file" 2>/dev/null || echo "null")
+      if [[ "$reasoning" != "null" ]]; then
+        case "$reasoning" in
+          low|medium|high|extra_high) ;;
+          *)
+            echo "Error: Agent '$key' provider '$provider' has invalid reasoning_effort '$reasoning' in $agents_file" >&2
+            return 1
+            ;;
+        esac
+      fi
     done
   done
 

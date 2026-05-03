@@ -42,7 +42,10 @@
                       "type": "string",
                       "description": "Must match the provider's valid model reference/name."
                     },
-                    "reasoning_effort": { "type": "string" }
+                    "reasoning_effort": {
+                      "type": "string",
+                      "enum": ["low", "medium", "high", "extra_high"]
+                    }
                   }
                 },
                 "opencode": {
@@ -54,7 +57,10 @@
                       "type": "string",
                       "description": "Must match the provider's valid model reference/name."
                     },
-                    "reasoning_effort": { "type": "string" }
+                    "reasoning_effort": {
+                      "type": "string",
+                      "enum": ["low", "medium", "high", "extra_high"]
+                    }
                   }
                 }
               }

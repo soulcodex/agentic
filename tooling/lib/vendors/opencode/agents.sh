@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 # opencode/agents.sh — Agents orchestration switching output for OpenCode
 
+map_reasoning_effort_opencode() {
+  local canonical="$1"
+  case "$canonical" in
+    low|medium|high) printf '%s' "$canonical" ;;
+    extra_high) printf '%s' "xhigh" ;;
+    *) printf '%s' "" ;;
+  esac
+}
+
 collect_opencode_agent_mappings() {
   local target="$1"
   local agents_file="$2"
@@ -12,7 +21,7 @@ collect_opencode_agent_mappings() {
     agent_names+=("$name")
   done < <(yq '.agents | keys | .[]' "$agents_file" 2>/dev/null || true)
 
-  local name prompt_text desc model reasoning enabled target_rel target_abs tmp_render
+  local name prompt_text desc model reasoning_canonical reasoning enabled target_rel target_abs tmp_render
   for name in "${agent_names[@]}"; do
     enabled=$(yq -r ".agents.\"$name\".providers.opencode.enabled" "$agents_file" 2>/dev/null || echo "null")
     [[ "$enabled" == "null" ]] && enabled="true"
@@ -21,7 +30,8 @@ collect_opencode_agent_mappings() {
     prompt_text=$(yq -r ".agents.\"$name\".prompt // \"\"" "$agents_file" 2>/dev/null || echo "")
     desc=$(yq -r ".agents.\"$name\".description // \"\"" "$agents_file" 2>/dev/null || echo "")
     model=$(yq -r ".agents.\"$name\".providers.opencode.model // \"\"" "$agents_file" 2>/dev/null || echo "")
-    reasoning=$(yq -r ".agents.\"$name\".providers.opencode.reasoning_effort // \"\"" "$agents_file" 2>/dev/null || echo "")
+    reasoning_canonical=$(yq -r ".agents.\"$name\".providers.opencode.reasoning_effort // \"\"" "$agents_file" 2>/dev/null || echo "")
+    reasoning=$(map_reasoning_effort_opencode "$reasoning_canonical")
 
     if [[ -z "$prompt_text" || "$prompt_text" == "null" ]]; then
       echo "Warning: skipping opencode agent '$name' because prompt text is empty" >&2
