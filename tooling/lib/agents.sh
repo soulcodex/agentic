@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# agents.sh — Portable agents sync orchestration
+# agents.sh — Agents orchestration switching sync
 # Sourced by: sync.sh
 
 # shellcheck source=tooling/lib/common.sh
@@ -27,21 +27,70 @@ validate_agents_config() {
     return 1
   fi
 
-  local provider_keys=()
-  while IFS= read -r provider; do
-    [[ -z "$provider" || "$provider" == "null" ]] && continue
-    provider_keys+=("$provider")
-  done < <(yq '.providers | keys | .[]' "$agents_file" 2>/dev/null || true)
+  local version
+  version=$(yq '.version // ""' "$agents_file" 2>/dev/null || echo "")
+  if [[ "$version" != "1" ]]; then
+    echo "Error: version must be \"1\" in $agents_file" >&2
+    return 1
+  fi
 
-  local key
-  for key in "${provider_keys[@]}"; do
-    case "$key" in
-      codex|opencode) ;;
-      *)
-        echo "Error: Invalid provider key '$key' in $agents_file" >&2
+  local agent_keys=()
+  while IFS= read -r agent; do
+    [[ -z "$agent" || "$agent" == "null" ]] && continue
+    agent_keys+=("$agent")
+  done < <(yq '.agents | keys | .[]' "$agents_file" 2>/dev/null || true)
+
+  local key desc prompt provider_keys provider
+  for key in "${agent_keys[@]}"; do
+    if [[ ! "$key" =~ ^[a-z]+$ ]]; then
+      echo "Error: Invalid agent key '$key' in $agents_file (expected lowercase letters only)" >&2
+      return 1
+    fi
+
+    desc=$(yq -r ".agents.\"$key\".description // \"\"" "$agents_file" 2>/dev/null || echo "")
+    prompt=$(yq -r ".agents.\"$key\".prompt // \"\"" "$agents_file" 2>/dev/null || echo "")
+    if [[ -z "$desc" || -z "$prompt" || "$desc" == "null" || "$prompt" == "null" ]]; then
+      echo "Error: Agent '$key' must define non-empty description and prompt in $agents_file" >&2
+      return 1
+    fi
+
+    provider_keys=()
+    while IFS= read -r provider; do
+      [[ -z "$provider" || "$provider" == "null" ]] && continue
+      provider_keys+=("$provider")
+    done < <(yq ".agents.\"$key\".providers | keys | .[]" "$agents_file" 2>/dev/null || true)
+
+    for provider in "${provider_keys[@]}"; do
+      case "$provider" in
+        codex|opencode) ;;
+        *)
+          echo "Error: Agent '$key' has invalid provider '$provider' in $agents_file" >&2
+          return 1
+          ;;
+      esac
+    done
+  done
+
+  return 0
+}
+
+preflight_portable_agents_mappings() {
+  local -n all_mappings_ref="$1"
+  local entry source_abs target_abs target_rel
+
+  for entry in "${all_mappings_ref[@]}"; do
+    IFS=$'\t' read -r source_abs target_abs target_rel <<< "$entry"
+
+    if [[ -e "$target_abs" ]]; then
+      if [[ ! -f "$target_abs" ]]; then
+        echo "Error: Unmanaged destination conflict at $target_rel (not a file)" >&2
         return 1
-        ;;
-    esac
+      fi
+      if ! cmp -s "$source_abs" "$target_abs"; then
+        echo "Error: Unmanaged destination conflict at $target_rel (already exists with different content)" >&2
+        return 1
+      fi
+    fi
   done
 
   return 0
@@ -51,6 +100,19 @@ sync_portable_agents() {
   local target="$1"
   local agents_file="$target/.agentic/agents.yaml"
   local enabled
+  local agent_count
+  local codex_mappings=()
+  local opencode_mappings=()
+  local all_mappings=()
+  local tmp_files=()
+
+  cleanup_tmp_files() {
+    local file
+    for file in "${tmp_files[@]}"; do
+      rm -f "$file"
+    done
+  }
+  trap cleanup_tmp_files RETURN
 
   [[ ! -f "$agents_file" ]] && return 0
 
@@ -58,11 +120,35 @@ sync_portable_agents() {
 
   enabled=$(yq '.enabled // false' "$agents_file" 2>/dev/null || echo "false")
   if [[ "$enabled" != "true" ]]; then
-    echo "Portable agents sync: disabled (no-op)."
+    echo "Agents orchestration switching: disabled (no-op)."
     return 0
   fi
 
-  echo "Portable agents sync: enabled."
-  sync_codex_agents "$target" "$agents_file"
-  sync_opencode_agents "$target" "$agents_file"
+  echo "Agents orchestration switching: enabled."
+  agent_count=$(yq '.agents | length' "$agents_file" 2>/dev/null || echo 0)
+  [[ "$agent_count" == "null" ]] && agent_count=0
+  if [[ "$agent_count" -eq 0 ]]; then
+    echo "Warning: agents orchestration switching enabled but no agent definitions found; no mutations applied." >&2
+    return 0
+  fi
+
+  collect_codex_agent_mappings "$target" "$agents_file" codex_mappings
+  collect_opencode_agent_mappings "$target" "$agents_file" opencode_mappings
+
+  if [[ "${#codex_mappings[@]}" -eq 0 && "${#opencode_mappings[@]}" -eq 0 ]]; then
+    echo "Warning: agents orchestration switching enabled but no provider outputs resolved; no mutations applied." >&2
+    return 0
+  fi
+
+  all_mappings=("${codex_mappings[@]}" "${opencode_mappings[@]}")
+  local entry rendered_file _
+  for entry in "${all_mappings[@]}"; do
+    IFS=$'\t' read -r rendered_file _ <<< "$entry"
+    tmp_files+=("$rendered_file")
+  done
+
+  preflight_portable_agents_mappings all_mappings || return 1
+
+  apply_codex_agent_mappings codex_mappings
+  apply_opencode_agent_mappings opencode_mappings
 }

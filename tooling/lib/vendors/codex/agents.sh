@@ -1,40 +1,69 @@
 #!/usr/bin/env bash
-# codex/agents.sh — Portable agents mapping for Codex
+# codex/agents.sh — Agents orchestration switching output for Codex
 
-sync_codex_agents() {
+collect_codex_agent_mappings() {
   local target="$1"
   local agents_file="$2"
-  local enabled
-  enabled=$(yq '.providers.codex.enabled // false' "$agents_file" 2>/dev/null || echo "false")
-  [[ "$enabled" != "true" ]] && return 0
+  local -n mappings_ref="$3"
 
-  local mapping_count idx source_rel target_rel source_abs target_abs
-  mapping_count=$(yq '.providers.codex.mappings | length' "$agents_file" 2>/dev/null || echo 0)
-  [[ "$mapping_count" == "null" ]] && mapping_count=0
-  [[ "$mapping_count" -eq 0 ]] && return 0
+  local agent_names=()
+  while IFS= read -r name; do
+    [[ -z "$name" || "$name" == "null" ]] && continue
+    agent_names+=("$name")
+  done < <(yq '.agents | keys | .[]' "$agents_file" 2>/dev/null || true)
 
-  for ((idx = 0; idx < mapping_count; idx++)); do
-    source_rel=$(yq ".providers.codex.mappings[$idx].source // \"\"" "$agents_file" 2>/dev/null || echo "")
-    target_rel=$(yq ".providers.codex.mappings[$idx].target // \"\"" "$agents_file" 2>/dev/null || echo "")
+  local name prompt_rel desc model reasoning enabled source_abs target_rel target_abs tmp_render
+  for name in "${agent_names[@]}"; do
+    enabled=$(yq ".agents.\"$name\".providers.codex.enabled // true" "$agents_file" 2>/dev/null || echo "true")
+    [[ "$enabled" != "true" ]] && continue
 
-    if [[ -z "$source_rel" || -z "$target_rel" || "$source_rel" == "null" || "$target_rel" == "null" ]]; then
-      echo "Warning: skipping invalid codex mapping at index $idx in $agents_file" >&2
+    prompt_rel=$(yq -r ".agents.\"$name\".prompt // \"\"" "$agents_file" 2>/dev/null || echo "")
+    desc=$(yq -r ".agents.\"$name\".description // \"\"" "$agents_file" 2>/dev/null || echo "")
+    model=$(yq -r ".agents.\"$name\".providers.codex.model // \"\"" "$agents_file" 2>/dev/null || echo "")
+    reasoning=$(yq -r ".agents.\"$name\".providers.codex.reasoning_effort // \"\"" "$agents_file" 2>/dev/null || echo "")
+
+    if [[ -z "$prompt_rel" || "$prompt_rel" == "null" ]]; then
+      echo "Warning: skipping codex agent '$name' because prompt is empty" >&2
       continue
     fi
-    if [[ "$source_rel" == /* || "$target_rel" == /* ]]; then
-      echo "Warning: codex mappings must use project-relative paths; skipping index $idx" >&2
+    if [[ "$prompt_rel" == /* || "$prompt_rel" == *".."* ]]; then
+      echo "Warning: codex agent '$name' prompt path must be project-relative; skipping" >&2
       continue
     fi
 
-    source_abs="$target/$source_rel"
-    target_abs="$target/$target_rel"
+    source_abs="$target/$prompt_rel"
     if [[ ! -f "$source_abs" ]]; then
-      echo "Warning: codex mapping source not found: $source_rel" >&2
+      echo "Warning: codex agent '$name' prompt source not found: $prompt_rel" >&2
       continue
     fi
 
+    target_rel=".agents/orchestration/$name.md"
+    target_abs="$target/$target_rel"
+    tmp_render="$(mktemp "${TMPDIR:-/tmp}/agentic-codex-agent-XXXXXX.md")"
+    {
+      echo "# Agent: $name"
+      echo
+      echo "provider: codex"
+      [[ -n "$model" ]] && echo "model: $model"
+      [[ -n "$reasoning" ]] && echo "reasoning_effort: $reasoning"
+      echo "description: $desc"
+      echo
+      cat "$source_abs"
+      echo
+    } > "$tmp_render"
+
+    mappings_ref+=("$tmp_render"$'\t'"$target_abs"$'\t'"$target_rel")
+  done
+}
+
+apply_codex_agent_mappings() {
+  local -n mappings_ref="$1"
+  local entry source_abs target_abs target_rel
+
+  for entry in "${mappings_ref[@]}"; do
+    IFS=$'\t' read -r source_abs target_abs target_rel <<< "$entry"
     mkdir -p "$(dirname "$target_abs")"
     cp "$source_abs" "$target_abs"
-    echo "  ✔  Codex agent synced: $source_rel -> $target_rel"
+    echo "  ✔  Codex agent synced: $target_rel"
   done
 }

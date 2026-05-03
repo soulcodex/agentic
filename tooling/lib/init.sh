@@ -127,7 +127,7 @@ cat > "$AGENTS_FILE" <<'EOF'
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
 version: "1"
 enabled: false
-providers: {}
+agents: {}
 EOF
 
 echo "Initialized .agentic skeleton in: $TARGET/.agentic"

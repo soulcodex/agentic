@@ -1,63 +1,60 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/soulcodex/agentic/schemas/agents.schema.json",
-  "title": "Agentic Portable Agents Config",
-  "description": "Optional project-local mappings for syncing portable agent prompts to provider-specific paths.",
+  "title": "Agentic Agents Orchestration Switching Config",
+  "description": "Optional project-local agent orchestration switching definitions for provider-specific local outputs.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "version": {
       "type": "string",
-      "description": "Portable agents config schema version identifier."
+      "const": "1",
+      "description": "Agents orchestration switching schema version identifier."
     },
     "enabled": {
       "type": "boolean",
-      "description": "Global opt-in gate for portable agents sync."
+      "description": "Global opt-in gate for agents orchestration switching."
     },
-    "providers": {
+    "agents": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "codex": {
+      "description": "Agent definitions keyed by lowercase name.",
+      "patternProperties": {
+        "^[a-z]+$": {
           "type": "object",
           "additionalProperties": false,
+          "required": ["description", "prompt"],
           "properties": {
-            "enabled": { "type": "boolean" },
-            "mappings": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["source", "target"],
-                "properties": {
-                  "source": { "type": "string" },
-                  "target": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "opencode": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": { "type": "boolean" },
-            "mappings": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["source", "target"],
-                "properties": {
-                  "source": { "type": "string" },
-                  "target": { "type": "string" }
+            "description": { "type": "string", "minLength": 1 },
+            "prompt": { "type": "string", "minLength": 1 },
+            "providers": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "codex": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": { "type": "boolean" },
+                    "model": { "type": "string" },
+                    "reasoning_effort": { "type": "string" }
+                  }
+                },
+                "opencode": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": { "type": "boolean" },
+                    "model": { "type": "string" },
+                    "reasoning_effort": { "type": "string" }
+                  }
                 }
               }
             }
           }
         }
-      }
+      },
+      "additionalProperties": false
     }
   },
-  "required": ["enabled"]
+  "required": ["version", "enabled"]
 }

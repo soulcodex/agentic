@@ -2277,6 +2277,7 @@ assert_file_contains "$TMP/t99/.agentic/mcp.yaml" "# yaml-language-server: \$sch
 assert_file_contains "$TMP/t99/.agentic/providers.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/providers.schema.json" "T100 providers schema"
 assert_file_contains "$TMP/t99/.agentic/agents.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json" "T100 agents schema"
 assert_file_contains "$TMP/t99/.agentic/agents.yaml" "enabled: false" "T100 agents noop"
+assert_file_contains "$TMP/t99/.agentic/agents.yaml" "agents: {}" "T100 agents empty defs"
 
 # T101 — init --sync: scaffolds and composes immediately
 run_test "T101 — init --sync composes project"
@@ -2436,7 +2437,7 @@ T103D_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 0 "$T103D_EXIT" "T103D"
 assert_stdout_contains "$T103D_OUTPUT" "Sync complete" "T103D"
 
-# T103E — sync: no-op agents.yaml skips portable agents sync
+# T103E — sync: no-op agents.yaml skips agents orchestration switching
 run_test "T103E — sync: no-op agents config skips sync"
 mkdir -p "$TMP/t103e"
 bash "$COMPOSE" \
@@ -2450,7 +2451,7 @@ cat > "$TMP/t103e/.agentic/agents.yaml" <<'EOF'
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
 version: "1"
 enabled: false
-providers: {}
+agents: {}
 EOF
 T103E_EXIT=0
 bash "$LIBRARY/tooling/lib/sync.sh" \
@@ -2459,8 +2460,8 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 0 "$T103E_EXIT" "T103E"
 assert_file_not_exists "$TMP/t103e/.agents/AGENTS.md" "T103E"
 
-# T103F — sync: opt-in agents.yaml syncs codex and opencode mappings
-run_test "T103F — sync: opt-in agents config syncs mappings"
+# T103F — sync: opt-in agents.yaml syncs codex and opencode agent definitions
+run_test "T103F — sync: opt-in agents config syncs agent definitions"
 mkdir -p "$TMP/t103f"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -2468,33 +2469,113 @@ bash "$COMPOSE" \
   --target "$TMP/t103f" \
   > /dev/null 2>&1
 mkdir -p "$TMP/t103f/.agentic/portable"
-echo "portable codex instructions" > "$TMP/t103f/.agentic/portable/codex.md"
-echo "portable opencode instructions" > "$TMP/t103f/.agentic/portable/opencode.md"
+echo "architect agent instructions" > "$TMP/t103f/.agentic/portable/architect.md"
 cat > "$TMP/t103f/.agentic/agents.yaml" <<'EOF'
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
 version: "1"
 enabled: true
-providers:
-  codex:
-    enabled: true
-    mappings:
-      - source: ".agentic/portable/codex.md"
-        target: ".agents/AGENTS.md"
-  opencode:
-    enabled: true
-    mappings:
-      - source: ".agentic/portable/opencode.md"
-        target: ".opencode/AGENTS.md"
+agents:
+  architect:
+    description: "Plans the implementation."
+    prompt: ".agentic/portable/architect.md"
+    providers:
+      codex:
+        enabled: true
+        model: "gpt-5.3-codex"
+      opencode:
+        enabled: true
+        model: "openai/gpt-5"
 EOF
 T103F_EXIT=0
 bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103f" \
   > /dev/null 2>&1 || T103F_EXIT=$?
 assert_exit_code 0 "$T103F_EXIT" "T103F"
-assert_file_exists "$TMP/t103f/.agents/AGENTS.md" "T103F codex target"
-assert_file_exists "$TMP/t103f/.opencode/AGENTS.md" "T103F opencode target"
-assert_file_contains "$TMP/t103f/.agents/AGENTS.md" "portable codex instructions" "T103F codex content"
-assert_file_contains "$TMP/t103f/.opencode/AGENTS.md" "portable opencode instructions" "T103F opencode content"
+assert_file_exists "$TMP/t103f/.agents/orchestration/architect.md" "T103F codex target"
+assert_file_exists "$TMP/t103f/.opencode/agents/architect.md" "T103F opencode target"
+assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "architect agent instructions" "T103F codex content"
+assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "architect agent instructions" "T103F opencode content"
+assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "model: gpt-5.3-codex" "T103F codex model"
+assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "model: openai/gpt-5" "T103F opencode model"
+
+# T103G — sync: enabled with no agent definitions warns and performs no mutations
+run_test "T103G — sync: enabled with empty agents is warning/no-op"
+mkdir -p "$TMP/t103g"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103g" \
+  > /dev/null 2>&1
+cat > "$TMP/t103g/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: true
+agents: {}
+EOF
+T103G_EXIT=0
+T103G_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103g" \
+  2>&1) || T103G_EXIT=$?
+assert_exit_code 0 "$T103G_EXIT" "T103G"
+assert_stdout_contains "$T103G_OUTPUT" "enabled but no agent definitions found; no mutations applied" "T103G warning"
+assert_file_not_exists "$TMP/t103g/.agents/orchestration/architect.md" "T103G codex no-op"
+assert_file_not_exists "$TMP/t103g/.opencode/agents/architect.md" "T103G opencode no-op"
+
+# T103H — sync: agents.yaml version must be exactly "1"
+run_test "T103H — sync: invalid agents.yaml version fails"
+mkdir -p "$TMP/t103h"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103h" \
+  > /dev/null 2>&1
+cat > "$TMP/t103h/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "2"
+enabled: true
+agents: {}
+EOF
+T103H_EXIT=0
+T103H_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103h" \
+  2>&1) || T103H_EXIT=$?
+assert_exit_code 1 "$T103H_EXIT" "T103H"
+assert_stdout_contains "$T103H_OUTPUT" "version must be \"1\"" "T103H"
+
+# T103I — sync: unmanaged destination conflict fails before any write
+run_test "T103I — sync: unmanaged destination conflict preflight fails"
+mkdir -p "$TMP/t103i"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103i" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103i/.agentic/portable"
+echo "architect agent instructions" > "$TMP/t103i/.agentic/portable/architect.md"
+mkdir -p "$TMP/t103i/.agents/orchestration"
+echo "unmanaged local content" > "$TMP/t103i/.agents/orchestration/architect.md"
+cat > "$TMP/t103i/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Plans the implementation."
+    prompt: ".agentic/portable/architect.md"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+T103I_EXIT=0
+T103I_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103i" \
+  2>&1) || T103I_EXIT=$?
+assert_exit_code 1 "$T103I_EXIT" "T103I"
+assert_stdout_contains "$T103I_OUTPUT" "Unmanaged destination conflict" "T103I"
+assert_file_contains "$TMP/t103i/.agents/orchestration/architect.md" "unmanaged local content" "T103I preserved destination"
+assert_file_not_exists "$TMP/t103i/.opencode/agents/architect.md" "T103I zero writes"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"
