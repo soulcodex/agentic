@@ -2468,8 +2468,6 @@ bash "$COMPOSE" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t103f" \
   > /dev/null 2>&1
-mkdir -p "$TMP/t103f/.agentic/portable"
-echo "architect agent instructions" > "$TMP/t103f/.agentic/portable/architect.md"
 cat > "$TMP/t103f/.agentic/agents.yaml" <<'EOF'
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
 version: "1"
@@ -2477,7 +2475,9 @@ enabled: true
 agents:
   architect:
     description: "Plans the implementation."
-    prompt: ".agentic/portable/architect.md"
+    prompt: |
+      You are the architect agent.
+      Focus on planning and boundaries.
     providers:
       codex:
         enabled: true
@@ -2493,8 +2493,8 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 0 "$T103F_EXIT" "T103F"
 assert_file_exists "$TMP/t103f/.agents/orchestration/architect.md" "T103F codex target"
 assert_file_exists "$TMP/t103f/.opencode/agents/architect.md" "T103F opencode target"
-assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "architect agent instructions" "T103F codex content"
-assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "architect agent instructions" "T103F opencode content"
+assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "You are the architect agent." "T103F codex content"
+assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "You are the architect agent." "T103F opencode content"
 assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "model: gpt-5.3-codex" "T103F codex model"
 assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "model: openai/gpt-5" "T103F opencode model"
 
@@ -2550,8 +2550,6 @@ bash "$COMPOSE" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t103i" \
   > /dev/null 2>&1
-mkdir -p "$TMP/t103i/.agentic/portable"
-echo "architect agent instructions" > "$TMP/t103i/.agentic/portable/architect.md"
 mkdir -p "$TMP/t103i/.agents/orchestration"
 echo "unmanaged local content" > "$TMP/t103i/.agents/orchestration/architect.md"
 cat > "$TMP/t103i/.agentic/agents.yaml" <<'EOF'
@@ -2561,7 +2559,9 @@ enabled: true
 agents:
   architect:
     description: "Plans the implementation."
-    prompt: ".agentic/portable/architect.md"
+    prompt: |
+      You are the architect agent.
+      Focus on planning and boundaries.
     providers:
       codex:
         enabled: true
@@ -2576,6 +2576,106 @@ assert_exit_code 1 "$T103I_EXIT" "T103I"
 assert_stdout_contains "$T103I_OUTPUT" "Unmanaged destination conflict" "T103I"
 assert_file_contains "$TMP/t103i/.agents/orchestration/architect.md" "unmanaged local content" "T103I preserved destination"
 assert_file_not_exists "$TMP/t103i/.opencode/agents/architect.md" "T103I zero writes"
+
+# T103J — sync: invalid agent key fails validation
+run_test "T103J — sync: invalid agent key fails"
+mkdir -p "$TMP/t103j"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103j" \
+  > /dev/null 2>&1
+cat > "$TMP/t103j/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  Architect:
+    description: "Invalid key casing."
+    prompt: "text"
+EOF
+T103J_EXIT=0
+T103J_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103j" \
+  2>&1) || T103J_EXIT=$?
+assert_exit_code 1 "$T103J_EXIT" "T103J"
+assert_stdout_contains "$T103J_OUTPUT" "Invalid agent key" "T103J"
+
+# T103K — sync: missing prompt/description fails validation
+run_test "T103K — sync: missing prompt or description fails"
+mkdir -p "$TMP/t103k"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103k" \
+  > /dev/null 2>&1
+cat > "$TMP/t103k/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: ""
+    prompt: ""
+EOF
+T103K_EXIT=0
+T103K_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103k" \
+  2>&1) || T103K_EXIT=$?
+assert_exit_code 1 "$T103K_EXIT" "T103K"
+assert_stdout_contains "$T103K_OUTPUT" "must define non-empty description and prompt" "T103K"
+
+# T103L — sync: invalid provider under agent fails validation
+run_test "T103L — sync: invalid provider fails"
+mkdir -p "$TMP/t103l"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103l" \
+  > /dev/null 2>&1
+cat > "$TMP/t103l/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Provider validation test."
+    prompt: "text"
+    providers:
+      claude:
+        enabled: true
+EOF
+T103L_EXIT=0
+T103L_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103l" \
+  2>&1) || T103L_EXIT=$?
+assert_exit_code 1 "$T103L_EXIT" "T103L"
+assert_stdout_contains "$T103L_OUTPUT" "has invalid provider" "T103L"
+
+# T103M — sync: provider-disabled agents resolve no outputs and warn
+run_test "T103M — sync: provider-disabled definitions resolve no outputs"
+mkdir -p "$TMP/t103m"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103m" \
+  > /dev/null 2>&1
+cat > "$TMP/t103m/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Provider disabled test."
+    prompt: "some prompt text"
+    providers:
+      codex:
+        enabled: false
+      opencode:
+        enabled: false
+EOF
+T103M_EXIT=0
+T103M_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103m" \
+  2>&1) || T103M_EXIT=$?
+assert_exit_code 0 "$T103M_EXIT" "T103M"
+assert_stdout_contains "$T103M_OUTPUT" "no provider outputs resolved; no mutations applied" "T103M"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"

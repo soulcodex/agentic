@@ -12,28 +12,19 @@ collect_opencode_agent_mappings() {
     agent_names+=("$name")
   done < <(yq '.agents | keys | .[]' "$agents_file" 2>/dev/null || true)
 
-  local name prompt_rel desc model reasoning enabled source_abs target_rel target_abs tmp_render
+  local name prompt_text desc model reasoning enabled target_rel target_abs tmp_render
   for name in "${agent_names[@]}"; do
-    enabled=$(yq ".agents.\"$name\".providers.opencode.enabled // true" "$agents_file" 2>/dev/null || echo "true")
+    enabled=$(yq -r ".agents.\"$name\".providers.opencode.enabled" "$agents_file" 2>/dev/null || echo "null")
+    [[ "$enabled" == "null" ]] && enabled="true"
     [[ "$enabled" != "true" ]] && continue
 
-    prompt_rel=$(yq -r ".agents.\"$name\".prompt // \"\"" "$agents_file" 2>/dev/null || echo "")
+    prompt_text=$(yq -r ".agents.\"$name\".prompt // \"\"" "$agents_file" 2>/dev/null || echo "")
     desc=$(yq -r ".agents.\"$name\".description // \"\"" "$agents_file" 2>/dev/null || echo "")
     model=$(yq -r ".agents.\"$name\".providers.opencode.model // \"\"" "$agents_file" 2>/dev/null || echo "")
     reasoning=$(yq -r ".agents.\"$name\".providers.opencode.reasoning_effort // \"\"" "$agents_file" 2>/dev/null || echo "")
 
-    if [[ -z "$prompt_rel" || "$prompt_rel" == "null" ]]; then
-      echo "Warning: skipping opencode agent '$name' because prompt is empty" >&2
-      continue
-    fi
-    if [[ "$prompt_rel" == /* || "$prompt_rel" == *".."* ]]; then
-      echo "Warning: opencode agent '$name' prompt path must be project-relative; skipping" >&2
-      continue
-    fi
-
-    source_abs="$target/$prompt_rel"
-    if [[ ! -f "$source_abs" ]]; then
-      echo "Warning: opencode agent '$name' prompt source not found: $prompt_rel" >&2
+    if [[ -z "$prompt_text" || "$prompt_text" == "null" ]]; then
+      echo "Warning: skipping opencode agent '$name' because prompt text is empty" >&2
       continue
     fi
 
@@ -48,7 +39,7 @@ collect_opencode_agent_mappings() {
       [[ -n "$reasoning" ]] && echo "reasoning_effort: $reasoning"
       echo "description: $desc"
       echo
-      cat "$source_abs"
+      printf '%s\n' "$prompt_text"
       echo
     } > "$tmp_render"
 

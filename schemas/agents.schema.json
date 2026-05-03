@@ -25,7 +25,11 @@
           "required": ["description", "prompt"],
           "properties": {
             "description": { "type": "string", "minLength": 1 },
-            "prompt": { "type": "string", "minLength": 1 },
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Agent instructions as inline multiline text."
+            },
             "providers": {
               "type": "object",
               "additionalProperties": false,
@@ -35,7 +39,10 @@
                   "additionalProperties": false,
                   "properties": {
                     "enabled": { "type": "boolean" },
-                    "model": { "type": "string" },
+                    "model": {
+                      "type": "string",
+                      "description": "Must match the provider's valid model reference/name."
+                    },
                     "reasoning_effort": { "type": "string" }
                   }
                 },
@@ -44,7 +51,10 @@
                   "additionalProperties": false,
                   "properties": {
                     "enabled": { "type": "boolean" },
-                    "model": { "type": "string" },
+                    "model": {
+                      "type": "string",
+                      "description": "Must match the provider's valid model reference/name."
+                    },
                     "reasoning_effort": { "type": "string" }
                   }
                 }

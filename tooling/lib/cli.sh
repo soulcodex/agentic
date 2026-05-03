@@ -146,7 +146,7 @@ Description:
   - .agentic/profile.yaml
   - .agentic/mcp.yaml
   - .agentic/providers.yaml
-  - .agentic/agents.yaml (agents orchestration switching: disabled by default)
+  - .agentic/agents.yaml
   - .agentic/project-skills/
 
 Examples:

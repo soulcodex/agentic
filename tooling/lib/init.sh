@@ -13,6 +13,7 @@ TARGET=""
 PROMPT_SYNC=true
 FORCE_SYNC=false
 SKIP_SYNC=false
+AGENTS_SCHEMA_URL="https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -123,8 +124,8 @@ default_provider: ""
 providers: {}
 EOF
 
-cat > "$AGENTS_FILE" <<'EOF'
-# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+cat > "$AGENTS_FILE" <<EOF
+# yaml-language-server: \$schema=$AGENTS_SCHEMA_URL
 version: "1"
 enabled: false
 agents: {}

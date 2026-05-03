@@ -26,7 +26,9 @@ enabled: true
 agents:
   architect:
     description: "Plans and scopes implementation."
-    prompt: ".agentic/portable/architect.md"
+    prompt: |
+      You are the architect agent.
+      Scope tasks, identify risks, and propose execution steps.
     providers:
       codex:
         enabled: true
@@ -38,10 +40,11 @@ agents:
 
 Notes:
 - Agent names are lowercase letters only (`architect`, `reviewer`, `worker`).
-- `prompt` paths are project-relative and must stay local (no absolute paths, no parent traversal).
+- `prompt` is inline multiline instruction text in YAML.
 - If `enabled: true` and `agents` is empty, sync warns and performs no mutations.
 - Provider outputs are generated to local project paths:
   - Codex: `.agents/orchestration/<agent>.md`
   - OpenCode: `.opencode/agents/<agent>.md`
+- `model` must match the provider's valid model reference/name.
 - All outputs are preflighted before writing; unmanaged destination conflicts fail before mutation.
 - Provider behavior stays isolated in vendor adapters.
