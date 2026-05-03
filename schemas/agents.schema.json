@@ -22,7 +22,6 @@
         "^[a-z]+$": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["description", "prompt"],
           "properties": {
             "description": { "type": "string", "minLength": 1 },
             "prompt": {

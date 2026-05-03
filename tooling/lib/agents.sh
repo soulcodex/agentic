@@ -34,6 +34,12 @@ validate_agents_config() {
     return 1
   fi
 
+  local enabled
+  enabled=$(yq -r '.enabled // false' "$agents_file" 2>/dev/null || echo "false")
+  if [[ "$enabled" != "true" ]]; then
+    return 0
+  fi
+
   local agent_keys=()
   while IFS= read -r agent; do
     [[ -z "$agent" || "$agent" == "null" ]] && continue

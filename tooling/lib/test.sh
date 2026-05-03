@@ -2623,6 +2623,28 @@ T103K_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 1 "$T103K_EXIT" "T103K"
 assert_stdout_contains "$T103K_OUTPUT" "must define non-empty description and prompt" "T103K"
 
+# T103K2 — sync: disabled config allows incomplete agent definitions
+run_test "T103K2 — sync: enabled false bypasses strict agent field checks"
+mkdir -p "$TMP/t103k2"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103k2" \
+  > /dev/null 2>&1
+cat > "$TMP/t103k2/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: false
+agents:
+  architect:
+    prompt: "asdasd"
+EOF
+T103K2_EXIT=0
+T103K2_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103k2" \
+  2>&1) || T103K2_EXIT=$?
+assert_exit_code 0 "$T103K2_EXIT" "T103K2"
+assert_stdout_contains "$T103K2_OUTPUT" "disabled (no-op)" "T103K2"
+
 # T103L — sync: invalid provider under agent fails validation
 run_test "T103L — sync: invalid provider fails"
 mkdir -p "$TMP/t103l"
