@@ -146,6 +146,7 @@ Description:
   - .agentic/profile.yaml
   - .agentic/mcp.yaml
   - .agentic/providers.yaml
+  - .agentic/agents.yaml (portable agents sync: disabled by default)
   - .agentic/project-skills/
 
 Examples:
@@ -168,6 +169,7 @@ Arguments:
 Description:
   Regenerates AGENTS.md and vendor files from the local .agentic/profile.yaml.
   Active vendors are preserved after regeneration.
+  Portable agents mappings run only when .agentic/agents.yaml has enabled: true.
 
 Examples:
   agentic sync

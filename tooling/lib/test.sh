@@ -2262,6 +2262,7 @@ assert_file_exists "$TMP/t99/.agentic/config.yaml" "T99 config"
 assert_file_exists "$TMP/t99/.agentic/profile.yaml" "T99 profile"
 assert_file_exists "$TMP/t99/.agentic/mcp.yaml" "T99 mcp"
 assert_file_exists "$TMP/t99/.agentic/providers.yaml" "T99 providers"
+assert_file_exists "$TMP/t99/.agentic/agents.yaml" "T99 agents"
 if [[ -d "$TMP/t99/.agentic/project-skills" ]]; then
   pass "T99 project-skills directory exists"
 else
@@ -2274,6 +2275,8 @@ assert_file_contains "$TMP/t99/.agentic/config.yaml" "# yaml-language-server: \$
 assert_file_contains "$TMP/t99/.agentic/profile.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json" "T100 profile schema"
 assert_file_contains "$TMP/t99/.agentic/mcp.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/mcp.schema.json" "T100 mcp schema"
 assert_file_contains "$TMP/t99/.agentic/providers.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/providers.schema.json" "T100 providers schema"
+assert_file_contains "$TMP/t99/.agentic/agents.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json" "T100 agents schema"
+assert_file_contains "$TMP/t99/.agentic/agents.yaml" "enabled: false" "T100 agents noop"
 
 # T101 — init --sync: scaffolds and composes immediately
 run_test "T101 — init --sync composes project"
@@ -2416,6 +2419,82 @@ T103C_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   2>&1) || T103C_EXIT=$?
 assert_exit_code 1 "$T103C_EXIT" "T103C"
 assert_stdout_contains "$T103C_OUTPUT" "must be boolean" "T103C"
+
+# T103D — sync: missing agents.yaml remains backward-compatible
+run_test "T103D — sync: missing agents.yaml is skipped"
+mkdir -p "$TMP/t103d"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103d" \
+  > /dev/null 2>&1
+rm -f "$TMP/t103d/.agentic/agents.yaml"
+T103D_EXIT=0
+T103D_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103d" \
+  2>&1) || T103D_EXIT=$?
+assert_exit_code 0 "$T103D_EXIT" "T103D"
+assert_stdout_contains "$T103D_OUTPUT" "Sync complete" "T103D"
+
+# T103E — sync: no-op agents.yaml skips portable agents sync
+run_test "T103E — sync: no-op agents config skips sync"
+mkdir -p "$TMP/t103e"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103e" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103e/.agentic/portable"
+echo "portable codex instructions" > "$TMP/t103e/.agentic/portable/codex.md"
+cat > "$TMP/t103e/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: false
+providers: {}
+EOF
+T103E_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103e" \
+  > /dev/null 2>&1 || T103E_EXIT=$?
+assert_exit_code 0 "$T103E_EXIT" "T103E"
+assert_file_not_exists "$TMP/t103e/.agents/AGENTS.md" "T103E"
+
+# T103F — sync: opt-in agents.yaml syncs codex and opencode mappings
+run_test "T103F — sync: opt-in agents config syncs mappings"
+mkdir -p "$TMP/t103f"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103f" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103f/.agentic/portable"
+echo "portable codex instructions" > "$TMP/t103f/.agentic/portable/codex.md"
+echo "portable opencode instructions" > "$TMP/t103f/.agentic/portable/opencode.md"
+cat > "$TMP/t103f/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: true
+providers:
+  codex:
+    enabled: true
+    mappings:
+      - source: ".agentic/portable/codex.md"
+        target: ".agents/AGENTS.md"
+  opencode:
+    enabled: true
+    mappings:
+      - source: ".agentic/portable/opencode.md"
+        target: ".opencode/AGENTS.md"
+EOF
+T103F_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103f" \
+  > /dev/null 2>&1 || T103F_EXIT=$?
+assert_exit_code 0 "$T103F_EXIT" "T103F"
+assert_file_exists "$TMP/t103f/.agents/AGENTS.md" "T103F codex target"
+assert_file_exists "$TMP/t103f/.opencode/AGENTS.md" "T103F opencode target"
+assert_file_contains "$TMP/t103f/.agents/AGENTS.md" "portable codex instructions" "T103F codex content"
+assert_file_contains "$TMP/t103f/.opencode/AGENTS.md" "portable opencode instructions" "T103F opencode content"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"

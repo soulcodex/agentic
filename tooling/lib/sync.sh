@@ -11,6 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 # shellcheck source=tooling/lib/providers.sh
 source "$SCRIPT_DIR/providers.sh"
+# shellcheck source=tooling/lib/agents.sh
+source "$SCRIPT_DIR/agents.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 TARGET=""
@@ -39,6 +41,7 @@ LOCAL_PROFILE="$TARGET/.agentic/profile.yaml"
 }
 
 validate_providers_config "$TARGET"
+validate_agents_config "$TARGET"
 
 # ── Resolve library path ────────────────────────────────────────────────────────
 # Use discover_library_from_target function which reads from target's config
@@ -118,6 +121,8 @@ if [[ -n "$ACTIVE_VENDORS" ]]; then
   VENDOR_SWITCH="$LIBRARY/tooling/lib/vendor-switch.sh"
   bash "$VENDOR_SWITCH" --library "$LIBRARY" --target "$TARGET" "$ACTIVE_VENDORS"
 fi
+
+sync_portable_agents "$TARGET"
 
 echo ""
 echo "Sync complete. Project regenerated from local profile."

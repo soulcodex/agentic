@@ -70,6 +70,8 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 
 ---
 
+> **Portable agents:** optional provider-specific agent prompt mapping is documented in [Portable Agents](agents.md).
+
 ## Sections
 
 - [**Installation**](getting-started/installation.md) — one-line install, manual install, prerequisites
@@ -78,5 +80,6 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 - [**Profiles**](profiles.md) — all available profiles and their fragments
 - [**Skills**](skills.md) — shared skill catalog plus persistent and ad hoc (selective) skill usage paths
 - [**Vendors**](vendors.md) — supported AI tools and their output files
+- [**Portable Agents**](agents.md) — opt-in provider-specific agents mapping via `.agentic/agents.yaml`
 - [**Customization**](customization.md) — per-project overrides, project skills, proprietary libraries, link mode vs copy mode
 - [**Custom Rules**](custom-rules.md) — `AGENTS.local.md` injection

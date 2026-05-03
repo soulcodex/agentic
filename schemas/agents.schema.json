@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/soulcodex/agentic/schemas/agents.schema.json",
+  "title": "Agentic Portable Agents Config",
+  "description": "Optional project-local mappings for syncing portable agent prompts to provider-specific paths.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Portable agents config schema version identifier."
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Global opt-in gate for portable agents sync."
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codex": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "mappings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["source", "target"],
+                "properties": {
+                  "source": { "type": "string" },
+                  "target": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "opencode": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "mappings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["source", "target"],
+                "properties": {
+                  "source": { "type": "string" },
+                  "target": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["enabled"]
+}
