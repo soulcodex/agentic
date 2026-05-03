@@ -67,3 +67,48 @@ apply_codex_agent_mappings() {
     echo "  ✔  Codex agent synced: $target_rel"
   done
 }
+
+cleanup_codex_agent_outputs() {
+  local target="$1"
+  local active="$2"
+  shift 2
+
+  local output_dir="$target/.agents/orchestration"
+  [[ ! -d "$output_dir" ]] && return 0
+
+  if [[ "$active" != "true" ]]; then
+    rm -rf "$output_dir"
+    rmdir "$target/.agents" 2>/dev/null || true
+    echo "  ✔  Codex agent scaffolds removed (inactive provider)"
+    return 0
+  fi
+
+  local expected=()
+  local entry target_rel basename
+  for entry in "$@"; do
+    IFS=$'\t' read -r _ _ target_rel <<< "$entry"
+    basename=$(basename "$target_rel")
+    expected+=("$basename")
+  done
+
+  shopt -s nullglob
+  local file keep
+  for file in "$output_dir"/*.md; do
+    keep=false
+    basename=$(basename "$file")
+    for target_rel in "${expected[@]}"; do
+      if [[ "$basename" == "$target_rel" ]]; then
+        keep=true
+        break
+      fi
+    done
+    if [[ "$keep" == "false" ]]; then
+      rm -f "$file"
+      echo "  ✔  Codex orphan removed: .agents/orchestration/$basename"
+    fi
+  done
+  shopt -u nullglob
+
+  rmdir "$output_dir" 2>/dev/null || true
+  rmdir "$target/.agents" 2>/dev/null || true
+}

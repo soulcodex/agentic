@@ -67,3 +67,48 @@ apply_opencode_agent_mappings() {
     echo "  ✔  OpenCode agent synced: $target_rel"
   done
 }
+
+cleanup_opencode_agent_outputs() {
+  local target="$1"
+  local active="$2"
+  shift 2
+
+  local output_dir="$target/.opencode/agents"
+  [[ ! -d "$output_dir" ]] && return 0
+
+  if [[ "$active" != "true" ]]; then
+    rm -rf "$output_dir"
+    rmdir "$target/.opencode" 2>/dev/null || true
+    echo "  ✔  OpenCode agent scaffolds removed (inactive provider)"
+    return 0
+  fi
+
+  local expected_files=()
+  local entry target_rel expected_name
+  for entry in "$@"; do
+    IFS=$'\t' read -r _ _ target_rel <<< "$entry"
+    expected_name=$(basename "$target_rel")
+    expected_files+=("$expected_name")
+  done
+
+  shopt -s nullglob
+  local file keep file_name expected_file
+  for file in "$output_dir"/*.md; do
+    keep=false
+    file_name=$(basename "$file")
+    for expected_file in "${expected_files[@]}"; do
+      if [[ "$file_name" == "$expected_file" ]]; then
+        keep=true
+        break
+      fi
+    done
+    if [[ "$keep" == "false" ]]; then
+      rm -f "$file"
+      echo "  ✔  OpenCode orphan removed: .opencode/agents/$file_name"
+    fi
+  done
+  shopt -u nullglob
+
+  rmdir "$output_dir" 2>/dev/null || true
+  rmdir "$target/.opencode" 2>/dev/null || true
+}

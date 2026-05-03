@@ -113,11 +113,25 @@ preflight_portable_agents_mappings() {
   return 0
 }
 
+is_agent_provider_active() {
+  local provider="$1"
+  local active_vendors_csv="$2"
+
+  # Backward compatibility: missing active_vendors means no provider filter.
+  [[ -z "$active_vendors_csv" ]] && return 0
+
+  [[ ",$active_vendors_csv," == *",$provider,"* ]]
+}
+
 sync_portable_agents() {
   local target="$1"
   local agents_file="$target/.agentic/agents.yaml"
+  local config_file="$target/.agentic/config.yaml"
   local enabled
   local agent_count
+  local active_vendors_csv=""
+  local codex_active="true"
+  local opencode_active="true"
   local codex_mappings=()
   local opencode_mappings=()
   local all_mappings=()
@@ -141,10 +155,26 @@ sync_portable_agents() {
     return 0
   fi
 
-  collect_codex_agent_mappings "$target" "$agents_file" codex_mappings
-  collect_opencode_agent_mappings "$target" "$agents_file" opencode_mappings
+  if [[ -f "$config_file" ]]; then
+    active_vendors_csv=$(read_active_vendors "$config_file")
+  fi
+  if ! is_agent_provider_active "codex" "$active_vendors_csv"; then
+    codex_active="false"
+  fi
+  if ! is_agent_provider_active "opencode" "$active_vendors_csv"; then
+    opencode_active="false"
+  fi
+
+  if [[ "$codex_active" == "true" ]]; then
+    collect_codex_agent_mappings "$target" "$agents_file" codex_mappings
+  fi
+  if [[ "$opencode_active" == "true" ]]; then
+    collect_opencode_agent_mappings "$target" "$agents_file" opencode_mappings
+  fi
 
   if [[ "${#codex_mappings[@]}" -eq 0 && "${#opencode_mappings[@]}" -eq 0 ]]; then
+    cleanup_codex_agent_outputs "$target" "$codex_active"
+    cleanup_opencode_agent_outputs "$target" "$opencode_active"
     echo "Warning: agents orchestration switching enabled but no provider outputs resolved; no mutations applied." >&2
     return 0
   fi
@@ -166,6 +196,8 @@ sync_portable_agents() {
 
   apply_codex_agent_mappings "${codex_mappings[@]}"
   apply_opencode_agent_mappings "${opencode_mappings[@]}"
+  cleanup_codex_agent_outputs "$target" "$codex_active" "${codex_mappings[@]}"
+  cleanup_opencode_agent_outputs "$target" "$opencode_active" "${opencode_mappings[@]}"
 
   local file
   for file in "${tmp_files[@]}"; do

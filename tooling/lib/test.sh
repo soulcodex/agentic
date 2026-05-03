@@ -2729,6 +2729,111 @@ T103N_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 1 "$T103N_EXIT" "T103N"
 assert_stdout_contains "$T103N_OUTPUT" "invalid reasoning_effort" "T103N"
 
+# T103O — sync: single-provider codex removes opencode scaffolds
+run_test "T103O — sync: codex-only active vendors removes opencode scaffolds"
+mkdir -p "$TMP/t103o"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103o" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103o/.agents/orchestration" "$TMP/t103o/.opencode/agents"
+echo "stale codex orphan" > "$TMP/t103o/.agents/orchestration/orphan.md"
+echo "stale opencode orphan" > "$TMP/t103o/.opencode/agents/orphan.md"
+cat > "$TMP/t103o/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Single provider codex test."
+    prompt: "Architect codex prompt"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+yq -i '.active_vendors = ["codex"] | del(.active_vendor)' "$TMP/t103o/.agentic/config.yaml"
+T103O_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103o" \
+  > /dev/null 2>&1 || T103O_EXIT=$?
+assert_exit_code 0 "$T103O_EXIT" "T103O"
+assert_file_exists "$TMP/t103o/.agents/orchestration/architect.md" "T103O codex kept"
+assert_file_not_exists "$TMP/t103o/.agents/orchestration/orphan.md" "T103O codex orphan removed"
+assert_file_not_exists "$TMP/t103o/.opencode/agents/architect.md" "T103O opencode removed"
+assert_file_not_exists "$TMP/t103o/.opencode/agents/orphan.md" "T103O opencode orphan removed"
+
+# T103P — sync: single-provider opencode removes codex scaffolds
+run_test "T103P — sync: opencode-only active vendors removes codex scaffolds"
+mkdir -p "$TMP/t103p"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103p" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103p/.agents/orchestration" "$TMP/t103p/.opencode/agents"
+echo "stale codex orphan" > "$TMP/t103p/.agents/orchestration/orphan.md"
+echo "stale opencode orphan" > "$TMP/t103p/.opencode/agents/orphan.md"
+cat > "$TMP/t103p/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Single provider opencode test."
+    prompt: "Architect opencode prompt"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+yq -i '.active_vendors = ["opencode"] | del(.active_vendor)' "$TMP/t103p/.agentic/config.yaml"
+T103P_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103p" \
+  > /dev/null 2>&1 || T103P_EXIT=$?
+assert_exit_code 0 "$T103P_EXIT" "T103P"
+assert_file_exists "$TMP/t103p/.opencode/agents/architect.md" "T103P opencode kept"
+assert_file_not_exists "$TMP/t103p/.opencode/agents/orphan.md" "T103P opencode orphan removed"
+assert_file_not_exists "$TMP/t103p/.agents/orchestration/architect.md" "T103P codex removed"
+assert_file_not_exists "$TMP/t103p/.agents/orchestration/orphan.md" "T103P codex orphan removed"
+
+# T103Q — sync: multi-provider keeps both and removes only orphans
+run_test "T103Q — sync: multi-provider keeps both scaffolds and prunes orphans"
+mkdir -p "$TMP/t103q"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103q" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103q/.agents/orchestration" "$TMP/t103q/.opencode/agents"
+echo "stale codex orphan" > "$TMP/t103q/.agents/orchestration/orphan.md"
+echo "stale opencode orphan" > "$TMP/t103q/.opencode/agents/orphan.md"
+cat > "$TMP/t103q/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Multi-provider cleanup test."
+    prompt: "Architect multi-provider prompt"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+yq -i '.active_vendors = ["codex", "opencode"] | del(.active_vendor)' "$TMP/t103q/.agentic/config.yaml"
+T103Q_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103q" \
+  > /dev/null 2>&1 || T103Q_EXIT=$?
+assert_exit_code 0 "$T103Q_EXIT" "T103Q"
+assert_file_exists "$TMP/t103q/.agents/orchestration/architect.md" "T103Q codex kept"
+assert_file_exists "$TMP/t103q/.opencode/agents/architect.md" "T103Q opencode kept"
+assert_file_not_exists "$TMP/t103q/.agents/orchestration/orphan.md" "T103Q codex orphan removed"
+assert_file_not_exists "$TMP/t103q/.opencode/agents/orphan.md" "T103Q opencode orphan removed"
+
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"
 T104_EXIT=0
