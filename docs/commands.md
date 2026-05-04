@@ -168,7 +168,8 @@ Cursor-specific behavior:
 
 Agents orchestration switching behavior:
 - Canonical generated outputs live under `.agentic/agents/{provider}/`.
-- Switching `codex` creates `.agents/orchestration -> ../.agentic/agents/codex` when available.
+- `agents` are defined in `.agentic/agents.yaml`; provider-local `subagents` paths are created by switch.
+- Switching `codex` creates `.codex/agents -> ../.agentic/agents/codex` when available.
 - Switching `opencode` creates `.opencode/agents -> ../.agentic/agents/opencode` when available.
 
 ### sync

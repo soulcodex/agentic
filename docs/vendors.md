@@ -121,7 +121,9 @@ Multiple vendors can be active simultaneously since their symlink paths don't co
 |--------|-------------------|
 | `claude` | `CLAUDE.md`, `.claude/skills` |
 | `copilot` | `.github/copilot-instructions.md`, `.github/instructions/` |
-| `codex` | `.agents/skills`, `.agents/orchestration` (reads `AGENTS.md` natively) |
+| `codex` | `.agents/skills`, `.codex/agents` (reads `AGENTS.md` natively) |
 | `gemini` | `GEMINI.md`, `.gemini/system.md`, `.gemini/skills` |
 | `opencode` | `.opencode/skills`, `.opencode/agents` |
 | `cursor` | `.cursor/rules` |
+
+For orchestration switching, `agents` are declared in `.agentic/agents.yaml`, and provider-local `subagents` paths (`.codex/agents`, `.opencode/agents`) are symlinks to generated artifacts under `.agentic/agents/{provider}/`.

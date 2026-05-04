@@ -39,16 +39,18 @@ agents:
 ```
 
 Notes:
-- Agent names are lowercase letters only (`architect`, `reviewer`, `worker`).
+- `agents` are orchestration roles declared in `.agentic/agents.yaml` (`architect`, `reviewer`, `worker`).
+- Agent names are lowercase letters only.
 - `prompt` is inline multiline instruction text in YAML.
 - If `enabled: true` and `agents` is empty, sync warns and performs no mutations.
-- Provider outputs are generated to canonical local paths:
+- Provider outputs are generated as artifacts under `.agentic/agents/`:
   - Codex: `.agentic/agents/codex/<agent>.md`
   - OpenCode: `.agentic/agents/opencode/<agent>.md`
-- `agentic switch` activates provider-local symlinks:
-  - `.agents/orchestration` → `.agentic/agents/codex`
-  - `.opencode/agents` → `.agentic/agents/opencode`
+- `agentic switch` activates provider-local agent paths:
+  - Codex: `.codex/agents` → `.agentic/agents/codex`
+  - OpenCode: `.opencode/agents` → `.agentic/agents/opencode`
 - `model` must match the provider's valid model reference/name.
 - `.agentic/agents/` is generated from `agents.yaml` and should be gitignored.
 - `agents.yaml` remains the source of truth and should be tracked in git.
+- `subagents` are provider-local runtime directories (`.codex/agents`, `.opencode/agents`) that point to generated artifacts.
 - Provider behavior stays isolated in vendor adapters.

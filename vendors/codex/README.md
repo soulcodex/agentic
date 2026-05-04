@@ -12,6 +12,7 @@ OpenAI Codex reads `AGENTS.md` natively:
 | File | Purpose |
 |---|---|
 | `AGENTS.md` | Primary — Codex reads this natively |
+| `.codex/agents/` | Provider-local subagents path (symlink target when orchestration switching is enabled) |
 
 ## Monorepo Support
 
@@ -34,3 +35,4 @@ Use `just compose` once per service with its own profile.
 
 - Codex is the most native consumer of AGENTS.md — no adapter transformation is required.
 - The passthrough adapter exists to track which sections were intended for Codex.
+- Orchestration `agents` are declared in `.agentic/agents.yaml`; generated artifacts live in `.agentic/agents/codex/` and are exposed at provider-local `.codex/agents/`.
