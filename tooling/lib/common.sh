@@ -270,7 +270,7 @@ discover_target() {
 # Config reading helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Read active vendors from config, handling both array and legacy string formats
+# Read active vendors from config.
 # Usage: read_active_vendors <config_file>
 # Returns: comma-separated vendor string
 read_active_vendors() {
@@ -278,13 +278,8 @@ read_active_vendors() {
   local vendors=""
   
   if [[ -f "$config" ]]; then
-    # Try new array format first, fall back to old string format
     vendors=$(yq '.active_vendors // [] | join(",")' "$config" 2>/dev/null || true)
-    if [[ -z "$vendors" || "$vendors" == "null" ]]; then
-      # Fallback to old format
-      vendors=$(yq '.active_vendor // ""' "$config" 2>/dev/null || true)
-      [[ "$vendors" == "null" ]] && vendors=""
-    fi
+    [[ "$vendors" == "null" ]] && vendors=""
   fi
   
   echo "$vendors"

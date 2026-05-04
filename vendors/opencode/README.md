@@ -16,7 +16,7 @@ Opencode reads `AGENTS.md` natively (same as Claude Code and OpenAI Codex). No t
 
 ## Skills
 
-Skills deploy to `.opencode/skills/` — Opencode's native skills path. Opencode also supports `.claude/skills/` and `.agents/skills/` as compatibility fallbacks, but `.opencode/skills/` is the canonical location.
+Skills deploy to `.opencode/skills/` — Opencode's native skills path.
 
 ## Agents orchestration
 

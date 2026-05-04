@@ -127,10 +127,9 @@ Tier-level overrides follow the same placement rules but apply only to their tie
 
 ## Validation
 
-Validation runs automatically as part of `agentic sync`. It checks:
+Validation runs automatically during `agentic sync`.
 
-- AGENTS.local.md exists → "[ OK ] Custom rules file present"
-- custom_rules in profile but no AGENTS.local.md → "[WARN]"
-- Duplicate H2 sections (also in AGENTS.md) → "[WARN]"
-
-Regenerate doesn't touch AGENTS.local.md — your custom rules persist across updates.
+- ✅ If `AGENTS.local.md` exists, your custom rules are recognized and included.
+- ⚠️ If `custom_rules` is configured in the profile but `AGENTS.local.md` is missing, you get a warning.
+- ⚠️ If an H2 section is duplicated between `AGENTS.local.md` and generated `AGENTS.md`, you get a warning.
+- 🔒 Regeneration never overwrites `AGENTS.local.md`, so your custom rules persist across updates.

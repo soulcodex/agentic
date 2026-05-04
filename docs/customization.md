@@ -51,7 +51,7 @@ providers:
 
 Behavior:
 
-- If `.agentic/providers.yaml` is missing, behavior is unchanged (backward compatible).
+- If `.agentic/providers.yaml` is missing, default provider behavior applies.
 - If present but invalid, `agentic compose` and `agentic sync` fail with a clear error.
 - This file influences runtime pivot preferences only; `AGENTS.md` remains canonical.
 - Cursor provider/model mapping is intentionally unsupported until Cursor publishes
@@ -78,8 +78,7 @@ servers:
 - `.gemini/settings.json` (`mcpServers` translation)
 - `.cursor/mcp.json` (`mcpServers` translation)
 
-If `.agentic/mcp.yaml` is missing, legacy `mcp:` under `.agentic/profile.yaml`
-is still supported for backward compatibility, but deprecated.
+If `.agentic/mcp.yaml` is missing, MCP outputs are not seeded.
 
 ### Local vs Issue-Backed Planning
 

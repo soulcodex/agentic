@@ -188,8 +188,7 @@ agentic sync                # Auto-detect target from current directory
 agentic sync ./my-project   # Explicit target
 ```
 
-During sync, MCP seeding uses `.agentic/mcp.yaml` first. If absent, a legacy
-`mcp:` block inside `.agentic/profile.yaml` is still supported (deprecated).
+During sync, MCP seeding uses `.agentic/mcp.yaml`.
 If `.agentic/agents.yaml` is enabled, sync also regenerates `.agentic/agents/` from that file.
 
 ### list

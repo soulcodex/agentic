@@ -491,7 +491,7 @@ inject_local_override() {
   esac
 }
 
-# ── MCP seeding (new file first, profile fallback) ───────────────────────────
+# ── MCP seeding (from .agentic/mcp.yaml only) ────────────────────────────────
 seed_mcp_servers() {
   local target_mcp_file="$TARGET/.agentic/mcp.yaml"
 
@@ -507,19 +507,6 @@ seed_mcp_servers() {
         --strategy "$mcp_strategy"
     fi
     return 0
-  fi
-
-  local has_legacy_mcp
-  has_legacy_mcp=$(yq '.mcp.servers // "null"' "$PROFILE_FILE")
-  if [[ "$has_legacy_mcp" != "null" && "$has_legacy_mcp" != "{}" ]]; then
-    warn "Deprecated MCP declaration in profile detected. Move MCP config to $target_mcp_file"
-    local mcp_strategy
-    mcp_strategy=$(yq '.mcp.strategy // "merge"' "$PROFILE_FILE")
-    bash "$LIBRARY/tooling/lib/mcp.sh" \
-      --action seed \
-      --target "$TARGET" \
-      --profile-file "$PROFILE_FILE" \
-      --strategy "$mcp_strategy"
   fi
 }
 

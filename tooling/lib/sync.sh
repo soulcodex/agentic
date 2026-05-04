@@ -54,19 +54,6 @@ if [[ -f "$CONFIG_PATH" ]]; then
   [[ "$LIBRARY" == "null" || "$LIBRARY" == '""' ]] && LIBRARY=""
 fi
 
-# Fall back to legacy library_path key if agentic_root is empty
-if [[ -z "$LIBRARY" && -f "$CONFIG_PATH" ]]; then
-  legacy_path=$(yq '.library_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
-  if [[ -n "$legacy_path" && "$legacy_path" != "null" && "$legacy_path" != '""' ]]; then
-    warn "library_path is deprecated. Use agentic_root in .agentic/config.yaml"
-    # Resolve relative paths
-    if [[ "$legacy_path" != /* ]]; then
-      legacy_path="$(cd "$TARGET" && cd "$legacy_path" 2>/dev/null && pwd)" || true
-    fi
-    LIBRARY="$legacy_path"
-  fi
-fi
-
 # Fall back to env vars if not in config
 if [[ -z "$LIBRARY" ]]; then
   if [[ -n "${AGENTIC_REPO_ROOT:-}" ]]; then
