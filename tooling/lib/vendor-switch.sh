@@ -145,6 +145,8 @@ snapshot_current_switch_state() {
     "$TARGET/.claude/skills"
     "$TARGET/.opencode/skills"
     "$TARGET/.agents/skills"
+    "$TARGET/.codex/agents"
+    "$TARGET/.agents/orchestration"
   )
 
   local cursor_rel_path
@@ -236,6 +238,7 @@ remove_all_vendor_symlinks() {
   [[ -L "$TARGET/.opencode/skills" ]] && rm "$TARGET/.opencode/skills"
   [[ -L "$TARGET/.opencode/agents" ]] && rm "$TARGET/.opencode/agents"
   [[ -L "$TARGET/.agents/skills" ]] && rm "$TARGET/.agents/skills"
+  [[ -L "$TARGET/.codex/agents" ]] && rm "$TARGET/.codex/agents"
   [[ -L "$TARGET/.agents/orchestration" ]] && rm "$TARGET/.agents/orchestration"
   local cursor_rel_path cursor_abs_path
   for cursor_rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
@@ -249,6 +252,7 @@ remove_all_vendor_symlinks() {
   [[ -d "$TARGET/.gemini" ]] && rmdir "$TARGET/.gemini" 2>/dev/null || true
   [[ -d "$TARGET/.claude" ]] && rmdir "$TARGET/.claude" 2>/dev/null || true
   [[ -d "$TARGET/.opencode" ]] && rmdir "$TARGET/.opencode" 2>/dev/null || true
+  [[ -d "$TARGET/.codex" ]] && rmdir "$TARGET/.codex" 2>/dev/null || true
   [[ -d "$TARGET/.agents" ]] && rmdir "$TARGET/.agents" 2>/dev/null || true
   [[ -d "$TARGET/.cursor" ]] && rmdir "$TARGET/.cursor" 2>/dev/null || true
 }

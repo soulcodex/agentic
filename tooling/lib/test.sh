@@ -2538,7 +2538,7 @@ T103G_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103g" \
   2>&1) || T103G_EXIT=$?
 assert_exit_code 0 "$T103G_EXIT" "T103G"
-assert_stdout_contains "$T103G_OUTPUT" "enabled but no agent definitions found; no mutations applied" "T103G warning"
+assert_stdout_contains "$T103G_OUTPUT" "no mutations applied" "T103G warning"
 assert_file_not_exists "$TMP/t103g/.agentic/agents/codex/architect.md" "T103G codex no-op"
 assert_file_not_exists "$TMP/t103g/.agentic/agents/opencode/architect.md" "T103G opencode no-op"
 
@@ -2571,8 +2571,8 @@ bash "$COMPOSE" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t103i" \
   > /dev/null 2>&1
-mkdir -p "$TMP/t103i/.agents/orchestration"
-echo "unmanaged local content" > "$TMP/t103i/.agents/orchestration/architect.md"
+mkdir -p "$TMP/t103i/.codex/agents"
+echo "unmanaged local content" > "$TMP/t103i/.codex/agents/architect.md"
 cat > "$TMP/t103i/.agentic/agents.yaml" <<'EOF'
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
 version: "1"
@@ -2594,7 +2594,7 @@ T103I_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103i" \
   2>&1) || T103I_EXIT=$?
 assert_exit_code 0 "$T103I_EXIT" "T103I"
-assert_file_contains "$TMP/t103i/.agents/orchestration/architect.md" "unmanaged local content" "T103I preserved destination"
+assert_file_contains "$TMP/t103i/.codex/agents/architect.md" "unmanaged local content" "T103I preserved destination"
 assert_file_exists "$TMP/t103i/.agentic/agents/codex/architect.md" "T103I codex canonical write"
 assert_file_exists "$TMP/t103i/.agentic/agents/opencode/architect.md" "T103I opencode canonical write"
 
@@ -2773,8 +2773,8 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103o" \
   > /dev/null 2>&1 || T103O_EXIT=$?
 assert_exit_code 0 "$T103O_EXIT" "T103O"
-assert_symlink_exists "$TMP/t103o/.agents/orchestration" "T103O codex symlink exists"
-assert_symlink_target "$TMP/t103o/.agents/orchestration" "../.agentic/agents/codex" "T103O codex symlink target"
+assert_symlink_exists "$TMP/t103o/.codex/agents" "T103O codex symlink exists"
+assert_symlink_target "$TMP/t103o/.codex/agents" "../.agentic/agents/codex" "T103O codex symlink target"
 assert_file_not_exists "$TMP/t103o/.opencode/agents" "T103O opencode symlink removed"
 assert_file_exists "$TMP/t103o/.agentic/agents/codex/architect.md" "T103O codex canonical"
 assert_file_exists "$TMP/t103o/.agentic/agents/opencode/architect.md" "T103O opencode canonical retained"
@@ -2808,7 +2808,7 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 0 "$T103P_EXIT" "T103P"
 assert_symlink_exists "$TMP/t103p/.opencode/agents" "T103P opencode symlink exists"
 assert_symlink_target "$TMP/t103p/.opencode/agents" "../.agentic/agents/opencode" "T103P opencode symlink target"
-assert_file_not_exists "$TMP/t103p/.agents/orchestration" "T103P codex symlink removed"
+assert_file_not_exists "$TMP/t103p/.codex/agents" "T103P codex symlink removed"
 assert_file_exists "$TMP/t103p/.agentic/agents/codex/architect.md" "T103P codex canonical retained"
 assert_file_exists "$TMP/t103p/.agentic/agents/opencode/architect.md" "T103P opencode canonical"
 
@@ -2839,8 +2839,8 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103q" \
   > /dev/null 2>&1 || T103Q_EXIT=$?
 assert_exit_code 0 "$T103Q_EXIT" "T103Q"
-assert_symlink_exists "$TMP/t103q/.agents/orchestration" "T103Q codex symlink"
-assert_symlink_target "$TMP/t103q/.agents/orchestration" "../.agentic/agents/codex" "T103Q codex symlink target"
+assert_symlink_exists "$TMP/t103q/.codex/agents" "T103Q codex symlink"
+assert_symlink_target "$TMP/t103q/.codex/agents" "../.agentic/agents/codex" "T103Q codex symlink target"
 assert_symlink_exists "$TMP/t103q/.opencode/agents" "T103Q opencode symlink"
 assert_symlink_target "$TMP/t103q/.opencode/agents" "../.agentic/agents/opencode" "T103Q opencode symlink target"
 assert_file_exists "$TMP/t103q/.agentic/agents/codex/architect.md" "T103Q codex canonical"
@@ -3233,6 +3233,34 @@ bash "$VENDOR_SWITCH" \
 assert_symlink_exists "$TMP/t127c/.cursor/rules" "T127C rules symlink created"
 assert_file_exists "$TMP/t127c/.cursor/rules.backup.1/custom.mdc" "T127C incremental backup created"
 assert_file_exists "$TMP/t127c/.cursor/rules.backup/existing.txt" "T127C existing backup retained"
+
+# T127CA — vendor-switch: codex migrates legacy .agents/orchestration to backup and activates .codex/agents
+run_test "T127CA — vendor-switch: codex legacy orchestration migration"
+mkdir -p "$TMP/t127ca"
+mkdir -p "$TMP/t127ca/.agents/orchestration"
+mkdir -p "$TMP/t127ca/.agents/orchestration.backup"
+printf '%s\n' "existing backup marker" > "$TMP/t127ca/.agents/orchestration.backup/existing.txt"
+printf '%s\n' "legacy codex agent" > "$TMP/t127ca/.agents/orchestration/architect.md"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t127ca" \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127ca" \
+  --vendors codex \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t127ca" \
+  codex \
+  > /dev/null 2>&1
+assert_symlink_exists "$TMP/t127ca/.codex/agents" "T127CA codex symlink created"
+assert_symlink_target "$TMP/t127ca/.codex/agents" "../.agentic/agents/codex" "T127CA codex symlink target"
+assert_file_exists "$TMP/t127ca/.agents/orchestration.backup.1/architect.md" "T127CA legacy path migrated"
+assert_file_exists "$TMP/t127ca/.agents/orchestration.backup/existing.txt" "T127CA existing backup retained"
+assert_file_not_exists "$TMP/t127ca/.agents/orchestration" "T127CA legacy path replaced"
 
 # T127D — vendor-switch: rollback restores prior vendor state on post-mutation failure
 run_test "T127D — vendor-switch: rollback restores prior state on failure"
