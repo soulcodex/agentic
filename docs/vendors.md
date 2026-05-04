@@ -121,7 +121,7 @@ Multiple vendors can be active simultaneously since their symlink paths don't co
 |--------|-------------------|
 | `claude` | `CLAUDE.md`, `.claude/skills` |
 | `copilot` | `.github/copilot-instructions.md`, `.github/instructions/` |
-| `codex` | `.agents/skills` (reads `AGENTS.md` natively) |
+| `codex` | `.agents/skills`, `.agents/orchestration` (reads `AGENTS.md` natively) |
 | `gemini` | `GEMINI.md`, `.gemini/system.md`, `.gemini/skills` |
-| `opencode` | `.opencode/skills` |
+| `opencode` | `.opencode/skills`, `.opencode/agents` |
 | `cursor` | `.cursor/rules` |

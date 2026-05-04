@@ -38,7 +38,7 @@ collect_codex_agent_mappings() {
       continue
     fi
 
-    target_rel=".agents/orchestration/$name.md"
+    target_rel=".agentic/agents/codex/$name.md"
     target_abs="$target/$target_rel"
     tmp_render="$(mktemp "${TMPDIR:-/tmp}/agentic-codex-agent-XXXXXX.md")"
     {
@@ -58,57 +58,29 @@ collect_codex_agent_mappings() {
 }
 
 apply_codex_agent_mappings() {
-  local entry source_abs target_abs target_rel
-
-  for entry in "$@"; do
-    IFS=$'\t' read -r source_abs target_abs target_rel <<< "$entry"
-    mkdir -p "$(dirname "$target_abs")"
-    cp "$source_abs" "$target_abs"
-    echo "  ✔  Codex agent synced: $target_rel"
-  done
-}
-
-cleanup_codex_agent_outputs() {
   local target="$1"
-  local active="$2"
-  shift 2
+  shift
 
-  local output_dir="$target/.agents/orchestration"
-  [[ ! -d "$output_dir" ]] && return 0
+  local output_dir="$target/.agentic/agents/codex"
+  local output_parent="$target/.agentic/agents"
+  local staged_dir
+  staged_dir="$(mktemp -d "${TMPDIR:-/tmp}/agentic-codex-agents-XXXXXX")"
 
-  if [[ "$active" != "true" ]]; then
-    rm -rf "$output_dir"
-    rmdir "$target/.agents" 2>/dev/null || true
-    echo "  ✔  Codex agent scaffolds removed (inactive provider)"
-    return 0
-  fi
-
-  local expected=()
-  local entry target_rel basename
+  local entry source_abs target_rel dest_basename
   for entry in "$@"; do
-    IFS=$'\t' read -r _ _ target_rel <<< "$entry"
-    basename=$(basename "$target_rel")
-    expected+=("$basename")
+    IFS=$'\t' read -r source_abs _ target_rel <<< "$entry"
+    dest_basename="$(basename "$target_rel")"
+    cp "$source_abs" "$staged_dir/$dest_basename"
   done
 
-  shopt -s nullglob
-  local file keep
-  for file in "$output_dir"/*.md; do
-    keep=false
-    basename=$(basename "$file")
-    for target_rel in "${expected[@]}"; do
-      if [[ "$basename" == "$target_rel" ]]; then
-        keep=true
-        break
-      fi
-    done
-    if [[ "$keep" == "false" ]]; then
-      rm -f "$file"
-      echo "  ✔  Codex orphan removed: .agents/orchestration/$basename"
-    fi
-  done
-  shopt -u nullglob
-
-  rmdir "$output_dir" 2>/dev/null || true
-  rmdir "$target/.agents" 2>/dev/null || true
+  mkdir -p "$output_parent"
+  rm -rf "$output_dir"
+  if [[ -n "$(find "$staged_dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+    mv "$staged_dir" "$output_dir"
+    echo "  ✔  Codex agents synced: .agentic/agents/codex"
+  else
+    rm -rf "$staged_dir"
+    rmdir "$output_parent" 2>/dev/null || true
+    echo "  ✔  Codex agents cleared: .agentic/agents/codex"
+  fi
 }

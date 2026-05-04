@@ -1,6 +1,6 @@
 # Agents Orchestration Switching
 
-Use `.agentic/agents.yaml` to define project-local agent orchestration and generate provider-local agent files.
+Use `.agentic/agents.yaml` to define project-local agent orchestration and generate canonical provider outputs under `.agentic/agents/`.
 This feature is additive and optional: if the file is missing, or `enabled: false`, sync behavior is unchanged.
 
 ## Default behavior
@@ -42,9 +42,13 @@ Notes:
 - Agent names are lowercase letters only (`architect`, `reviewer`, `worker`).
 - `prompt` is inline multiline instruction text in YAML.
 - If `enabled: true` and `agents` is empty, sync warns and performs no mutations.
-- Provider outputs are generated to local project paths:
-  - Codex: `.agents/orchestration/<agent>.md`
-  - OpenCode: `.opencode/agents/<agent>.md`
+- Provider outputs are generated to canonical local paths:
+  - Codex: `.agentic/agents/codex/<agent>.md`
+  - OpenCode: `.agentic/agents/opencode/<agent>.md`
+- `agentic switch` activates provider-local symlinks:
+  - `.agents/orchestration` → `.agentic/agents/codex`
+  - `.opencode/agents` → `.agentic/agents/opencode`
 - `model` must match the provider's valid model reference/name.
-- All outputs are preflighted before writing; unmanaged destination conflicts fail before mutation.
+- `.agentic/agents/` is generated from `agents.yaml` and should be gitignored.
+- `agents.yaml` remains the source of truth and should be tracked in git.
 - Provider behavior stays isolated in vendor adapters.

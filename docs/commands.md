@@ -166,6 +166,11 @@ Cursor-specific behavior:
   `<path>.backup`, then `<path>.backup.N`.
 - If activation fails mid-switch, agentic rolls back to the prior symlink/config state.
 
+Agents orchestration switching behavior:
+- Canonical generated outputs live under `.agentic/agents/{provider}/`.
+- Switching `codex` creates `.agents/orchestration -> ../.agentic/agents/codex` when available.
+- Switching `opencode` creates `.opencode/agents -> ../.agentic/agents/opencode` when available.
+
 ### sync
 
 Regenerate AGENTS.md and vendor files from the local `.agentic/profile.yaml`.
@@ -184,6 +189,7 @@ agentic sync ./my-project   # Explicit target
 
 During sync, MCP seeding uses `.agentic/mcp.yaml` first. If absent, a legacy
 `mcp:` block inside `.agentic/profile.yaml` is still supported (deprecated).
+If `.agentic/agents.yaml` is enabled, sync also regenerates `.agentic/agents/` from that file.
 
 ### list
 

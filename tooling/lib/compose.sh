@@ -932,6 +932,7 @@ opencode.json
 .opencode/skills
 .agents/skills
 .cursor/rules
+.agentic/agents/
 
 $MARKER_END
 BLOCK
@@ -958,6 +959,7 @@ opencode.json
 .agentic/skills/
 .agentic/fragments/
 .agentic/vendor-files/
+.agentic/agents/
 
 $MARKER_END
 BLOCK

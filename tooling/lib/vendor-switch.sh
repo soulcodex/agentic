@@ -234,7 +234,9 @@ remove_all_vendor_symlinks() {
   # Remove skill symlinks
   [[ -L "$TARGET/.claude/skills" ]] && rm "$TARGET/.claude/skills"
   [[ -L "$TARGET/.opencode/skills" ]] && rm "$TARGET/.opencode/skills"
+  [[ -L "$TARGET/.opencode/agents" ]] && rm "$TARGET/.opencode/agents"
   [[ -L "$TARGET/.agents/skills" ]] && rm "$TARGET/.agents/skills"
+  [[ -L "$TARGET/.agents/orchestration" ]] && rm "$TARGET/.agents/orchestration"
   local cursor_rel_path cursor_abs_path
   for cursor_rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
     cursor_abs_path="$TARGET/$cursor_rel_path"

@@ -119,6 +119,17 @@ assert_symlink_exists() {
   fi
 }
 
+assert_symlink_target() {
+  local path="$1" expected="$2" label="$3"
+  local actual
+  actual=$(readlink "$path" 2>/dev/null || true)
+  if [[ "$actual" == "$expected" ]]; then
+    pass "$label — symlink target: $expected"
+  else
+    fail "$label — expected symlink target '$expected', got '$actual'"
+  fi
+}
+
 assert_not_symlink() {
   local path="$1" label="$2"
   if [[ ! -L "$path" ]]; then
@@ -892,6 +903,7 @@ assert_file_contains "$TMP/t41/.gitignore" ".claude/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".opencode/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".agents/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".cursor/rules" "T41"
+assert_file_contains "$TMP/t41/.gitignore" ".agentic/agents/" "T41"
 # Project-owned files must NOT be ignored
 assert_file_not_contains "$TMP/t41/.gitignore" "AGENTS.md" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "config.yaml" "T41"
@@ -914,6 +926,7 @@ bash "$COMPOSE" \
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/fragments/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_LINK_MODE"
+assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/agents/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".cursor/rules" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" "# agentic:start" "T_GITIGNORE_LINK_MODE"
 
@@ -970,6 +983,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_c2l" > /dev/null 2>&1
 # Runtime dirs must NOT be in gitignore yet
 assert_file_not_contains "$TMP/t_c2l/.gitignore" ".agentic/skills/" "T_GITIGNORE_COPY_TO_LINK"
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/agents/" "T_GITIGNORE_COPY_TO_LINK"
 # Second deploy: switch to link mode
 bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_c2l" --link > /dev/null 2>&1
@@ -977,6 +991,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
 assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/skills/" "T_GITIGNORE_COPY_TO_LINK"
 assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/fragments/" "T_GITIGNORE_COPY_TO_LINK"
 assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_COPY_TO_LINK"
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/agents/" "T_GITIGNORE_COPY_TO_LINK"
 # Exactly one managed block
 count=$(grep -c "# agentic:start" "$TMP/t_c2l/.gitignore" || true)
 if [[ "$count" -eq 1 ]]; then
@@ -993,6 +1008,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_l2c" --link > /dev/null 2>&1
 # Runtime dirs must be in gitignore
 assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_TO_COPY"
+assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/agents/" "T_GITIGNORE_LINK_TO_COPY"
 # Second deploy: switch to copy mode (no --link)
 bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_l2c" > /dev/null 2>&1
@@ -1000,6 +1016,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
 assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_TO_COPY"
 assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/fragments/" "T_GITIGNORE_LINK_TO_COPY"
 assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_LINK_TO_COPY"
+assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/agents/" "T_GITIGNORE_LINK_TO_COPY"
 # Exactly one managed block
 count=$(grep -c "# agentic:start" "$TMP/t_l2c/.gitignore" || true)
 if [[ "$count" -eq 1 ]]; then
@@ -2493,14 +2510,14 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103f" \
   > /dev/null 2>&1 || T103F_EXIT=$?
 assert_exit_code 0 "$T103F_EXIT" "T103F"
-assert_file_exists "$TMP/t103f/.agents/orchestration/architect.md" "T103F codex target"
-assert_file_exists "$TMP/t103f/.opencode/agents/architect.md" "T103F opencode target"
-assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "You are the architect agent." "T103F codex content"
-assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "You are the architect agent." "T103F opencode content"
-assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "model: gpt-5.3-codex" "T103F codex model"
-assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "model: openai/gpt-5" "T103F opencode model"
-assert_file_contains "$TMP/t103f/.agents/orchestration/architect.md" "reasoning_effort: xhigh" "T103F codex reasoning mapping"
-assert_file_contains "$TMP/t103f/.opencode/agents/architect.md" "reasoning_effort: xhigh" "T103F opencode reasoning mapping"
+assert_file_exists "$TMP/t103f/.agentic/agents/codex/architect.md" "T103F codex canonical target"
+assert_file_exists "$TMP/t103f/.agentic/agents/opencode/architect.md" "T103F opencode canonical target"
+assert_file_contains "$TMP/t103f/.agentic/agents/codex/architect.md" "You are the architect agent." "T103F codex content"
+assert_file_contains "$TMP/t103f/.agentic/agents/opencode/architect.md" "You are the architect agent." "T103F opencode content"
+assert_file_contains "$TMP/t103f/.agentic/agents/codex/architect.md" "model: gpt-5.3-codex" "T103F codex model"
+assert_file_contains "$TMP/t103f/.agentic/agents/opencode/architect.md" "model: openai/gpt-5" "T103F opencode model"
+assert_file_contains "$TMP/t103f/.agentic/agents/codex/architect.md" "reasoning_effort: xhigh" "T103F codex reasoning mapping"
+assert_file_contains "$TMP/t103f/.agentic/agents/opencode/architect.md" "reasoning_effort: xhigh" "T103F opencode reasoning mapping"
 
 # T103G — sync: enabled with no agent definitions warns and performs no mutations
 run_test "T103G — sync: enabled with empty agents is warning/no-op"
@@ -2522,8 +2539,8 @@ T103G_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   2>&1) || T103G_EXIT=$?
 assert_exit_code 0 "$T103G_EXIT" "T103G"
 assert_stdout_contains "$T103G_OUTPUT" "enabled but no agent definitions found; no mutations applied" "T103G warning"
-assert_file_not_exists "$TMP/t103g/.agents/orchestration/architect.md" "T103G codex no-op"
-assert_file_not_exists "$TMP/t103g/.opencode/agents/architect.md" "T103G opencode no-op"
+assert_file_not_exists "$TMP/t103g/.agentic/agents/codex/architect.md" "T103G codex no-op"
+assert_file_not_exists "$TMP/t103g/.agentic/agents/opencode/architect.md" "T103G opencode no-op"
 
 # T103H — sync: agents.yaml version must be exactly "1"
 run_test "T103H — sync: invalid agents.yaml version fails"
@@ -2546,8 +2563,8 @@ T103H_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 1 "$T103H_EXIT" "T103H"
 assert_stdout_contains "$T103H_OUTPUT" "version must be \"1\"" "T103H"
 
-# T103I — sync: unmanaged destination conflict fails before any write
-run_test "T103I — sync: unmanaged destination conflict preflight fails"
+# T103I — sync: provider-local unmanaged files do not block canonical generation
+run_test "T103I — sync: unmanaged provider-local files do not block canonical generation"
 mkdir -p "$TMP/t103i"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -2576,10 +2593,10 @@ T103I_EXIT=0
 T103I_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103i" \
   2>&1) || T103I_EXIT=$?
-assert_exit_code 1 "$T103I_EXIT" "T103I"
-assert_stdout_contains "$T103I_OUTPUT" "Unmanaged destination conflict" "T103I"
+assert_exit_code 0 "$T103I_EXIT" "T103I"
 assert_file_contains "$TMP/t103i/.agents/orchestration/architect.md" "unmanaged local content" "T103I preserved destination"
-assert_file_not_exists "$TMP/t103i/.opencode/agents/architect.md" "T103I zero writes"
+assert_file_exists "$TMP/t103i/.agentic/agents/codex/architect.md" "T103I codex canonical write"
+assert_file_exists "$TMP/t103i/.agentic/agents/opencode/architect.md" "T103I opencode canonical write"
 
 # T103J — sync: invalid agent key fails validation
 run_test "T103J — sync: invalid agent key fails"
@@ -2729,17 +2746,14 @@ T103N_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
 assert_exit_code 1 "$T103N_EXIT" "T103N"
 assert_stdout_contains "$T103N_OUTPUT" "invalid reasoning_effort" "T103N"
 
-# T103O — sync: single-provider codex removes opencode scaffolds
-run_test "T103O — sync: codex-only active vendors removes opencode scaffolds"
+# T103O — sync: codex-only active vendors keeps codex agent symlink only
+run_test "T103O — sync: codex-only active vendors creates codex agent symlink only"
 mkdir -p "$TMP/t103o"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t103o" \
   > /dev/null 2>&1
-mkdir -p "$TMP/t103o/.agents/orchestration" "$TMP/t103o/.opencode/agents"
-echo "stale codex orphan" > "$TMP/t103o/.agents/orchestration/orphan.md"
-echo "stale opencode orphan" > "$TMP/t103o/.opencode/agents/orphan.md"
 cat > "$TMP/t103o/.agentic/agents.yaml" <<'EOF'
 version: "1"
 enabled: true
@@ -2759,22 +2773,20 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103o" \
   > /dev/null 2>&1 || T103O_EXIT=$?
 assert_exit_code 0 "$T103O_EXIT" "T103O"
-assert_file_exists "$TMP/t103o/.agents/orchestration/architect.md" "T103O codex kept"
-assert_file_not_exists "$TMP/t103o/.agents/orchestration/orphan.md" "T103O codex orphan removed"
-assert_file_not_exists "$TMP/t103o/.opencode/agents/architect.md" "T103O opencode removed"
-assert_file_not_exists "$TMP/t103o/.opencode/agents/orphan.md" "T103O opencode orphan removed"
+assert_symlink_exists "$TMP/t103o/.agents/orchestration" "T103O codex symlink exists"
+assert_symlink_target "$TMP/t103o/.agents/orchestration" "../.agentic/agents/codex" "T103O codex symlink target"
+assert_file_not_exists "$TMP/t103o/.opencode/agents" "T103O opencode symlink removed"
+assert_file_exists "$TMP/t103o/.agentic/agents/codex/architect.md" "T103O codex canonical"
+assert_file_exists "$TMP/t103o/.agentic/agents/opencode/architect.md" "T103O opencode canonical retained"
 
-# T103P — sync: single-provider opencode removes codex scaffolds
-run_test "T103P — sync: opencode-only active vendors removes codex scaffolds"
+# T103P — sync: opencode-only active vendors keeps opencode agent symlink only
+run_test "T103P — sync: opencode-only active vendors creates opencode agent symlink only"
 mkdir -p "$TMP/t103p"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t103p" \
   > /dev/null 2>&1
-mkdir -p "$TMP/t103p/.agents/orchestration" "$TMP/t103p/.opencode/agents"
-echo "stale codex orphan" > "$TMP/t103p/.agents/orchestration/orphan.md"
-echo "stale opencode orphan" > "$TMP/t103p/.opencode/agents/orphan.md"
 cat > "$TMP/t103p/.agentic/agents.yaml" <<'EOF'
 version: "1"
 enabled: true
@@ -2794,22 +2806,20 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103p" \
   > /dev/null 2>&1 || T103P_EXIT=$?
 assert_exit_code 0 "$T103P_EXIT" "T103P"
-assert_file_exists "$TMP/t103p/.opencode/agents/architect.md" "T103P opencode kept"
-assert_file_not_exists "$TMP/t103p/.opencode/agents/orphan.md" "T103P opencode orphan removed"
-assert_file_not_exists "$TMP/t103p/.agents/orchestration/architect.md" "T103P codex removed"
-assert_file_not_exists "$TMP/t103p/.agents/orchestration/orphan.md" "T103P codex orphan removed"
+assert_symlink_exists "$TMP/t103p/.opencode/agents" "T103P opencode symlink exists"
+assert_symlink_target "$TMP/t103p/.opencode/agents" "../.agentic/agents/opencode" "T103P opencode symlink target"
+assert_file_not_exists "$TMP/t103p/.agents/orchestration" "T103P codex symlink removed"
+assert_file_exists "$TMP/t103p/.agentic/agents/codex/architect.md" "T103P codex canonical retained"
+assert_file_exists "$TMP/t103p/.agentic/agents/opencode/architect.md" "T103P opencode canonical"
 
-# T103Q — sync: multi-provider keeps both and removes only orphans
-run_test "T103Q — sync: multi-provider keeps both scaffolds and prunes orphans"
+# T103Q — sync: multi-provider keeps both provider symlinks
+run_test "T103Q — sync: multi-provider keeps both provider symlinks"
 mkdir -p "$TMP/t103q"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile typescript-hexagonal-microservice \
   --target "$TMP/t103q" \
   > /dev/null 2>&1
-mkdir -p "$TMP/t103q/.agents/orchestration" "$TMP/t103q/.opencode/agents"
-echo "stale codex orphan" > "$TMP/t103q/.agents/orchestration/orphan.md"
-echo "stale opencode orphan" > "$TMP/t103q/.opencode/agents/orphan.md"
 cat > "$TMP/t103q/.agentic/agents.yaml" <<'EOF'
 version: "1"
 enabled: true
@@ -2829,10 +2839,12 @@ bash "$LIBRARY/tooling/lib/sync.sh" \
   --target "$TMP/t103q" \
   > /dev/null 2>&1 || T103Q_EXIT=$?
 assert_exit_code 0 "$T103Q_EXIT" "T103Q"
-assert_file_exists "$TMP/t103q/.agents/orchestration/architect.md" "T103Q codex kept"
-assert_file_exists "$TMP/t103q/.opencode/agents/architect.md" "T103Q opencode kept"
-assert_file_not_exists "$TMP/t103q/.agents/orchestration/orphan.md" "T103Q codex orphan removed"
-assert_file_not_exists "$TMP/t103q/.opencode/agents/orphan.md" "T103Q opencode orphan removed"
+assert_symlink_exists "$TMP/t103q/.agents/orchestration" "T103Q codex symlink"
+assert_symlink_target "$TMP/t103q/.agents/orchestration" "../.agentic/agents/codex" "T103Q codex symlink target"
+assert_symlink_exists "$TMP/t103q/.opencode/agents" "T103Q opencode symlink"
+assert_symlink_target "$TMP/t103q/.opencode/agents" "../.agentic/agents/opencode" "T103Q opencode symlink target"
+assert_file_exists "$TMP/t103q/.agentic/agents/codex/architect.md" "T103Q codex canonical"
+assert_file_exists "$TMP/t103q/.agentic/agents/opencode/architect.md" "T103Q opencode canonical"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"

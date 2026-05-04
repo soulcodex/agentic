@@ -38,7 +38,7 @@ collect_opencode_agent_mappings() {
       continue
     fi
 
-    target_rel=".opencode/agents/$name.md"
+    target_rel=".agentic/agents/opencode/$name.md"
     target_abs="$target/$target_rel"
     tmp_render="$(mktemp "${TMPDIR:-/tmp}/agentic-opencode-agent-XXXXXX.md")"
     {
@@ -58,57 +58,29 @@ collect_opencode_agent_mappings() {
 }
 
 apply_opencode_agent_mappings() {
-  local entry source_abs target_abs target_rel
-
-  for entry in "$@"; do
-    IFS=$'\t' read -r source_abs target_abs target_rel <<< "$entry"
-    mkdir -p "$(dirname "$target_abs")"
-    cp "$source_abs" "$target_abs"
-    echo "  ✔  OpenCode agent synced: $target_rel"
-  done
-}
-
-cleanup_opencode_agent_outputs() {
   local target="$1"
-  local active="$2"
-  shift 2
+  shift
 
-  local output_dir="$target/.opencode/agents"
-  [[ ! -d "$output_dir" ]] && return 0
+  local output_dir="$target/.agentic/agents/opencode"
+  local output_parent="$target/.agentic/agents"
+  local staged_dir
+  staged_dir="$(mktemp -d "${TMPDIR:-/tmp}/agentic-opencode-agents-XXXXXX")"
 
-  if [[ "$active" != "true" ]]; then
-    rm -rf "$output_dir"
-    rmdir "$target/.opencode" 2>/dev/null || true
-    echo "  ✔  OpenCode agent scaffolds removed (inactive provider)"
-    return 0
-  fi
-
-  local expected_files=()
-  local entry target_rel expected_name
+  local entry source_abs target_rel dest_basename
   for entry in "$@"; do
-    IFS=$'\t' read -r _ _ target_rel <<< "$entry"
-    expected_name=$(basename "$target_rel")
-    expected_files+=("$expected_name")
+    IFS=$'\t' read -r source_abs _ target_rel <<< "$entry"
+    dest_basename="$(basename "$target_rel")"
+    cp "$source_abs" "$staged_dir/$dest_basename"
   done
 
-  shopt -s nullglob
-  local file keep file_name expected_file
-  for file in "$output_dir"/*.md; do
-    keep=false
-    file_name=$(basename "$file")
-    for expected_file in "${expected_files[@]}"; do
-      if [[ "$file_name" == "$expected_file" ]]; then
-        keep=true
-        break
-      fi
-    done
-    if [[ "$keep" == "false" ]]; then
-      rm -f "$file"
-      echo "  ✔  OpenCode orphan removed: .opencode/agents/$file_name"
-    fi
-  done
-  shopt -u nullglob
-
-  rmdir "$output_dir" 2>/dev/null || true
-  rmdir "$target/.opencode" 2>/dev/null || true
+  mkdir -p "$output_parent"
+  rm -rf "$output_dir"
+  if [[ -n "$(find "$staged_dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+    mv "$staged_dir" "$output_dir"
+    echo "  ✔  OpenCode agents synced: .agentic/agents/opencode"
+  else
+    rm -rf "$staged_dir"
+    rmdir "$output_parent" 2>/dev/null || true
+    echo "  ✔  OpenCode agents cleared: .agentic/agents/opencode"
+  fi
 }
