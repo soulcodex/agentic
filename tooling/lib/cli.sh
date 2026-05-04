@@ -12,7 +12,7 @@ source "$SCRIPT_DIR/common.sh"
 # Read version from VERSION file at repo root (two levels up from tooling/lib/)
 VERSION=$(cat "$(dirname "${BASH_SOURCE[0]}")/../../VERSION" 2>/dev/null || echo "1.0.0")
 
-# ── Library discovery (now in common.sh, keeping for API compatibility) ──────
+# ── Library discovery (in common.sh) ─────────────────────────────────────────
 # These functions are now sourced from common.sh:
 # - discover_library()
 # - find_target_config()
@@ -146,6 +146,7 @@ Description:
   - .agentic/profile.yaml
   - .agentic/mcp.yaml
   - .agentic/providers.yaml
+  - .agentic/agents.yaml
   - .agentic/project-skills/
 
 Examples:
@@ -168,6 +169,7 @@ Arguments:
 Description:
   Regenerates AGENTS.md and vendor files from the local .agentic/profile.yaml.
   Active vendors are preserved after regeneration.
+  Agents orchestration switching runs only when .agentic/agents.yaml has enabled: true.
 
 Examples:
   agentic sync

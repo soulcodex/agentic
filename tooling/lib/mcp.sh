@@ -6,7 +6,6 @@ set -euo pipefail
 ACTION=""
 TARGET=""
 NAME=""
-PROFILE_FILE=""
 MCP_FILE_INPUT=""
 STRATEGY="merge"
 
@@ -15,7 +14,6 @@ while [[ $# -gt 0 ]]; do
     --action) ACTION="$2"; shift 2 ;;
     --target) TARGET="$2"; shift 2 ;;
     --name)   NAME="$2";   shift 2 ;;
-    --profile-file) PROFILE_FILE="$2"; shift 2 ;;
     --mcp-file) MCP_FILE_INPUT="$2"; shift 2 ;;
     --strategy)     STRATEGY="$2";   shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
@@ -360,19 +358,15 @@ case "$ACTION" in
   remove) action_remove ;;
   list)   action_list   ;;
   seed)
-    # Non-interactive seed from .agentic/mcp.yaml or legacy profile mcp key
+    # Non-interactive seed from .agentic/mcp.yaml
     seed_source_file=""
-    seed_source_path=""
     if [[ -n "$MCP_FILE_INPUT" ]]; then
       seed_source_file="$MCP_FILE_INPUT"
       seed_source_path="."
-    elif [[ -n "$PROFILE_FILE" ]]; then
-      seed_source_file="$PROFILE_FILE"
-      seed_source_path=".mcp"
     fi
 
     [[ -z "$seed_source_file" ]] && {
-      echo "Error: --mcp-file or --profile-file required for seed action" >&2
+      echo "Error: --mcp-file required for seed action" >&2
       exit 1
     }
     [[ -f "$seed_source_file" ]] || { echo "Error: seed source file not found: $seed_source_file" >&2; exit 1; }

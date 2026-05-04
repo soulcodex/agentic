@@ -44,6 +44,18 @@ Installs the `agentic` CLI to `~/.local/bin`. The installer checks prerequisites
 
     Reusable agent task definitions. Deploy shared skills from the library or add project-local ones in `.agentic/project-skills/`.
 
+-   :material-file-document-edit:{ .lg .middle } **Agents Orchestration Switching**
+
+    ---
+
+    Keep `agents.yaml` optional. Opt in per project to define agents orchestration with preflighted, local-only sync.
+
+-   :material-shield-check:{ .lg .middle } **Safe by default**
+
+    ---
+
+    Preflight checks run before writes. Conflict and validation failures stop early so unmanaged files are never mutated.
+
 </div>
 
 ---
@@ -70,6 +82,8 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 
 ---
 
+> **Agents orchestration switching:** optional, project-local agent orchestration is documented in [Agents Orchestration Switching](agents.md).
+
 ## Sections
 
 - [**Installation**](getting-started/installation.md) — one-line install, manual install, prerequisites
@@ -78,5 +92,6 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 - [**Profiles**](profiles.md) — all available profiles and their fragments
 - [**Skills**](skills.md) — shared skill catalog plus persistent and ad hoc (selective) skill usage paths
 - [**Vendors**](vendors.md) — supported AI tools and their output files
+- [**Agents Orchestration Switching**](agents.md) — opt-in, project-local agent orchestration via `.agentic/agents.yaml`
 - [**Customization**](customization.md) — per-project overrides, project skills, proprietary libraries, link mode vs copy mode
 - [**Custom Rules**](custom-rules.md) — `AGENTS.local.md` injection

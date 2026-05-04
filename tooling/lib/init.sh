@@ -13,6 +13,7 @@ TARGET=""
 PROMPT_SYNC=true
 FORCE_SYNC=false
 SKIP_SYNC=false
+AGENTS_SCHEMA_URL="https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -39,10 +40,11 @@ CONFIG_FILE="$AGENTIC_DIR/config.yaml"
 PROFILE_FILE="$AGENTIC_DIR/profile.yaml"
 MCP_FILE="$AGENTIC_DIR/mcp.yaml"
 PROVIDERS_FILE="$AGENTIC_DIR/providers.yaml"
+AGENTS_FILE="$AGENTIC_DIR/agents.yaml"
 
 mkdir -p "$PROJECT_SKILLS_DIR"
 
-if [[ -e "$CONFIG_FILE" || -e "$PROFILE_FILE" || -e "$MCP_FILE" || -e "$PROVIDERS_FILE" ]]; then
+if [[ -e "$CONFIG_FILE" || -e "$PROFILE_FILE" || -e "$MCP_FILE" || -e "$PROVIDERS_FILE" || -e "$AGENTS_FILE" ]]; then
   echo "Error: .agentic skeleton already exists in $TARGET" >&2
   echo "Refusing to overwrite existing files. Remove them manually if needed." >&2
   exit 1
@@ -122,11 +124,19 @@ default_provider: ""
 providers: {}
 EOF
 
+cat > "$AGENTS_FILE" <<EOF
+# yaml-language-server: \$schema=$AGENTS_SCHEMA_URL
+version: "1"
+enabled: false
+agents: {}
+EOF
+
 echo "Initialized .agentic skeleton in: $TARGET/.agentic"
 echo "  - config.yaml"
 echo "  - profile.yaml"
 echo "  - mcp.yaml"
 echo "  - providers.yaml"
+echo "  - agents.yaml"
 echo "  - project-skills/"
 
 run_sync=false

@@ -21,7 +21,7 @@ The `vendor-gen` step copies skill directories from this library into the target
 | File | Purpose |
 |---|---|
 | `AGENTS.md` | Primary — assembled from fragments, read by Claude natively |
-| `CLAUDE.md` | Thin pointer to AGENTS.md for backward compatibility |
+| `CLAUDE.md` | Thin pointer to AGENTS.md for Claude entrypoint conventions |
 | `.claude/skills/*/` | Skill directories copied from this library |
 
 ## Notes

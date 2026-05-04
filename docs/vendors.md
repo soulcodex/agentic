@@ -52,7 +52,7 @@ Skills are deployed natively to `.gemini/skills/` and activated lazily via the
 
 ### Opencode
 
-Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`. Opencode also supports `.claude/skills/` and `.agents/skills/` as compatibility fallbacks.
+Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`.
 
 ### Cursor
 
@@ -84,10 +84,9 @@ Generated targets:
 - `.gemini/settings.json` uses `mcpServers` with Gemini-specific field mapping
 - `.cursor/mcp.json` uses `mcpServers` (Cursor-compatible project shape)
 
-Precedence and compatibility:
+Source of truth:
 
 1. `.agentic/mcp.yaml` (authoritative)
-2. Legacy `.agentic/profile.yaml` `mcp:` key (deprecated fallback with warning)
 
 ## Vendor Commands
 
@@ -121,7 +120,9 @@ Multiple vendors can be active simultaneously since their symlink paths don't co
 |--------|-------------------|
 | `claude` | `CLAUDE.md`, `.claude/skills` |
 | `copilot` | `.github/copilot-instructions.md`, `.github/instructions/` |
-| `codex` | `.agents/skills` (reads `AGENTS.md` natively) |
+| `codex` | `.agents/skills`, `.codex/agents` (reads `AGENTS.md` natively) |
 | `gemini` | `GEMINI.md`, `.gemini/system.md`, `.gemini/skills` |
-| `opencode` | `.opencode/skills` |
+| `opencode` | `.opencode/skills`, `.opencode/agents` |
 | `cursor` | `.cursor/rules` |
+
+For orchestration switching, `agents` are declared in `.agentic/agents.yaml`, and provider-local `subagents` paths (`.codex/agents`, `.opencode/agents`) are symlinks to generated artifacts under `.agentic/agents/{provider}/`.

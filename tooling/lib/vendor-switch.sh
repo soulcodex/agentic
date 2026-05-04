@@ -109,31 +109,6 @@ done
 # ── Read current active vendors ────────────────────────────────────────────────
 CURRENT_VENDORS=$(read_active_vendors "$CONFIG")
 
-# ── Legacy migration: stash system ─────────────────────────────────────────────
-migrate_from_stash() {
-  local stash_dir="$TARGET/.agentic/vendor-stash"
-  if [[ -d "$stash_dir" ]]; then
-    echo "Migrating from old stash system..."
-    safe_rm_rf "$stash_dir"
-    echo "  Removed: .agentic/vendor-stash/"
-  fi
-}
-
-# ── Legacy migration: active_vendor string → active_vendors array ──────────────
-migrate_active_vendor_format() {
-  if [[ -f "$CONFIG" ]]; then
-    # Check if old format exists and new format doesn't
-    local old_vendor new_vendors
-    old_vendor=$(yq '.active_vendor // ""' "$CONFIG" 2>/dev/null || true)
-    new_vendors=$(yq '.active_vendors // ""' "$CONFIG" 2>/dev/null || true)
-    
-    if [[ -n "$old_vendor" && "$old_vendor" != "null" && ( -z "$new_vendors" || "$new_vendors" == "null" ) ]]; then
-      echo "Migrating config: active_vendor → active_vendors..."
-      yq -i 'del(.active_vendor) | .active_vendors = ["'"$old_vendor"'"]' "$CONFIG"
-    fi
-  fi
-}
-
 snapshot_current_switch_state() {
   local managed_paths=(
     "$TARGET/CLAUDE.md"
@@ -145,6 +120,7 @@ snapshot_current_switch_state() {
     "$TARGET/.claude/skills"
     "$TARGET/.opencode/skills"
     "$TARGET/.agents/skills"
+    "$TARGET/.codex/agents"
   )
 
   local cursor_rel_path
@@ -234,7 +210,9 @@ remove_all_vendor_symlinks() {
   # Remove skill symlinks
   [[ -L "$TARGET/.claude/skills" ]] && rm "$TARGET/.claude/skills"
   [[ -L "$TARGET/.opencode/skills" ]] && rm "$TARGET/.opencode/skills"
+  [[ -L "$TARGET/.opencode/agents" ]] && rm "$TARGET/.opencode/agents"
   [[ -L "$TARGET/.agents/skills" ]] && rm "$TARGET/.agents/skills"
+  [[ -L "$TARGET/.codex/agents" ]] && rm "$TARGET/.codex/agents"
   local cursor_rel_path cursor_abs_path
   for cursor_rel_path in "${CURSOR_MANAGED_PATHS[@]}"; do
     cursor_abs_path="$TARGET/$cursor_rel_path"
@@ -247,6 +225,7 @@ remove_all_vendor_symlinks() {
   [[ -d "$TARGET/.gemini" ]] && rmdir "$TARGET/.gemini" 2>/dev/null || true
   [[ -d "$TARGET/.claude" ]] && rmdir "$TARGET/.claude" 2>/dev/null || true
   [[ -d "$TARGET/.opencode" ]] && rmdir "$TARGET/.opencode" 2>/dev/null || true
+  [[ -d "$TARGET/.codex" ]] && rmdir "$TARGET/.codex" 2>/dev/null || true
   [[ -d "$TARGET/.agents" ]] && rmdir "$TARGET/.agents" 2>/dev/null || true
   [[ -d "$TARGET/.cursor" ]] && rmdir "$TARGET/.cursor" 2>/dev/null || true
 }
@@ -282,10 +261,6 @@ vendor_files_exist() {
 }
 
 # ── Main ───────────────────────────────────────────────────────────────────────
-
-# Run legacy migrations
-migrate_from_stash
-migrate_active_vendor_format
 
 # Guard: if link mode and agentic_root is missing, fail clearly
 if [[ -f "$CONFIG" ]]; then
@@ -335,8 +310,7 @@ if [[ -f "$CONFIG" ]]; then
   done
   yaml_array+="]"
   
-  # Remove old active_vendor if present, set active_vendors array
-  yq -i "del(.active_vendor) | .active_vendors = $yaml_array" "$CONFIG"
+  yq -i ".active_vendors = $yaml_array" "$CONFIG"
 fi
 
 SWITCH_COMMITTED=1

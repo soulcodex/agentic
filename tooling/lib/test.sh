@@ -119,6 +119,17 @@ assert_symlink_exists() {
   fi
 }
 
+assert_symlink_target() {
+  local path="$1" expected="$2" label="$3"
+  local actual
+  actual=$(readlink "$path" 2>/dev/null || true)
+  if [[ "$actual" == "$expected" ]]; then
+    pass "$label — symlink target: $expected"
+  else
+    fail "$label — expected symlink target '$expected', got '$actual'"
+  fi
+}
+
 assert_not_symlink() {
   local path="$1" label="$2"
   if [[ ! -L "$path" ]]; then
@@ -701,31 +712,6 @@ fi
 assert_file_contains "$TMP/t32/.agentic/config.yaml" "active_vendors:" "T32"
 assert_file_contains "$TMP/t32/.agentic/config.yaml" "  - codex" "T32"
 
-# T33 — vendor-switch: migration removes old stash directory
-run_test "T33 — vendor-switch: migrates from old stash system"
-mkdir -p "$TMP/t33"
-bash "$COMPOSE" \
-  --library "$LIBRARY" \
-  --profile golang-hexagonal-cobra-cli \
-  --target "$TMP/t33" \
-  > /dev/null 2>&1
-
-# Simulate old stash directory
-mkdir -p "$TMP/t33/.agentic/vendor-stash/claude"
-echo "old file" > "$TMP/t33/.agentic/vendor-stash/claude/CLAUDE.md"
-
-# Run vendor-switch
-bash "$VENDOR_SWITCH" \
-  --library "$LIBRARY" \
-  --target "$TMP/t33" \
-  claude \
-  > /dev/null 2>&1
-
-# Old stash should be removed
-assert_file_not_exists "$TMP/t33/.agentic/vendor-stash" "T33"
-# New vendor-files should exist
-assert_file_exists "$TMP/t33/.agentic/vendor-files/claude/CLAUDE.md" "T33"
-
 # T34 — skills README contains vendor compatibility table
 run_test "T34 — deploy-skills: README contains vendor compatibility info"
 mkdir -p "$TMP/t34"
@@ -892,6 +878,7 @@ assert_file_contains "$TMP/t41/.gitignore" ".claude/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".opencode/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".agents/skills" "T41"
 assert_file_contains "$TMP/t41/.gitignore" ".cursor/rules" "T41"
+assert_file_contains "$TMP/t41/.gitignore" ".agentic/agents/" "T41"
 # Project-owned files must NOT be ignored
 assert_file_not_contains "$TMP/t41/.gitignore" "AGENTS.md" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "config.yaml" "T41"
@@ -914,6 +901,7 @@ bash "$COMPOSE" \
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/fragments/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_LINK_MODE"
+assert_file_contains "$TMP/t_gl/.gitignore" ".agentic/agents/" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" ".cursor/rules" "T_GITIGNORE_LINK_MODE"
 assert_file_contains "$TMP/t_gl/.gitignore" "# agentic:start" "T_GITIGNORE_LINK_MODE"
 
@@ -970,6 +958,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_c2l" > /dev/null 2>&1
 # Runtime dirs must NOT be in gitignore yet
 assert_file_not_contains "$TMP/t_c2l/.gitignore" ".agentic/skills/" "T_GITIGNORE_COPY_TO_LINK"
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/agents/" "T_GITIGNORE_COPY_TO_LINK"
 # Second deploy: switch to link mode
 bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_c2l" --link > /dev/null 2>&1
@@ -977,6 +966,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
 assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/skills/" "T_GITIGNORE_COPY_TO_LINK"
 assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/fragments/" "T_GITIGNORE_COPY_TO_LINK"
 assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_COPY_TO_LINK"
+assert_file_contains "$TMP/t_c2l/.gitignore" ".agentic/agents/" "T_GITIGNORE_COPY_TO_LINK"
 # Exactly one managed block
 count=$(grep -c "# agentic:start" "$TMP/t_c2l/.gitignore" || true)
 if [[ "$count" -eq 1 ]]; then
@@ -993,6 +983,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_l2c" --link > /dev/null 2>&1
 # Runtime dirs must be in gitignore
 assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_TO_COPY"
+assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/agents/" "T_GITIGNORE_LINK_TO_COPY"
 # Second deploy: switch to copy mode (no --link)
 bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
   --target "$TMP/t_l2c" > /dev/null 2>&1
@@ -1000,6 +991,7 @@ bash "$COMPOSE" --library "$LIBRARY" --profile golang-hexagonal-cobra-cli \
 assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/skills/" "T_GITIGNORE_LINK_TO_COPY"
 assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/fragments/" "T_GITIGNORE_LINK_TO_COPY"
 assert_file_not_contains "$TMP/t_l2c/.gitignore" ".agentic/vendor-files/" "T_GITIGNORE_LINK_TO_COPY"
+assert_file_contains "$TMP/t_l2c/.gitignore" ".agentic/agents/" "T_GITIGNORE_LINK_TO_COPY"
 # Exactly one managed block
 count=$(grep -c "# agentic:start" "$TMP/t_l2c/.gitignore" || true)
 if [[ "$count" -eq 1 ]]; then
@@ -1350,13 +1342,28 @@ assert_stdout_contains "$T57_OUTPUT" "--global" "T57"
 assert_stdout_contains "$T57_OUTPUT" "--branch" "T57"
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MCP SERVER SEEDING TESTS (profile mcp: key)
+# MCP SERVER SEEDING TESTS
 # ══════════════════════════════════════════════════════════════════════════════
 
 # T67 — compose: MCP seed creates .mcp.json with correct keys
 run_test "T67 — compose: MCP seed creates .mcp.json"
-# Create a profile with mcp.servers
-mkdir -p "$TMP/t67"
+# Create an mcp.yaml source
+mkdir -p "$TMP/t67/.agentic"
+cat > "$TMP/t67/.agentic/mcp.yaml" <<'EOF'
+strategy: merge
+servers:
+  github:
+    type: stdio
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-github"]
+  postgres:
+    type: stdio
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-postgres"]
+    env:
+      DATABASE_URL: "postgresql://localhost:5432"
+EOF
+
 cat > "$TMP/t67-profile.yaml" <<'EOF'
 meta:
   name: Test MCP Profile
@@ -1371,19 +1378,6 @@ output:
   lint_command: ""
 vendors:
   enabled: []
-mcp:
-  strategy: merge
-  servers:
-    github:
-      type: stdio
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-github"]
-    postgres:
-      type: stdio
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-postgres"]
-      env:
-        DATABASE_URL: "postgresql://localhost:5432"
 EOF
 
 bash "$COMPOSE" \
@@ -1401,9 +1395,18 @@ assert_file_contains "$TMP/t67/.mcp.json" '"command": "npx"' "T67"
 
 # T68 — compose: MCP seed writes to opencode.json with translations
 run_test "T68 — compose: MCP seed translates for opencode.json"
-mkdir -p "$TMP/t68"
+mkdir -p "$TMP/t68/.agentic"
 # Create opencode.json first (simulating existing vendor)
 echo '{"mcp":{}}' > "$TMP/t68/opencode.json"
+cat > "$TMP/t68/.agentic/mcp.yaml" <<'EOF'
+servers:
+  test-server:
+    type: stdio
+    command: npx
+    args: ["-y", "some-server"]
+    env:
+      MY_TOKEN: "${MY_TOKEN}"
+EOF
 
 cat > "$TMP/t68-profile.yaml" <<'EOF'
 meta:
@@ -1419,14 +1422,6 @@ output:
   lint_command: ""
 vendors:
   enabled: []
-mcp:
-  servers:
-    test-server:
-      type: stdio
-      command: npx
-      args: ["-y", "some-server"]
-      env:
-        MY_TOKEN: "${MY_TOKEN}"
 EOF
 
 bash "$COMPOSE" \
@@ -1442,10 +1437,16 @@ assert_file_contains "$TMP/t68/opencode.json" '"environment"' "T68"
 
 # T69 — compose: MCP seed writes to .gemini/settings.json without type field
 run_test "T69 — compose: MCP seed translates for .gemini/settings.json"
-mkdir -p "$TMP/t69/.gemini"
+mkdir -p "$TMP/t69/.agentic" "$TMP/t69/.gemini"
 echo '{"mcpServers":{}}' > "$TMP/t69/.gemini/settings.json"
 mkdir -p "$TMP/t69/.cursor"
 echo '{"mcpServers":{}}' > "$TMP/t69/.cursor/mcp.json"
+cat > "$TMP/t69/.agentic/mcp.yaml" <<'EOF'
+servers:
+  http-server:
+    type: http
+    url: "http://localhost:3000"
+EOF
 
 cat > "$TMP/t69-profile.yaml" <<'EOF'
 meta:
@@ -1461,11 +1462,6 @@ output:
   lint_command: ""
 vendors:
   enabled: []
-mcp:
-  servers:
-    http-server:
-      type: http
-      url: "http://localhost:3000"
 EOF
 
 bash "$COMPOSE" \
@@ -1486,9 +1482,17 @@ assert_file_contains "$TMP/t69/.cursor/mcp.json" '"type": "http"' "T69 cursor tr
 
 # T70 — compose: MCP merge strategy preserves existing servers
 run_test "T70 — compose: MCP merge preserves existing servers"
-mkdir -p "$TMP/t70"
+mkdir -p "$TMP/t70/.agentic"
 # Pre-existing .mcp.json with a server
 echo '{"mcpServers":{"existing-server":{"type":"stdio","command":"echo","args":["hello"]}}}' > "$TMP/t70/.mcp.json"
+cat > "$TMP/t70/.agentic/mcp.yaml" <<'EOF'
+strategy: merge
+servers:
+  new-server:
+    type: stdio
+    command: echo
+    args: ["new"]
+EOF
 
 cat > "$TMP/t70-profile.yaml" <<'EOF'
 meta:
@@ -1504,13 +1508,6 @@ output:
   lint_command: ""
 vendors:
   enabled: []
-mcp:
-  strategy: merge
-  servers:
-    new-server:
-      type: stdio
-      command: echo
-      args: ["new"]
 EOF
 
 bash "$COMPOSE" \
@@ -1524,10 +1521,17 @@ assert_file_contains "$TMP/t70/.mcp.json" "new-server" "T70"
 
 # T71 — compose: MCP replace strategy removes old servers
 run_test "T71 — compose: MCP replace removes old servers"
-mkdir -p "$TMP/t71"
+mkdir -p "$TMP/t71/.agentic"
 echo '{"mcpServers":{"old-server":{"type":"stdio","command":"old","args":["old"]}}}' > "$TMP/t71/.mcp.json"
 mkdir -p "$TMP/t71/.cursor"
 echo '{"mcpServers":{"old-server":{"type":"stdio","command":"old","args":["old"]}}}' > "$TMP/t71/.cursor/mcp.json"
+cat > "$TMP/t71/.agentic/mcp.yaml" <<'EOF'
+strategy: replace
+servers:
+  brand-new:
+    type: http
+    url: "http://localhost:8080"
+EOF
 
 cat > "$TMP/t71-profile.yaml" <<'EOF'
 meta:
@@ -1543,12 +1547,6 @@ output:
   lint_command: ""
 vendors:
   enabled: []
-mcp:
-  strategy: replace
-  servers:
-    brand-new:
-      type: http
-      url: "http://localhost:8080"
 EOF
 
 bash "$COMPOSE" \
@@ -1564,7 +1562,15 @@ assert_file_not_contains "$TMP/t71/.cursor/mcp.json" "old-server" "T71 cursor re
 
 # T71B — compose: invalid existing .cursor/mcp.json fails safely
 run_test "T71B — compose: invalid .cursor/mcp.json fails"
-mkdir -p "$TMP/t71b/.cursor"
+mkdir -p "$TMP/t71b/.agentic" "$TMP/t71b/.cursor"
+cat > "$TMP/t71b/.agentic/mcp.yaml" <<'EOF'
+strategy: merge
+servers:
+  server-a:
+    type: stdio
+    command: npx
+    args: ["-y", "foo"]
+EOF
 cat > "$TMP/t71b-profile.yaml" <<'EOF'
 meta:
   name: Test Cursor MCP Invalid
@@ -1579,13 +1585,6 @@ output:
   lint_command: ""
 vendors:
   enabled: []
-mcp:
-  strategy: merge
-  servers:
-    server-a:
-      type: stdio
-      command: npx
-      args: ["-y", "foo"]
 EOF
 printf '%s\n' '{invalid' > "$TMP/t71b/.cursor/mcp.json"
 T71B_EXIT=0
@@ -2262,6 +2261,7 @@ assert_file_exists "$TMP/t99/.agentic/config.yaml" "T99 config"
 assert_file_exists "$TMP/t99/.agentic/profile.yaml" "T99 profile"
 assert_file_exists "$TMP/t99/.agentic/mcp.yaml" "T99 mcp"
 assert_file_exists "$TMP/t99/.agentic/providers.yaml" "T99 providers"
+assert_file_exists "$TMP/t99/.agentic/agents.yaml" "T99 agents"
 if [[ -d "$TMP/t99/.agentic/project-skills" ]]; then
   pass "T99 project-skills directory exists"
 else
@@ -2274,6 +2274,9 @@ assert_file_contains "$TMP/t99/.agentic/config.yaml" "# yaml-language-server: \$
 assert_file_contains "$TMP/t99/.agentic/profile.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json" "T100 profile schema"
 assert_file_contains "$TMP/t99/.agentic/mcp.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/mcp.schema.json" "T100 mcp schema"
 assert_file_contains "$TMP/t99/.agentic/providers.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/providers.schema.json" "T100 providers schema"
+assert_file_contains "$TMP/t99/.agentic/agents.yaml" "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json" "T100 agents schema"
+assert_file_contains "$TMP/t99/.agentic/agents.yaml" "enabled: false" "T100 agents noop"
+assert_file_contains "$TMP/t99/.agentic/agents.yaml" "agents: {}" "T100 agents empty defs"
 
 # T101 — init --sync: scaffolds and composes immediately
 run_test "T101 — init --sync composes project"
@@ -2282,7 +2285,7 @@ AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" init "$TMP/t101" --sync > /dev/null 2>&1
 assert_file_exists "$TMP/t101/AGENTS.md" "T101 AGENTS"
 assert_file_contains "$TMP/t101/AGENTS.md" "<!-- AUTO-GENERATED by agentic library -->" "T101 generated marker"
 
-# T102 — compose: .agentic/mcp.yaml takes precedence over legacy profile mcp
+# T102 — compose: .agentic/mcp.yaml takes precedence over profile mcp
 run_test "T102 — compose: mcp.yaml precedence"
 mkdir -p "$TMP/t102/.agentic"
 cat > "$TMP/t102/.agentic/mcp.yaml" <<'EOF'
@@ -2328,13 +2331,13 @@ assert_file_exists "$TMP/t102/.mcp.json" "T102 mcp json"
 assert_file_contains "$TMP/t102/.mcp.json" "file-server" "T102 file server present"
 assert_file_not_contains "$TMP/t102/.mcp.json" "legacy-server" "T102 legacy server ignored"
 
-# T103 — compose: legacy profile mcp still works with deprecation warning
-run_test "T103 — compose: legacy profile mcp fallback warning"
+# T103 — compose: profile mcp block is ignored without .agentic/mcp.yaml
+run_test "T103 — compose: profile mcp block is ignored"
 mkdir -p "$TMP/t103"
 cat > "$TMP/t103-profile.yaml" <<'EOF'
 meta:
-  name: Test Legacy MCP
-  description: Test legacy mcp fallback
+  name: Test Profile MCP Ignored
+  description: Profile mcp should be ignored
   version: "1.0.0"
 fragments:
   base:
@@ -2348,21 +2351,19 @@ vendors:
 mcp:
   strategy: merge
   servers:
-    legacy-only:
+    ignored-server:
       type: stdio
       command: legacy-mcp
       args: ["--ok"]
 EOF
 T103_EXIT=0
-T103_OUTPUT=$(bash "$COMPOSE" \
+bash "$COMPOSE" \
   --library "$LIBRARY" \
   --profile-file "$TMP/t103-profile.yaml" \
   --target "$TMP/t103" \
-  2>&1) || T103_EXIT=$?
+  > /dev/null 2>&1 || T103_EXIT=$?
 assert_exit_code 0 "$T103_EXIT" "T103"
-assert_stdout_contains "$T103_OUTPUT" "Deprecated MCP declaration in profile detected" "T103 warning"
-assert_file_exists "$TMP/t103/.mcp.json" "T103 mcp json"
-assert_file_contains "$TMP/t103/.mcp.json" "legacy-only" "T103 legacy server seeded"
+assert_file_not_exists "$TMP/t103/.mcp.json" "T103 mcp json not generated"
 
 # T103B — compose: invalid providers.yaml fails clearly
 run_test "T103B — compose: invalid providers config fails"
@@ -2416,6 +2417,414 @@ T103C_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
   2>&1) || T103C_EXIT=$?
 assert_exit_code 1 "$T103C_EXIT" "T103C"
 assert_stdout_contains "$T103C_OUTPUT" "must be boolean" "T103C"
+
+# T103D — sync: missing agents.yaml is skipped
+run_test "T103D — sync: missing agents.yaml is skipped"
+mkdir -p "$TMP/t103d"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103d" \
+  > /dev/null 2>&1
+rm -f "$TMP/t103d/.agentic/agents.yaml"
+T103D_EXIT=0
+T103D_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103d" \
+  2>&1) || T103D_EXIT=$?
+assert_exit_code 0 "$T103D_EXIT" "T103D"
+assert_stdout_contains "$T103D_OUTPUT" "Sync complete" "T103D"
+
+# T103E — sync: no-op agents.yaml skips agents orchestration switching
+run_test "T103E — sync: no-op agents config skips sync"
+mkdir -p "$TMP/t103e"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103e" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103e/.agentic/portable"
+echo "portable codex instructions" > "$TMP/t103e/.agentic/portable/codex.md"
+cat > "$TMP/t103e/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: false
+agents: {}
+EOF
+T103E_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103e" \
+  > /dev/null 2>&1 || T103E_EXIT=$?
+assert_exit_code 0 "$T103E_EXIT" "T103E"
+assert_file_not_exists "$TMP/t103e/.agents/AGENTS.md" "T103E"
+
+# T103F — sync: opt-in agents.yaml syncs codex and opencode agent definitions
+run_test "T103F — sync: opt-in agents config syncs agent definitions"
+mkdir -p "$TMP/t103f"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103f" \
+  > /dev/null 2>&1
+cat > "$TMP/t103f/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Plans the implementation."
+    prompt: |
+      You are the architect agent.
+      Focus on planning and boundaries.
+    providers:
+      codex:
+        enabled: true
+        model: "gpt-5.3-codex"
+        reasoning_effort: "extra_high"
+      opencode:
+        enabled: true
+        model: "openai/gpt-5"
+        reasoning_effort: "extra_high"
+EOF
+T103F_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103f" \
+  > /dev/null 2>&1 || T103F_EXIT=$?
+assert_exit_code 0 "$T103F_EXIT" "T103F"
+assert_file_exists "$TMP/t103f/.agentic/agents/codex/architect.md" "T103F codex canonical target"
+assert_file_exists "$TMP/t103f/.agentic/agents/opencode/architect.md" "T103F opencode canonical target"
+assert_file_contains "$TMP/t103f/.agentic/agents/codex/architect.md" "You are the architect agent." "T103F codex content"
+assert_file_contains "$TMP/t103f/.agentic/agents/opencode/architect.md" "You are the architect agent." "T103F opencode content"
+assert_file_contains "$TMP/t103f/.agentic/agents/codex/architect.md" "model: gpt-5.3-codex" "T103F codex model"
+assert_file_contains "$TMP/t103f/.agentic/agents/opencode/architect.md" "model: openai/gpt-5" "T103F opencode model"
+assert_file_contains "$TMP/t103f/.agentic/agents/codex/architect.md" "reasoning_effort: xhigh" "T103F codex reasoning mapping"
+assert_file_contains "$TMP/t103f/.agentic/agents/opencode/architect.md" "reasoning_effort: xhigh" "T103F opencode reasoning mapping"
+
+# T103G — sync: enabled with no agent definitions warns and performs no mutations
+run_test "T103G — sync: enabled with empty agents is warning/no-op"
+mkdir -p "$TMP/t103g"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103g" \
+  > /dev/null 2>&1
+cat > "$TMP/t103g/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: true
+agents: {}
+EOF
+T103G_EXIT=0
+T103G_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103g" \
+  2>&1) || T103G_EXIT=$?
+assert_exit_code 0 "$T103G_EXIT" "T103G"
+assert_stdout_contains "$T103G_OUTPUT" "no mutations applied" "T103G warning"
+assert_file_not_exists "$TMP/t103g/.agentic/agents/codex/architect.md" "T103G codex no-op"
+assert_file_not_exists "$TMP/t103g/.agentic/agents/opencode/architect.md" "T103G opencode no-op"
+
+# T103H — sync: agents.yaml version must be exactly "1"
+run_test "T103H — sync: invalid agents.yaml version fails"
+mkdir -p "$TMP/t103h"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103h" \
+  > /dev/null 2>&1
+cat > "$TMP/t103h/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "2"
+enabled: true
+agents: {}
+EOF
+T103H_EXIT=0
+T103H_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103h" \
+  2>&1) || T103H_EXIT=$?
+assert_exit_code 1 "$T103H_EXIT" "T103H"
+assert_stdout_contains "$T103H_OUTPUT" "version must be \"1\"" "T103H"
+
+# T103I — sync: provider-local unmanaged files do not block canonical generation
+run_test "T103I — sync: unmanaged provider-local files do not block canonical generation"
+mkdir -p "$TMP/t103i"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103i" \
+  > /dev/null 2>&1
+mkdir -p "$TMP/t103i/.codex/agents"
+echo "unmanaged local content" > "$TMP/t103i/.codex/agents/architect.md"
+cat > "$TMP/t103i/.agentic/agents.yaml" <<'EOF'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Plans the implementation."
+    prompt: |
+      You are the architect agent.
+      Focus on planning and boundaries.
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+T103I_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103i" \
+  > /dev/null 2>&1 || T103I_EXIT=$?
+assert_exit_code 0 "$T103I_EXIT" "T103I"
+assert_file_contains "$TMP/t103i/.codex/agents/architect.md" "unmanaged local content" "T103I preserved destination"
+assert_file_exists "$TMP/t103i/.agentic/agents/codex/architect.md" "T103I codex canonical write"
+assert_file_exists "$TMP/t103i/.agentic/agents/opencode/architect.md" "T103I opencode canonical write"
+
+# T103J — sync: invalid agent key fails validation
+run_test "T103J — sync: invalid agent key fails"
+mkdir -p "$TMP/t103j"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103j" \
+  > /dev/null 2>&1
+cat > "$TMP/t103j/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  Architect:
+    description: "Invalid key casing."
+    prompt: "text"
+EOF
+T103J_EXIT=0
+T103J_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103j" \
+  2>&1) || T103J_EXIT=$?
+assert_exit_code 1 "$T103J_EXIT" "T103J"
+assert_stdout_contains "$T103J_OUTPUT" "Invalid agent key" "T103J"
+
+# T103K — sync: missing prompt/description fails validation
+run_test "T103K — sync: missing prompt or description fails"
+mkdir -p "$TMP/t103k"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103k" \
+  > /dev/null 2>&1
+cat > "$TMP/t103k/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: ""
+    prompt: ""
+EOF
+T103K_EXIT=0
+T103K_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103k" \
+  2>&1) || T103K_EXIT=$?
+assert_exit_code 1 "$T103K_EXIT" "T103K"
+assert_stdout_contains "$T103K_OUTPUT" "must define non-empty description and prompt" "T103K"
+
+# T103K2 — sync: disabled config allows incomplete agent definitions
+run_test "T103K2 — sync: enabled false bypasses strict agent field checks"
+mkdir -p "$TMP/t103k2"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103k2" \
+  > /dev/null 2>&1
+cat > "$TMP/t103k2/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: false
+agents:
+  architect:
+    prompt: "asdasd"
+EOF
+T103K2_EXIT=0
+T103K2_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103k2" \
+  2>&1) || T103K2_EXIT=$?
+assert_exit_code 0 "$T103K2_EXIT" "T103K2"
+assert_stdout_contains "$T103K2_OUTPUT" "disabled (no-op)" "T103K2"
+
+# T103L — sync: invalid provider under agent fails validation
+run_test "T103L — sync: invalid provider fails"
+mkdir -p "$TMP/t103l"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103l" \
+  > /dev/null 2>&1
+cat > "$TMP/t103l/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Provider validation test."
+    prompt: "text"
+    providers:
+      claude:
+        enabled: true
+EOF
+T103L_EXIT=0
+T103L_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103l" \
+  2>&1) || T103L_EXIT=$?
+assert_exit_code 1 "$T103L_EXIT" "T103L"
+assert_stdout_contains "$T103L_OUTPUT" "has invalid provider" "T103L"
+
+# T103M — sync: provider-disabled agents resolve no outputs and warn
+run_test "T103M — sync: provider-disabled definitions resolve no outputs"
+mkdir -p "$TMP/t103m"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103m" \
+  > /dev/null 2>&1
+cat > "$TMP/t103m/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Provider disabled test."
+    prompt: "some prompt text"
+    providers:
+      codex:
+        enabled: false
+      opencode:
+        enabled: false
+EOF
+T103M_EXIT=0
+T103M_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103m" \
+  2>&1) || T103M_EXIT=$?
+assert_exit_code 0 "$T103M_EXIT" "T103M"
+assert_stdout_contains "$T103M_OUTPUT" "no provider outputs resolved; no mutations applied" "T103M"
+
+# T103N — sync: invalid reasoning_effort fails validation
+run_test "T103N — sync: invalid reasoning_effort fails"
+mkdir -p "$TMP/t103n"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103n" \
+  > /dev/null 2>&1
+cat > "$TMP/t103n/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Invalid reasoning test."
+    prompt: "text"
+    providers:
+      codex:
+        reasoning_effort: "mediumg"
+EOF
+T103N_EXIT=0
+T103N_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103n" \
+  2>&1) || T103N_EXIT=$?
+assert_exit_code 1 "$T103N_EXIT" "T103N"
+assert_stdout_contains "$T103N_OUTPUT" "invalid reasoning_effort" "T103N"
+
+# T103O — sync: codex-only active vendors keeps codex agent symlink only
+run_test "T103O — sync: codex-only active vendors creates codex agent symlink only"
+mkdir -p "$TMP/t103o"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103o" \
+  > /dev/null 2>&1
+cat > "$TMP/t103o/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Single provider codex test."
+    prompt: "Architect codex prompt"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+yq -i '.active_vendors = ["codex"]' "$TMP/t103o/.agentic/config.yaml"
+T103O_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103o" \
+  > /dev/null 2>&1 || T103O_EXIT=$?
+assert_exit_code 0 "$T103O_EXIT" "T103O"
+assert_symlink_exists "$TMP/t103o/.codex/agents" "T103O codex symlink exists"
+assert_symlink_target "$TMP/t103o/.codex/agents" "../.agentic/agents/codex" "T103O codex symlink target"
+assert_file_not_exists "$TMP/t103o/.opencode/agents" "T103O opencode symlink removed"
+assert_file_exists "$TMP/t103o/.agentic/agents/codex/architect.md" "T103O codex canonical"
+assert_file_exists "$TMP/t103o/.agentic/agents/opencode/architect.md" "T103O opencode canonical retained"
+
+# T103P — sync: opencode-only active vendors keeps opencode agent symlink only
+run_test "T103P — sync: opencode-only active vendors creates opencode agent symlink only"
+mkdir -p "$TMP/t103p"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103p" \
+  > /dev/null 2>&1
+cat > "$TMP/t103p/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Single provider opencode test."
+    prompt: "Architect opencode prompt"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+yq -i '.active_vendors = ["opencode"]' "$TMP/t103p/.agentic/config.yaml"
+T103P_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103p" \
+  > /dev/null 2>&1 || T103P_EXIT=$?
+assert_exit_code 0 "$T103P_EXIT" "T103P"
+assert_symlink_exists "$TMP/t103p/.opencode/agents" "T103P opencode symlink exists"
+assert_symlink_target "$TMP/t103p/.opencode/agents" "../.agentic/agents/opencode" "T103P opencode symlink target"
+assert_file_not_exists "$TMP/t103p/.codex/agents" "T103P codex symlink removed"
+assert_file_exists "$TMP/t103p/.agentic/agents/codex/architect.md" "T103P codex canonical retained"
+assert_file_exists "$TMP/t103p/.agentic/agents/opencode/architect.md" "T103P opencode canonical"
+
+# T103Q — sync: multi-provider keeps both provider symlinks
+run_test "T103Q — sync: multi-provider keeps both provider symlinks"
+mkdir -p "$TMP/t103q"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103q" \
+  > /dev/null 2>&1
+cat > "$TMP/t103q/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents:
+  architect:
+    description: "Multi-provider cleanup test."
+    prompt: "Architect multi-provider prompt"
+    providers:
+      codex:
+        enabled: true
+      opencode:
+        enabled: true
+EOF
+yq -i '.active_vendors = ["codex", "opencode"]' "$TMP/t103q/.agentic/config.yaml"
+T103Q_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103q" \
+  > /dev/null 2>&1 || T103Q_EXIT=$?
+assert_exit_code 0 "$T103Q_EXIT" "T103Q"
+assert_symlink_exists "$TMP/t103q/.codex/agents" "T103Q codex symlink"
+assert_symlink_target "$TMP/t103q/.codex/agents" "../.agentic/agents/codex" "T103Q codex symlink target"
+assert_symlink_exists "$TMP/t103q/.opencode/agents" "T103Q opencode symlink"
+assert_symlink_target "$TMP/t103q/.opencode/agents" "../.agentic/agents/opencode" "T103Q opencode symlink target"
+assert_file_exists "$TMP/t103q/.agentic/agents/codex/architect.md" "T103Q codex canonical"
+assert_file_exists "$TMP/t103q/.agentic/agents/opencode/architect.md" "T103Q opencode canonical"
 
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"
