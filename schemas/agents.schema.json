@@ -5,6 +5,64 @@
   "description": "Optional project-local agent orchestration switching definitions for provider-specific local outputs.",
   "type": "object",
   "additionalProperties": false,
+  "definitions": {
+    "providerConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "model": {
+          "type": "string",
+          "description": "Must match the provider's valid model reference/name."
+        },
+        "reasoning_effort": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "extra_high"]
+        }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codex": { "$ref": "#/definitions/providerConfig" },
+        "opencode": { "$ref": "#/definitions/providerConfig" }
+      }
+    },
+    "agentDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Agent instructions as inline multiline text."
+        },
+        "providers": { "$ref": "#/definitions/providers" }
+      },
+      "required": ["description", "prompt"]
+    },
+    "subagentDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Parent agent key this subagent attaches to."
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Subagent instructions as inline multiline text."
+        },
+        "providers": { "$ref": "#/definitions/providers" }
+      },
+      "required": ["parent", "description", "prompt"]
+    }
+  },
   "properties": {
     "version": {
       "type": "string",
@@ -19,54 +77,15 @@
       "type": "object",
       "description": "Agent definitions keyed by lowercase name.",
       "patternProperties": {
-        "^[a-z]+$": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "description": { "type": "string", "minLength": 1 },
-            "prompt": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Agent instructions as inline multiline text."
-            },
-            "providers": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "codex": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "enabled": { "type": "boolean" },
-                    "model": {
-                      "type": "string",
-                      "description": "Must match the provider's valid model reference/name."
-                    },
-                    "reasoning_effort": {
-                      "type": "string",
-                      "enum": ["low", "medium", "high", "extra_high"]
-                    }
-                  }
-                },
-                "opencode": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "enabled": { "type": "boolean" },
-                    "model": {
-                      "type": "string",
-                      "description": "Must match the provider's valid model reference/name."
-                    },
-                    "reasoning_effort": {
-                      "type": "string",
-                      "enum": ["low", "medium", "high", "extra_high"]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        "^[a-z]+$": { "$ref": "#/definitions/agentDefinition" }
+      },
+      "additionalProperties": false
+    },
+    "subagents": {
+      "type": "object",
+      "description": "Subagent definitions keyed by lowercase name.",
+      "patternProperties": {
+        "^[a-z]+$": { "$ref": "#/definitions/subagentDefinition" }
       },
       "additionalProperties": false
     }

@@ -55,6 +55,49 @@ collect_codex_agent_mappings() {
 
     mappings_ref+=("$tmp_render"$'\t'"$target_abs"$'\t'"$target_rel")
   done
+
+  local subagent_names=()
+  while IFS= read -r name; do
+    [[ -z "$name" || "$name" == "null" ]] && continue
+    subagent_names+=("$name")
+  done < <(yq '.subagents | keys | .[]' "$agents_file" 2>/dev/null || true)
+
+  local parent
+  for name in "${subagent_names[@]}"; do
+    enabled=$(yq -r ".subagents.\"$name\".providers.codex.enabled" "$agents_file" 2>/dev/null || echo "null")
+    [[ "$enabled" == "null" ]] && enabled="true"
+    [[ "$enabled" != "true" ]] && continue
+
+    parent=$(yq -r ".subagents.\"$name\".parent // \"\"" "$agents_file" 2>/dev/null || echo "")
+    prompt_text=$(yq -r ".subagents.\"$name\".prompt // \"\"" "$agents_file" 2>/dev/null || echo "")
+    desc=$(yq -r ".subagents.\"$name\".description // \"\"" "$agents_file" 2>/dev/null || echo "")
+    model=$(yq -r ".subagents.\"$name\".providers.codex.model // \"\"" "$agents_file" 2>/dev/null || echo "")
+    reasoning_canonical=$(yq -r ".subagents.\"$name\".providers.codex.reasoning_effort // \"\"" "$agents_file" 2>/dev/null || echo "")
+    reasoning=$(map_reasoning_effort_codex "$reasoning_canonical")
+
+    if [[ -z "$prompt_text" || "$prompt_text" == "null" ]]; then
+      echo "Warning: skipping codex subagent '$name' because prompt text is empty" >&2
+      continue
+    fi
+
+    target_rel=".agentic/agents/codex/$name.subagent.md"
+    target_abs="$target/$target_rel"
+    tmp_render="$(mktemp "${TMPDIR:-/tmp}/agentic-codex-subagent-XXXXXX.md")"
+    {
+      echo "# Subagent: $name"
+      echo
+      echo "provider: codex"
+      echo "parent: $parent"
+      [[ -n "$model" ]] && echo "model: $model"
+      [[ -n "$reasoning" ]] && echo "reasoning_effort: $reasoning"
+      echo "description: $desc"
+      echo
+      printf '%s\n' "$prompt_text"
+      echo
+    } > "$tmp_render"
+
+    mappings_ref+=("$tmp_render"$'\t'"$target_abs"$'\t'"$target_rel")
+  done
 }
 
 apply_codex_agent_mappings() {
