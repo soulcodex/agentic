@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-29T21:45:39Z",
+  "generated_at": "2026-05-05T22:03:41Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -75,6 +75,19 @@
         "planning",
         "architecture",
         "multi-agent"
+      ]
+    },
+    {
+      "name": "ddd-aggregate-modeling",
+      "group": "backend",
+      "path": "skills/backend/ddd-aggregate-modeling/SKILL.md",
+      "description": "Guides aggregate modeling decisions for DDD services: aggregate root boundaries, child entity vs value object decisions,",
+      "version": "1.0.0",
+      "tags": [
+        "backend",
+        "ddd",
+        "aggregates",
+        "domain-modeling"
       ]
     },
     {

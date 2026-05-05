@@ -13,6 +13,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 
 ## backend
 
+- `ddd-aggregate-modeling` — Model aggregates, value objects, invariants, snapshots, and repository boundaries in DDD services.
 - `golang-manual-di` — Implement explicit dependency injection wiring patterns for Go services.
 - `health-check-endpoints` — Add liveness/readiness health endpoints aligned with probe conventions.
 - `microservices-architecture` — Design microservice boundaries, communication, and resilience strategy.

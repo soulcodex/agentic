@@ -19,6 +19,24 @@ attributes but different IDs are different entities.
 - Keep aggregates small. If an aggregate spans multiple database tables with many relations,
   it is likely too large.
 
+### Aggregate Root Rules
+
+- Aggregate root fields are private by default. State transitions happen through intentful methods
+  (`Create`, `Update`, `Delete`, `Verify`) rather than direct mutation.
+- The root validates every child/value mutation before persisting.
+- Out-of-order updates must be ignored or rejected explicitly when temporal ordering matters.
+- Soft-delete behavior, if used, is owned by the aggregate root (never by adapters).
+
+### Child Entities vs Value Objects
+
+- Use **child entities** only when identity inside the aggregate matters (line item ID, versioned slot).
+- Use **value objects** when identity does not matter (email, money, range, timezone, role).
+- Child entity lifecycle is controlled only by the root; repositories do not expose child-level CRUD.
+- Value object constructors enforce rules:
+  - strings (`Name`, `Address`, `Email`)
+  - numbers/ranges (`Lanes`, `Port`, `Quantity`)
+  - enumerations (`Language`, `GlobalRole`, `SystemType`)
+
 **Domain Event**: Records something that happened in the domain. Immutable facts.
 - Named in past tense: `OrderPlaced`, `UserEmailVerified`, `PaymentFailed`.
 - Published by the aggregate root after a state change.
@@ -28,6 +46,20 @@ attributes but different IDs are different entities.
 - Interface defined in `domain/`. Implementation in `infrastructure/`.
 - Methods return domain objects, not ORM entities or raw rows.
 - Never returns partial aggregates.
+
+### Aggregate Collections
+
+- Prefer explicit collection wrappers when collection behavior has domain meaning (ordering,
+  transformation, pagination semantics), instead of leaking raw slices/arrays everywhere.
+- Collections should expose behavior, not only storage.
+
+### Specifications / Criteria
+
+- Query intent belongs to the domain/application model as criteria/specification objects.
+- Infrastructure translates criteria into datastore-specific filters.
+- Keep query composition reusable and testable (filter/sort/paginate as first-class concepts).
+- For projection-only reads with no domain business logic, criteria/specification can live in the
+  application layer while still being translated by infrastructure adapters.
 
 **Domain Service**: Encapsulates domain logic that does not belong to a single aggregate.
 - Stateless.
@@ -57,6 +89,15 @@ A bounded context defines the boundary within which a domain model applies.
   return error codes from domain methods.
 - Input validation (format, required fields) happens at the boundary (controller/handler),
   not in the domain.
+
+### Snapshot / Primitives Boundary
+
+- Domain objects must not be leaked directly to transport or persistence adapters.
+- Use explicit snapshot/primitives representations at boundaries:
+  - `ToPrimitives` / `Snapshot` for output
+  - `FromPrimitives` / `RestoreFromSnapshot` for hydration
+- Mapping code is not a smell when it protects domain boundaries and clarifies intent.
+- Do not over-DRY mappers across bounded contexts when semantics differ.
 
 ### Pre-Modeling Checklist
 
@@ -90,6 +131,24 @@ Authorization is a cross-cutting concern — keep it entirely out of the domain:
 - Permission-to-relation mappings are registered once at the **composition root** (wiring), not
   scattered across handlers.
 
+### Domain Services and Collaborators
+
+- Domain services orchestrate rules that involve multiple aggregates or policies not owned by
+  a single aggregate.
+- External collaborators are modeled as ports/interfaces and injected.
+- Domain services are coordination-focused; invariants still live in entities/value objects.
+
+### Domain Ports vs Application Ports
+
+- **Domain ports** belong to the domain boundary and model dependencies required by domain
+  policy execution (for example, domain repositories, domain policy lookups, or domain-specific
+  external capabilities).
+- **Application ports** belong to the application boundary and decouple use-case orchestration
+  from transport/presentation/projection concerns (for example, output boundaries, query
+  gateways, notifier interfaces).
+- Use application ports freely when the goal is decoupling use cases and the logic is orchestration
+  rather than domain rule evaluation.
+
 ### Shared Module Discipline
 
 A shared/common module must stay lean:
@@ -113,3 +172,5 @@ A shared/common module must stay lean:
   couples business rules to infrastructure concerns and breaks testability.
 - **Cross-context direct imports**: importing another bounded context's domain or infrastructure
   package directly. Use well-defined ports, shared DTOs, or domain events instead.
+- **Leaky primitives**: passing ORM models or HTTP DTOs into domain constructors.
+- **Mapper elimination dogma**: forcing generic mapping abstractions that erase ubiquitous language.
