@@ -58,6 +58,8 @@ attributes but different IDs are different entities.
 - Query intent belongs to the domain/application model as criteria/specification objects.
 - Infrastructure translates criteria into datastore-specific filters.
 - Keep query composition reusable and testable (filter/sort/paginate as first-class concepts).
+- For projection-only reads with no domain business logic, criteria/specification can live in the
+  application layer while still being translated by infrastructure adapters.
 
 **Domain Service**: Encapsulates domain logic that does not belong to a single aggregate.
 - Stateless.
@@ -135,6 +137,17 @@ Authorization is a cross-cutting concern — keep it entirely out of the domain:
   a single aggregate.
 - External collaborators are modeled as ports/interfaces and injected.
 - Domain services are coordination-focused; invariants still live in entities/value objects.
+
+### Domain Ports vs Application Ports
+
+- **Domain ports** belong to the domain boundary and model dependencies required by domain
+  policy execution (for example, domain repositories, domain policy lookups, or domain-specific
+  external capabilities).
+- **Application ports** belong to the application boundary and decouple use-case orchestration
+  from transport/presentation/projection concerns (for example, output boundaries, query
+  gateways, notifier interfaces).
+- Use application ports freely when the goal is decoupling use cases and the logic is orchestration
+  rather than domain rule evaluation.
 
 ### Shared Module Discipline
 

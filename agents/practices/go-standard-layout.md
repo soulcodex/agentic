@@ -99,6 +99,8 @@ Versioned database migrations (`up`/`down`) live here.
 
 - Prefer explicit SQL migrations over opaque ORM auto-migrations in domain-heavy systems.
 - Migration files are part of application history and must be reviewed like code.
+- Prefer forward-only migrations whenever feasible; use rollback scripts only when they can be
+  made safe and deterministic.
 
 ### `/schemas`
 

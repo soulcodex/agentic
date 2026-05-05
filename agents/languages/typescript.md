@@ -73,6 +73,7 @@ Always enable strict mode in `tsconfig.json`:
 ### Boundary Validation and Webhooks
 
 - Validate all external payloads (HTTP, webhook, queue) with schemas at the edge.
+- Zod is a valid and recommended schema/validation option for TypeScript-first codebases.
 - Keep schema versions explicit and synchronized with handler behavior.
 - For webhooks, enforce signature verification, replay-window checks, and idempotency keys.
 - Keep authorization checks in application handlers/services, not domain models.

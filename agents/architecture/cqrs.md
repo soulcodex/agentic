@@ -70,6 +70,13 @@ Use a command/query bus to decouple callers from handlers:
 
 The bus also provides a hook point for middleware: logging, validation, transactions, metrics.
 
+### Application Ports in CQRS
+
+- In CQRS, it is valid to define **application-layer ports** (input/output boundaries, read
+  gateways) to decouple handlers from controllers, presenters, and projection stores.
+- Keep these ports focused on use-case orchestration contracts, not domain invariants.
+- Infrastructure adapters implement these ports and translate to concrete transports/datastores.
+
 ### CQRS Tradeoffs
 
 Pros:

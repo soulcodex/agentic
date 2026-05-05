@@ -36,10 +36,13 @@
 - [ ] Repository returns domain aggregates/collections.
 - [ ] Criteria/specification objects express query intent.
 - [ ] Criteria translation happens only in infrastructure adapters.
+- [ ] Projection-only queries without domain logic may keep criteria/specification in application
+      layer.
+- [ ] Port placement is explicit: domain ports for domain policy dependencies, application ports
+      for use-case decoupling.
 
 ## Verification
 
 - [ ] Unit tests cover invariant failures and successful transitions.
 - [ ] Tests include snapshot round-trip behavior.
 - [ ] Error model distinguishes invalid input vs not found vs conflicts.
-
