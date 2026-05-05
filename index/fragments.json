@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-05T22:00:50Z",
+  "generated_at": "2026-05-05T22:55:29Z",
   "fragments": [
     {
       "name": "bff",
@@ -14,14 +14,14 @@
       "group": "architecture",
       "path": "agents/architecture/cqrs.md",
       "heading": "CQRS (Command Query Responsibility Segregation)",
-      "words": 802
+      "words": 853
     },
     {
       "name": "ddd",
       "group": "architecture",
       "path": "agents/architecture/ddd.md",
       "heading": "Domain-Driven Design (DDD)",
-      "words": 1181
+      "words": 1282
     },
     {
       "name": "eda",
@@ -210,7 +210,7 @@
       "group": "languages",
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
-      "words": 508
+      "words": 520
     },
     {
       "name": "api-design",
@@ -231,7 +231,7 @@
       "group": "practices",
       "path": "agents/practices/go-standard-layout.md",
       "heading": "Go Standard Layout",
-      "words": 619
+      "words": 637
     },
     {
       "name": "observability",
