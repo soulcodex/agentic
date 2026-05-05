@@ -6,7 +6,7 @@ meta:
     frontend. Go handles all business logic and HTTP APIs; Vue delivers a
     client-side single-page application with Vite for fast builds and Vitest
     for unit tests. No SSR.
-  version: "1.0.0"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -76,9 +76,12 @@ skills:
   - write-dockerfile
   - code-review
   - add-tests
+  - ddd-aggregate-modeling
   - write-adr
   - write-readme
   - relational-database-design
+  - webhook-development
+  - golang-manual-di
   - vue-application-structure
   - vue-component-design
   - vue-component-testing

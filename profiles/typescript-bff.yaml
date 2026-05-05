@@ -4,7 +4,7 @@ meta:
   description: >
     TypeScript Backend for Frontend layer that aggregates downstream microservices
     and exposes a client-optimized API. Stateless, no domain logic.
-  version: "1.0.0"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -33,6 +33,11 @@ fragments:
 skills:
   - docker-compose-local-setup
   - write-dockerfile
+  - webhook-development
+  - sql-query-optimization
+  - static-code-analysis
+  - microservices-architecture
+  - health-check-endpoints
 
 output:
   build_command: "pnpm build"

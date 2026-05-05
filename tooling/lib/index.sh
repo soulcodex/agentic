@@ -104,6 +104,46 @@ build_skills_index() {
   fi
 }
 
+# ── Profile schema sync ───────────────────────────────────────────────────────
+sync_profile_schema_skill_enum() {
+  local schema_file="$LIBRARY/schemas/profile.schema.json"
+  local skills_index_file="$INDEX_DIR/skills.json"
+
+  if [[ ! -f "$schema_file" ]]; then
+    echo "  Skipped: schemas/profile.schema.json not found"
+    return 0
+  fi
+
+  if [[ ! -f "$skills_index_file" ]]; then
+    echo "  Skipped: index/skills.json not found"
+    return 0
+  fi
+
+  local skill_names
+  skill_names=$(jq -c '[.skills[].name] | unique | sort' "$skills_index_file")
+
+  local updated_schema
+  updated_schema=$(
+    jq \
+      --argjson names "$skill_names" \
+      '.properties.skills.uniqueItems = true
+      | .properties.skills.items.enum = $names' \
+      "$schema_file"
+  )
+
+  local existing_canonical
+  existing_canonical=$(jq -S . "$schema_file")
+  local updated_canonical
+  updated_canonical=$(echo "$updated_schema" | jq -S .)
+
+  if [[ "$existing_canonical" == "$updated_canonical" ]]; then
+    echo "  Unchanged: schemas/profile.schema.json (skills enum)"
+  else
+    echo "$updated_schema" | jq . > "$schema_file"
+    echo "  Updated: schemas/profile.schema.json (skills enum)"
+  fi
+}
+
 # ── Fragments index ───────────────────────────────────────────────────────────
 build_fragments_index() {
   # Use jq for proper JSON construction (avoids issues with special characters)
@@ -153,4 +193,5 @@ build_fragments_index() {
 echo "Rebuilding indexes..."
 build_skills_index
 build_fragments_index
+sync_profile_schema_skill_enum
 echo "Done."

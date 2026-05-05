@@ -89,6 +89,21 @@ Use codes precisely. `401` means "not authenticated". `403` means "authenticated
 - Return all validation errors at once (not just the first one) with field-level detail.
 - Reject unknown fields in strict mode to surface client bugs early.
 
+### Schema-Driven Contracts
+
+- Every externally consumed request/response must have a machine-readable schema.
+- Keep schema versions explicit (for example: `create-company.v1.schema.json`).
+- Update handlers and schemas in the same change; stale schemas are contract bugs.
+- Prefer JSON Schema/OpenAPI at HTTP boundaries and typed internal DTOs behind them.
+
+### Webhook Safety and Reliability
+
+- Verify webhook signatures before parsing payloads.
+- Enforce event timestamp tolerance and reject stale requests to reduce replay windows.
+- Store provider event IDs (or equivalent nonce) to enforce idempotency.
+- Return 2xx only after processing state is safely persisted or queued durably.
+- Retries must be safe: duplicate delivery cannot create duplicate side effects.
+
 ### Pagination
 
 Use cursor-based pagination for large, frequently-changing datasets:

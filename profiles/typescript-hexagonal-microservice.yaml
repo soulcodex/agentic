@@ -4,7 +4,7 @@ meta:
   description: >
     TypeScript backend microservice following hexagonal architecture with DDD,
     CQRS, and event-driven patterns. Uses hono, pnpm, and Vitest.
-  version: "1.0.0"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -34,9 +34,14 @@ fragments:
   domains: []
 
 skills:
+  - ddd-aggregate-modeling
   - docker-compose-local-setup
   - write-dockerfile
   - relational-database-design
+  - sql-query-optimization
+  - webhook-development
+  - health-check-endpoints
+  - static-code-analysis
 
 output:
   build_command: "pnpm build"

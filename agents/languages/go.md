@@ -49,11 +49,19 @@ cmd/
 
 Packages must not have circular dependencies. `domain` must not import `infrastructure`.
 
+### Domain Modeling Conventions
+
+- Model business primitives as typed value objects instead of raw primitives at domain boundaries.
+- Keep aggregate fields private and expose behavior methods for state transitions.
+- Use explicit snapshot/primitives mappers to cross application and adapter boundaries.
+- Prefer small, explicit mapping code over generic reflection-based mappers.
+
 ### Interfaces
 
 - Define interfaces in the package that *uses* them, not the package that *implements* them.
 - Keep interfaces small (1-3 methods). Compose large behaviors from small interfaces.
 - Accept interfaces, return concrete types (for most cases).
+- Split reader/writer interfaces when read and write concerns differ.
 
 ### Concurrency
 
@@ -69,3 +77,5 @@ Packages must not have circular dependencies. `domain` must not import `infrastr
 - Avoid `init()` functions — they run in unpredictable order and are hard to test.
 - Use table-driven tests for cases that vary only in input/output.
 - Avoid global state. Pass dependencies explicitly.
+- Keep authorization checks in application handlers/services, not in domain entities.
+- For repository adapters, prefer explicit SQL/query builders when domain mapping rules are non-trivial.

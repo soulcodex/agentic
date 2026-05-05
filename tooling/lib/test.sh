@@ -156,7 +156,7 @@ run_test() {
     tag="vendor"
   elif (( num == 14 )) || (( num == 73 )); then
     tag="lint"
-  elif (( num == 15 )) || (( num == 58 )) || (( num == 59 )); then
+  elif (( num == 15 )) || (( num == 58 )) || (( num == 59 )) || (( num == 137 )); then
     tag="index"
   elif (( num >= 35 && num <= 38 )); then
     tag="sync"
@@ -1651,6 +1651,21 @@ T58_OUTPUT=$(bash "$INDEX" --library "$LIBRARY" 2>&1)
 
 assert_stdout_contains "$T58_OUTPUT" "Unchanged: index/skills.json" "T58"
 assert_stdout_contains "$T58_OUTPUT" "Unchanged: index/fragments.json" "T58"
+assert_stdout_contains "$T58_OUTPUT" "Unchanged: schemas/profile.schema.json (skills enum)" "T58"
+
+# T137 — index.sh: keeps profile schema enum in sync with skills index
+run_test "T137 — index.sh: profile schema skills enum is synchronized"
+T137_OUTPUT=$(bash "$INDEX" --library "$LIBRARY" 2>&1)
+assert_stdout_contains "$T137_OUTPUT" "schemas/profile.schema.json (skills enum)" "T137"
+
+T137_SKILL_COUNT=$(jq '.skills | length' "$LIBRARY/index/skills.json")
+T137_ENUM_COUNT=$(jq '.properties.skills.items.enum | length' "$LIBRARY/schemas/profile.schema.json")
+if [[ "$T137_ENUM_COUNT" -eq "$T137_SKILL_COUNT" ]]; then
+  pass "T137 — enum count matches skills index ($T137_ENUM_COUNT)"
+else
+  fail "T137 — enum count ($T137_ENUM_COUNT) does not match skills index ($T137_SKILL_COUNT)"
+fi
+assert_file_contains "$LIBRARY/schemas/profile.schema.json" "\"ddd-aggregate-modeling\"" "T137"
 
 # T59 — CLI: LIBRARY_ROOT fallback discovery
 run_test "T59 — CLI: LIBRARY_ROOT fallback discovery"

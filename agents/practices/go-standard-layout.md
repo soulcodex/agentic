@@ -47,10 +47,17 @@ frontend build output embedded into the binary via `//go:embed`.
 Configuration file templates and defaults (`config.yaml.example`,
 `default.toml`). **Never store secrets or environment-specific values here.**
 
+- Centralize configuration loading and validation in one package.
+- Support both env-driven and file-driven configuration when needed.
+- Keep a maintained `.env.example` aligned with required runtime variables.
+
 ### `/scripts`
 
 Development and CI shell scripts — linting wrappers, database seeders,
 code-generation helpers. These are not executed at production runtime.
+
+- Scripts should be idempotent and callable from `just`/`make`.
+- Keep environment setup and repetitive quality tasks scripted, not manual.
 
 ### `/build`
 
@@ -64,11 +71,15 @@ build/
     Dockerfile.alpine
 ```
 
+- Keep deployable Docker artifacts under `/build` to separate packaging from runtime code.
+
 ### `/deployments`
 
 Infrastructure and orchestration configuration: Kubernetes manifests, Helm
 charts, `docker-compose.yml`, Terraform modules. Separating this from `/build`
 keeps packaging concerns apart from deployment concerns.
+
+- Provide local `docker-compose` environments close to production dependencies.
 
 ### `/test`
 
@@ -81,6 +92,20 @@ test/
   e2e/
   testdata/
 ```
+
+### `/migrations`
+
+Versioned database migrations (`up`/`down`) live here.
+
+- Prefer explicit SQL migrations over opaque ORM auto-migrations in domain-heavy systems.
+- Migration files are part of application history and must be reviewed like code.
+
+### `/schemas`
+
+Schema files for validating external input (JSON Schema/OpenAPI/Avro/Proto).
+
+- Use schema files at adapter boundaries (HTTP/webhooks/events).
+- Keep filenames versioned and domain-specific.
 
 ---
 
@@ -98,3 +123,13 @@ test/
 | `/build` | You have Dockerfiles or packaging configuration |
 | `/deployments` | You have k8s/Helm/Terraform/Compose files |
 | `/test` | You have E2E fixtures or shared test helpers |
+| `/migrations` | You version database changes with up/down scripts |
+| `/schemas` | You validate external payload contracts via schema files |
+
+### Workflow Conventions
+
+- Keep user-facing project automation in `justfile` (or `Makefile`) so setup/lint/test/migrate
+  commands are discoverable and repeatable.
+- Enforce correctness/style with `golangci-lint` and treat config as part of the architecture.
+- Keep `go:generate` directives near interfaces when generating mocks/stubs.
+- Use query builders or explicit SQL in DAL adapters when domain mapping control matters.

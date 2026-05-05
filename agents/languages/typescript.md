@@ -29,6 +29,14 @@ Always enable strict mode in `tsconfig.json`:
 - Prefer `readonly` for all data that should not be mutated.
 - Use template literal types for string-constrained values: `type EventName = `${string}.${string}``
 
+### Domain Modeling Conventions
+
+- Model value objects with immutable types/classes plus runtime validation.
+- Keep aggregate state private; mutate through intentful methods only.
+- Keep domain types isolated from framework/transport concerns.
+- Use explicit `toPrimitives` / `fromSnapshot` mapping at boundaries.
+- Mapping code is acceptable when contexts have different semantics.
+
 ### Naming Conventions
 
 | Construct | Convention | Example |
@@ -62,6 +70,13 @@ Always enable strict mode in `tsconfig.json`:
 - Never `catch` an error and silently swallow it. At minimum, log it.
 - Use custom error classes with typed properties for domain errors.
 
+### Boundary Validation and Webhooks
+
+- Validate all external payloads (HTTP, webhook, queue) with schemas at the edge.
+- Keep schema versions explicit and synchronized with handler behavior.
+- For webhooks, enforce signature verification, replay-window checks, and idempotency keys.
+- Keep authorization checks in application handlers/services, not domain models.
+
 ### Code Style
 
 - Use `pnpm` as the package manager.
@@ -69,3 +84,4 @@ Always enable strict mode in `tsconfig.json`:
 - Prefer `const` over `let`; never use `var`.
 - Prefer named exports over default exports for better refactoring support.
 - Keep functions small (fits on a screen). Extract when logic becomes layered.
+- Prefer dependency injection/composition in the app layer; avoid global singletons.

@@ -5,7 +5,7 @@ meta:
     Full-stack application with a Go hexagonal backend and a Nuxt 3 / Vue 3
     frontend. Go handles all business logic and HTTP APIs; Nuxt delivers
     SSR-capable pages with Vite for fast builds and Vitest for unit tests.
-  version: "1.0.0"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -74,9 +74,12 @@ skills:
   - write-dockerfile
   - code-review
   - add-tests
+  - ddd-aggregate-modeling
   - write-adr
   - write-readme
   - relational-database-design
+  - webhook-development
+  - golang-manual-di
   - vue-application-structure
   - internationalization-i18n
   - sql-query-optimization

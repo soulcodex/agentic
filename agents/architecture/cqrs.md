@@ -70,6 +70,30 @@ Use a command/query bus to decouple callers from handlers:
 
 The bus also provides a hook point for middleware: logging, validation, transactions, metrics.
 
+### CQRS Tradeoffs
+
+Pros:
+- Explicit separation of write and read intent.
+- Easier scaling of read paths independently from write paths.
+- Clearer authorization and validation per use case.
+- Better fit for event-driven projections and denormalized views.
+
+Cons:
+- More handlers, DTOs, and mapping code.
+- More operational moving parts when read/write models diverge.
+- Additional eventual-consistency concerns when projections are async.
+
+Use CQRS when domain complexity or read/write asymmetry justifies it; do not force it into
+trivial CRUD without clear benefit.
+
+### Mediator Reliability Guidelines
+
+- One command/query type maps to one handler registration.
+- Fail fast on missing handler registration at startup.
+- Keep handler side effects explicit and ordered.
+- Use middleware/interceptors for cross-cutting concerns (timeouts, tracing, retries, idempotency).
+- Keep command handling idempotent where duplicate delivery is possible.
+
 ### Read Model
 
 - The read model is optimized for querying, not for domain integrity.
@@ -78,6 +102,18 @@ The bus also provides a hook point for middleware: logging, validation, transact
 - The read model is rebuilt by projecting domain events — never by directly coupling to
   the write model's schema.
 - A stale read model is acceptable. The write model is the source of truth.
+
+### Authorization Placement
+
+- Run authorization checks in command/query handlers (application layer) before domain mutation.
+- Domain entities remain permission-agnostic.
+- For collection queries, authorization can shape criteria/read filters before execution.
+
+### Idempotency for Commands
+
+- Commands triggered by external systems (webhooks, async consumers, retries) must be idempotent.
+- Use idempotency keys or source event IDs and persist processing status.
+- Replays should return a deterministic successful result when the original command already applied.
 
 ### Contract & Schema Parity
 
