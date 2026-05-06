@@ -20,7 +20,12 @@ vendor_codex_create_symlinks() {
     ln -sfn "../.agentic/skills" "$TARGET/.agents/skills"
     echo "    Linked: .agents/skills → ../.agentic/skills"
   fi
-  mkdir -p "$TARGET/.codex"
-  ln -sfn "../.agentic/agents/codex" "$TARGET/.codex/agents"
-  echo "    Linked: .codex/agents → ../.agentic/agents/codex"
+  local codex_agents_dir="$TARGET/.agentic/agents/codex"
+  if [[ -d "$codex_agents_dir" ]] && [[ -n "$(find "$codex_agents_dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+    mkdir -p "$TARGET/.codex"
+    ln -sfn "../.agentic/agents/codex" "$TARGET/.codex/agents"
+    echo "    Linked: .codex/agents → ../.agentic/agents/codex"
+  else
+    echo "    Skipped: .codex/agents (no Codex agent outputs present)"
+  fi
 }

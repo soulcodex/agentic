@@ -19,7 +19,12 @@ vendor_opencode_create_symlinks() {
     ln -sfn "../.agentic/skills" "$TARGET/.opencode/skills"
     echo "    Linked: .opencode/skills → ../.agentic/skills"
   fi
-  mkdir -p "$TARGET/.opencode"
-  ln -sfn "../.agentic/agents/opencode" "$TARGET/.opencode/agents"
-  echo "    Linked: .opencode/agents → ../.agentic/agents/opencode"
+  local opencode_agents_dir="$TARGET/.agentic/agents/opencode"
+  if [[ -d "$opencode_agents_dir" ]] && [[ -n "$(find "$opencode_agents_dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+    mkdir -p "$TARGET/.opencode"
+    ln -sfn "../.agentic/agents/opencode" "$TARGET/.opencode/agents"
+    echo "    Linked: .opencode/agents → ../.agentic/agents/opencode"
+  else
+    echo "    Skipped: .opencode/agents (no OpenCode agent outputs present)"
+  fi
 }
