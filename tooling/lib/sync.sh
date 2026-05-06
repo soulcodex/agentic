@@ -101,15 +101,17 @@ COMPOSE_CMD=("bash" "$COMPOSE_SCRIPT" "--library" "$LIBRARY" "--profile-file" "$
 # Run compose
 "${COMPOSE_CMD[@]}"
 
+sync_portable_agents "$TARGET"
+
 # ── Restore active vendors if set ─────────────────────────────────────────────
+# Restore vendors after syncing portable agents so codex/opencode agent symlinks
+# are created only when canonical provider outputs exist.
 if [[ -n "$ACTIVE_VENDORS" ]]; then
   echo ""
   echo "Restoring vendors: $ACTIVE_VENDORS"
   VENDOR_SWITCH="$LIBRARY/tooling/lib/vendor-switch.sh"
   bash "$VENDOR_SWITCH" --library "$LIBRARY" --target "$TARGET" "$ACTIVE_VENDORS"
 fi
-
-sync_portable_agents "$TARGET"
 
 echo ""
 echo "Sync complete. Project regenerated from local profile."

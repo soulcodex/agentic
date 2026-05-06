@@ -2841,6 +2841,51 @@ assert_symlink_target "$TMP/t103q/.opencode/agents" "../.agentic/agents/opencode
 assert_file_exists "$TMP/t103q/.agentic/agents/codex/architect.md" "T103Q codex canonical"
 assert_file_exists "$TMP/t103q/.agentic/agents/opencode/architect.md" "T103Q opencode canonical"
 
+# T103R — sync: active vendor restore skips agent symlinks when agents are disabled
+run_test "T103R — sync: active vendors do not create agent symlinks when agents disabled"
+mkdir -p "$TMP/t103r"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103r" \
+  > /dev/null 2>&1
+cat > "$TMP/t103r/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: false
+agents: {}
+EOF
+yq -i '.active_vendors = ["codex","opencode"]' "$TMP/t103r/.agentic/config.yaml"
+T103R_EXIT=0
+bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103r" \
+  > /dev/null 2>&1 || T103R_EXIT=$?
+assert_exit_code 0 "$T103R_EXIT" "T103R"
+assert_file_not_exists "$TMP/t103r/.codex/agents" "T103R codex symlink skipped"
+assert_file_not_exists "$TMP/t103r/.opencode/agents" "T103R opencode symlink skipped"
+
+# T103S — sync: active vendor restore skips agent symlinks with empty definitions
+run_test "T103S — sync: active vendors do not create agent symlinks with empty defs"
+mkdir -p "$TMP/t103s"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-microservice \
+  --target "$TMP/t103s" \
+  > /dev/null 2>&1
+cat > "$TMP/t103s/.agentic/agents.yaml" <<'EOF'
+version: "1"
+enabled: true
+agents: {}
+EOF
+yq -i '.active_vendors = ["codex","opencode"]' "$TMP/t103s/.agentic/config.yaml"
+T103S_EXIT=0
+T103S_OUTPUT=$(bash "$LIBRARY/tooling/lib/sync.sh" \
+  --target "$TMP/t103s" \
+  2>&1) || T103S_EXIT=$?
+assert_exit_code 0 "$T103S_EXIT" "T103S"
+assert_stdout_contains "$T103S_OUTPUT" "no mutations applied" "T103S warning"
+assert_file_not_exists "$TMP/t103s/.codex/agents" "T103S codex symlink skipped"
+assert_file_not_exists "$TMP/t103s/.opencode/agents" "T103S opencode symlink skipped"
+
 # T104 — compose: standalone typescript-react-spa profile
 run_test "T104 — compose: standalone typescript-react-spa profile"
 T104_EXIT=0
