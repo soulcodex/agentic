@@ -1128,6 +1128,28 @@ assert_stdout_contains "$T47_OUTPUT" "copilot" "T47"
 assert_stdout_contains "$T47_OUTPUT" "gemini" "T47"
 assert_stdout_contains "$T47_OUTPUT" "cursor" "T47"
 
+# T138 — CLI: deploy accepts --link and deploys symlink mode artifacts
+run_test "T138 — CLI: deploy supports --link"
+mkdir -p "$TMP/t138"
+T138_EXIT=0
+bash "$CLI" deploy golang-hexagonal-cobra-cli "$TMP/t138" codex --link > /dev/null 2>&1 || T138_EXIT=$?
+assert_exit_code 0 "$T138_EXIT" "T138"
+assert_file_exists "$TMP/t138/AGENTS.md" "T138"
+assert_symlink_exists "$TMP/t138/.agentic/fragments" "T138 fragments link"
+assert_symlink_exists "$TMP/t138/.agentic/skills" "T138 skills link"
+assert_symlink_exists "$TMP/t138/.agentic/vendor-files" "T138 vendor-files link"
+assert_file_contains "$TMP/t138/.agentic/config.yaml" "deploy_mode: link" "T138"
+
+# T139 — CLI: compose accepts --link and writes link-mode config
+run_test "T139 — CLI: compose supports --link"
+mkdir -p "$TMP/t139"
+T139_EXIT=0
+bash "$CLI" compose golang-hexagonal-cobra-cli "$TMP/t139" --link > /dev/null 2>&1 || T139_EXIT=$?
+assert_exit_code 0 "$T139_EXIT" "T139"
+assert_file_exists "$TMP/t139/AGENTS.md" "T139"
+assert_symlink_exists "$TMP/t139/.agentic/fragments" "T139 fragments link"
+assert_file_contains "$TMP/t139/.agentic/config.yaml" "deploy_mode: link" "T139"
+
 # ══════════════════════════════════════════════════════════════════════════════
 # LIBRARY DISCOVERY TESTS
 # ══════════════════════════════════════════════════════════════════════════════

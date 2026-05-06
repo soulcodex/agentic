@@ -40,6 +40,7 @@ Commands:
 
 Options:
   --full          Inline all fragment content (monolithic AGENTS.md)
+  --link          Use symlinks instead of copied runtime files
   --skills LIST   Deploy specific skills (default: all from profile)
   --help          Show help for a command
 
@@ -76,6 +77,7 @@ Arguments:
 
 Options:
   --full          Inline all fragment content into AGENTS.md
+  --link          Use symlinks instead of copied runtime files
   --skills LIST   Comma-separated skills to deploy (default: all from profile)
 
 Examples:
@@ -98,6 +100,7 @@ Arguments:
 
 Options:
   --full     Inline all fragment content into AGENTS.md (monolithic mode)
+  --link     Use symlinks instead of copied runtime files
 
 Examples:
   agentic compose golang-hexagonal-cobra-cli ./my-cli
@@ -217,13 +220,14 @@ EOF
 # ── Command handlers ──────────────────────────────────────────────────────────
 
 cmd_deploy() {
-  local profile="" target="" vendors="" skills="all" full_mode=""
+  local profile="" target="" vendors="" skills="all" full_mode="" link_mode=""
   local args=()
 
   # Parse arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --full)    full_mode="--full"; shift ;;
+      --link)    link_mode="--link"; shift ;;
       --skills)  skills="$2"; shift 2 ;;
       --help)    show_deploy_help; exit 0 ;;
       -*)        die "Unknown option: $1" ;;
@@ -246,7 +250,7 @@ cmd_deploy() {
       vendors="${args[2]}"
       ;;
     *)
-      die "Usage: agentic deploy <profile> [target] <vendors> [--full] [--skills LIST]"
+      die "Usage: agentic deploy <profile> [target] <vendors> [--full] [--link] [--skills LIST]"
       ;;
   esac
 
@@ -258,20 +262,27 @@ cmd_deploy() {
   # Run compose
   local compose_args=("--library" "$library" "--profile" "$profile" "--target" "$target")
   [[ -n "$full_mode" ]] && compose_args+=("--full")
+  [[ -n "$link_mode" ]] && compose_args+=("--link")
   bash "$library/tooling/lib/compose.sh" "${compose_args[@]}"
 
   # Run vendor-gen
-  bash "$library/tooling/lib/vendor-gen.sh" \
-    --library "$library" \
-    --target "$target" \
-    --vendors "$vendors"
+  local vendor_gen_args=(
+    "--library" "$library"
+    "--target" "$target"
+    "--vendors" "$vendors"
+  )
+  [[ -n "$link_mode" ]] && vendor_gen_args+=("--link")
+  bash "$library/tooling/lib/vendor-gen.sh" "${vendor_gen_args[@]}"
 
   # Deploy skills
-  bash "$library/tooling/lib/deploy-skills.sh" \
-    --library "$library" \
-    --target "$target" \
-    --skills "$skills" \
-    --vendor "$vendors"
+  local deploy_skills_args=(
+    "--library" "$library"
+    "--target" "$target"
+    "--skills" "$skills"
+    "--vendor" "$vendors"
+  )
+  [[ -n "$link_mode" ]] && deploy_skills_args+=("--link")
+  bash "$library/tooling/lib/deploy-skills.sh" "${deploy_skills_args[@]}"
 
   # Activate vendors
   bash "$library/tooling/lib/vendor-switch.sh" \
@@ -285,13 +296,14 @@ cmd_deploy() {
 }
 
 cmd_compose() {
-  local profile="" target="" full_mode=""
+  local profile="" target="" full_mode="" link_mode=""
   local args=()
 
   # Parse arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --full)  full_mode="--full"; shift ;;
+      --link)  link_mode="--link"; shift ;;
       --help)  show_compose_help; exit 0 ;;
       -*)      die "Unknown option: $1" ;;
       *)       args+=("$1"); shift ;;
@@ -311,7 +323,7 @@ cmd_compose() {
       target="${args[1]}"
       ;;
     *)
-      die "Usage: agentic compose <profile> [target] [--full]"
+      die "Usage: agentic compose <profile> [target] [--full] [--link]"
       ;;
   esac
 
@@ -320,6 +332,7 @@ cmd_compose() {
 
   local compose_args=("--library" "$library" "--profile" "$profile" "--target" "$target")
   [[ -n "$full_mode" ]] && compose_args+=("--full")
+  [[ -n "$link_mode" ]] && compose_args+=("--link")
 
   bash "$library/tooling/lib/compose.sh" "${compose_args[@]}"
 }
