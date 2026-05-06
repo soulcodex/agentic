@@ -33,29 +33,6 @@ done
 SKILLS_DST="$TARGET/.agentic/skills"
 mkdir -p "$SKILLS_DST"
 
-# ── Link mode ────────────────────────────────────────────────────────────────
-if [[ "$LINK_MODE" == "true" ]]; then
-  echo "Deploying skills (link mode) to $TARGET..."
-  # Remove any existing copy or symlink using safe_rm_rf
-  safe_rm_rf "$SKILLS_DST"
-  ln -sf "$LIBRARY/skills" "$SKILLS_DST"
-  echo "Linked .agentic/skills → $LIBRARY/skills (link mode)"
-
-  # Still create vendor skill symlinks if vendor specified
-  if [[ -n "$VENDOR" ]]; then
-    IFS=',' read -ra VENDOR_LIST <<< "$VENDOR"
-    for v in "${VENDOR_LIST[@]}"; do
-      v=$(echo "$v" | tr -d ' ')
-      create_skill_symlinks "$v"
-    done
-  fi
-
-  generate_skills_readme
-  echo ""
-  echo "Skills deployed (symlinked) to $TARGET/.agentic/skills/"
-  exit 0
-fi
-
 # ── Skill resolution ──────────────────────────────────────────────────────────
 deploy_skill() {
   local skill_dir="$1"
@@ -212,6 +189,30 @@ create_skill_symlinks() {
       ;;
   esac
 }
+
+# ── Link mode ────────────────────────────────────────────────────────────────
+if [[ "$LINK_MODE" == "true" ]]; then
+  echo "Deploying skills (link mode) to $TARGET..."
+  # Remove any existing copy or symlink using safe_rm_rf
+  safe_rm_rf "$SKILLS_DST"
+  ln -sf "$LIBRARY/skills" "$SKILLS_DST"
+  echo "Linked .agentic/skills → $LIBRARY/skills (link mode)"
+
+  # Still create vendor skill symlinks if vendor specified
+  if [[ -n "$VENDOR" ]]; then
+    IFS=',' read -ra VENDOR_LIST <<< "$VENDOR"
+    for v in "${VENDOR_LIST[@]}"; do
+      v=$(echo "$v" | tr -d ' ')
+      create_skill_symlinks "$v"
+    done
+  fi
+
+  # Skip README generation in link mode because SKILLS_DST points to the library
+  # skills directory and must not be mutated from a target deployment.
+  echo ""
+  echo "Skills deployed (symlinked) to $TARGET/.agentic/skills/"
+  exit 0
+fi
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 if [[ "$SKILLS" == "all" ]]; then

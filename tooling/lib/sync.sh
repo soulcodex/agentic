@@ -86,17 +86,21 @@ ACTIVE_VENDORS=$(read_active_vendors "$CONFIG")
 
 MODE=$(yq '.mode // "lean"' "$CONFIG" 2>/dev/null || echo "lean")
 [[ "$MODE" == "null" ]] && MODE="lean"
+DEPLOY_MODE=$(yq '.deploy_mode // "copy"' "$CONFIG" 2>/dev/null || echo "copy")
+[[ "$DEPLOY_MODE" == "null" ]] && DEPLOY_MODE="copy"
 
 # ── Sync: regenerate from local profile ───────────────────────────────────────
 echo "Syncing from local profile: $LOCAL_PROFILE"
 echo "Library: $LIBRARY"
 echo "Mode: $MODE"
+echo "Deploy mode: $DEPLOY_MODE"
 [[ -n "$ACTIVE_VENDORS" ]] && echo "Active vendors: $ACTIVE_VENDORS"
 echo ""
 
 # Build compose command
 COMPOSE_CMD=("bash" "$COMPOSE_SCRIPT" "--library" "$LIBRARY" "--profile-file" "$LOCAL_PROFILE" "--target" "$TARGET")
 [[ "$MODE" == "full" ]] && COMPOSE_CMD+=("--full")
+[[ "$DEPLOY_MODE" == "link" ]] && COMPOSE_CMD+=("--link")
 
 # Run compose
 "${COMPOSE_CMD[@]}"

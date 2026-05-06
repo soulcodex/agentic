@@ -258,7 +258,10 @@ are gitignored automatically.
 
 **Switching copy → link mode** (stop carrying library files in your repo):
 
-1. Re-deploy with `--link`: `agentic sync` (if config already has link mode) or re-run deploy with `--link`
+1. Set link mode in config:
+   - for new projects: `agentic init --link`
+   - for existing projects: set `.agentic/config.yaml` `deploy_mode: link`
+2. Regenerate in link mode with `agentic sync` (or re-run deploy with `--link`)
 2. Remove the now-symlinked directories from git's index:
    ```bash
    git rm -r --cached .agentic/skills .agentic/fragments .agentic/vendor-files
