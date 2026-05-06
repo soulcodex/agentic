@@ -117,6 +117,7 @@ agentic init [target] [options]
 
 | Option | Description |
 |---|---|
+| `--link` | Initialize with `deploy_mode: link` so sync/deploy runs in symlink mode |
 | `--sync` | Run `agentic sync` immediately after scaffolding |
 | `--no-sync` | Skip sync after scaffolding |
 
@@ -132,6 +133,8 @@ Creates:
 ```bash
 agentic init
 agentic init ./my-project
+agentic init ./my-project --link
+agentic init ./my-project --link --sync
 agentic init ./my-project --sync
 ```
 

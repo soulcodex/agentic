@@ -140,6 +140,7 @@ Arguments:
   target      Target project directory (default: current directory)
 
 Options:
+  --link      Initialize project in link mode (symlinks instead of copied files)
   --sync      Run agentic sync immediately after scaffolding
   --no-sync   Skip sync after scaffolding (non-interactive)
 
@@ -155,6 +156,7 @@ Description:
 Examples:
   agentic init
   agentic init ./my-project
+  agentic init ./my-project --link
   agentic init ./my-project --sync
 EOF
 }
@@ -378,6 +380,7 @@ cmd_switch() {
 
 cmd_init() {
   local target="."
+  local link_mode=""
   local force_sync=""
   local skip_sync=""
   local args=()
@@ -385,6 +388,7 @@ cmd_init() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --help)    show_init_help; exit 0 ;;
+      --link)    link_mode="--link"; shift ;;
       --sync)    force_sync="--sync"; shift ;;
       --no-sync) skip_sync="--no-sync"; shift ;;
       -*)        die "Unknown option: $1" ;;
@@ -399,7 +403,7 @@ cmd_init() {
   case "${#args[@]}" in
     0) target="." ;;
     1) target="${args[0]}" ;;
-    *) die "Usage: agentic init [target] [--sync|--no-sync]" ;;
+    *) die "Usage: agentic init [target] [--link] [--sync|--no-sync]" ;;
   esac
 
   local library
@@ -410,6 +414,7 @@ cmd_init() {
     "--target" "$target"
     "--prompt-sync"
   )
+  [[ -n "$link_mode" ]] && init_args+=("$link_mode")
   [[ -n "$force_sync" ]] && init_args+=("$force_sync")
   [[ -n "$skip_sync" ]] && init_args+=("$skip_sync")
   bash "$library/tooling/lib/init.sh" "${init_args[@]}"

@@ -13,12 +13,14 @@ TARGET=""
 PROMPT_SYNC=true
 FORCE_SYNC=false
 SKIP_SYNC=false
+LINK_MODE=false
 AGENTS_SCHEMA_URL="https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/agents.schema.json"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --library)     require_arg "--library" "$2"; LIBRARY="$2"; shift 2 ;;
     --target)      require_arg "--target" "$2"; TARGET="$2"; shift 2 ;;
+    --link)        LINK_MODE=true; shift ;;
     --prompt-sync) PROMPT_SYNC=true; shift ;;
     --sync)        FORCE_SYNC=true; PROMPT_SYNC=false; shift ;;
     --no-sync)     SKIP_SYNC=true; PROMPT_SYNC=false; shift ;;
@@ -32,6 +34,11 @@ done
 if [[ "$FORCE_SYNC" == "true" && "$SKIP_SYNC" == "true" ]]; then
   echo "Error: --sync and --no-sync are mutually exclusive" >&2
   exit 1
+fi
+
+DEPLOY_MODE="copy"
+if [[ "$LINK_MODE" == "true" ]]; then
+  DEPLOY_MODE="link"
 fi
 
 AGENTIC_DIR="$TARGET/.agentic"
@@ -59,7 +66,7 @@ profile_version: "1.0.0"
 composed_at: ""
 mode: lean
 agentic_root: "$LIBRARY"
-deploy_mode: copy
+deploy_mode: $DEPLOY_MODE
 active_vendors: []
 EOF
 
