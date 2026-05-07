@@ -228,6 +228,7 @@ self-contained and cloneable without the library installed on every machine.
 Those same directories are symlinks pointing to the library on the deploying machine.
 Committing a symlink to an absolute local path breaks every other machine, so they
 are gitignored automatically.
+This behavior applies to both standalone and nested profiles.
 
 ### What this means for your repo
 
