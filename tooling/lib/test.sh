@@ -3046,6 +3046,78 @@ assert_file_not_contains "$TMP/t109/backend/AGENTS.md" ".agentic/fragments/next.
 assert_file_contains "$TMP/t109/ui/AGENTS.md" ".agentic/fragments/next.md" "T109"
 assert_file_not_contains "$TMP/t109/ui/AGENTS.md" ".agentic/fragments/hexagonal.md" "T109"
 
+# T109A — compose: nested --link uses symlinked fragments and grouped references
+run_test "T109A — compose: nested --link fragments symlink and grouped refs"
+T109A_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t109a" \
+  --link \
+  > /dev/null 2>&1 || T109A_EXIT=$?
+
+assert_exit_code 0 "$T109A_EXIT" "T109A"
+assert_symlink_exists "$TMP/t109a/.agentic/fragments" "T109A fragments symlink"
+assert_file_contains "$TMP/t109a/.agentic/config.yaml" "deploy_mode: link" "T109A deploy mode"
+assert_file_contains "$TMP/t109a/AGENTS.md" ".agentic/fragments/base/git-conventions.md" "T109A root grouped path"
+assert_file_contains "$TMP/t109a/backend/AGENTS.md" ".agentic/fragments/languages/go.md" "T109A backend grouped path"
+assert_file_contains "$TMP/t109a/ui/AGENTS.md" ".agentic/fragments/frameworks/nuxt.md" "T109A ui grouped path"
+
+# T109B — compose: nested copy mode uses copied fragments and flat references
+run_test "T109B — compose: nested copy mode uses flat refs"
+T109B_EXIT=0
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t109b" \
+  > /dev/null 2>&1 || T109B_EXIT=$?
+
+assert_exit_code 0 "$T109B_EXIT" "T109B"
+assert_not_symlink "$TMP/t109b/.agentic/fragments" "T109B fragments copied dir"
+assert_file_contains "$TMP/t109b/.agentic/config.yaml" "deploy_mode: copy" "T109B deploy mode"
+assert_file_contains "$TMP/t109b/AGENTS.md" ".agentic/fragments/git-conventions.md" "T109B root flat path"
+assert_file_not_contains "$TMP/t109b/AGENTS.md" ".agentic/fragments/base/git-conventions.md" "T109B root grouped absent"
+assert_file_contains "$TMP/t109b/backend/AGENTS.md" ".agentic/fragments/go.md" "T109B backend flat path"
+assert_file_not_contains "$TMP/t109b/backend/AGENTS.md" ".agentic/fragments/languages/go.md" "T109B backend grouped absent"
+
+# T109C — compose: nested copy->link migration rewrites fragments layout
+run_test "T109C — compose: nested copy->link migration"
+mkdir -p "$TMP/t109c"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t109c" \
+  > /dev/null 2>&1
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t109c" \
+  --link \
+  > /dev/null 2>&1
+assert_symlink_exists "$TMP/t109c/.agentic/fragments" "T109C fragments symlink"
+assert_file_contains "$TMP/t109c/.agentic/config.yaml" "deploy_mode: link" "T109C deploy mode"
+assert_file_contains "$TMP/t109c/AGENTS.md" ".agentic/fragments/base/git-conventions.md" "T109C root grouped path"
+assert_file_not_contains "$TMP/t109c/AGENTS.md" ".agentic/fragments/git-conventions.md" "T109C root flat path removed"
+
+# T109D — compose: nested link->copy migration materializes fragments
+run_test "T109D — compose: nested link->copy migration"
+mkdir -p "$TMP/t109d"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t109d" \
+  --link \
+  > /dev/null 2>&1
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-nuxt-vite-ui \
+  --target "$TMP/t109d" \
+  > /dev/null 2>&1
+assert_not_symlink "$TMP/t109d/.agentic/fragments" "T109D fragments copied dir"
+assert_file_contains "$TMP/t109d/.agentic/config.yaml" "deploy_mode: copy" "T109D deploy mode"
+assert_file_contains "$TMP/t109d/backend/AGENTS.md" ".agentic/fragments/go.md" "T109D backend flat path"
+assert_file_not_contains "$TMP/t109d/backend/AGENTS.md" ".agentic/fragments/languages/go.md" "T109D backend grouped removed"
+
 # T110 — deploy-skills: all-skills deployment includes docker-compose-local-setup
 run_test "T110 — deploy-skills: all-skills includes docker-compose-local-setup"
 mkdir -p "$TMP/t110"

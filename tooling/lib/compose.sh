@@ -150,9 +150,29 @@ copy_fragments_to_target() {
 # ── Fragment symlink (used in --link mode) ────────────────────────────────────
 link_fragments_to_library() {
   local dest="$TARGET/.agentic/fragments"
+  mkdir -p "$TARGET/.agentic"
   # Remove any existing copy or symlink using safe_rm_rf
   safe_rm_rf "$dest"
   ln -sf "$LIBRARY/agents" "$dest"
+}
+
+# Render a fragment reference path for AGENTS.md tables based on deploy mode.
+fragment_reference_path() {
+  local frag="$1"
+  local fname rel_path group
+  fname=$(basename "$frag")
+
+  if [[ "$LINK_MODE" == "true" ]]; then
+    rel_path="${frag#"$LIBRARY"/agents/}"
+    group=$(dirname "$rel_path")
+    if [[ "$group" == "." ]]; then
+      printf '.agentic/fragments/%s' "$fname"
+    else
+      printf '.agentic/fragments/%s/%s' "$group" "$fname"
+    fi
+  else
+    printf '.agentic/fragments/%s' "$fname"
+  fi
 }
 
 # ── Fragment reference table (lean mode) ──────────────────────────────────────
@@ -164,26 +184,11 @@ build_fragment_reference_table() {
   section+="|------|------|"$'\n'
 
   for frag in "${RESOLVED_FRAGMENTS[@]+"${RESOLVED_FRAGMENTS[@]}"}"; do
-    local heading fname rel_path group
+    local heading frag_ref
     heading=$(grep -m1 '^## ' "$frag" | head -1)
     heading="${heading#'## '}"
-    fname=$(basename "$frag")
-    # In link mode, preserve the subdirectory structure since .agentic/fragments is a symlink
-    # to $LIBRARY/agents where files live in subdirectories (e.g., base/git-conventions.md)
-    if [[ "$LINK_MODE" == "true" ]]; then
-      rel_path="${frag#"$LIBRARY"/agents/}"
-      group=$(dirname "$rel_path")
-      if [[ "$group" == "." ]]; then
-        # Fragment is directly in agents/ (no subdirectory)
-        section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
-      else
-        # Fragment is in a subdirectory (e.g., base/git-conventions.md)
-        section+="| ${heading} | \`.agentic/fragments/${group}/${fname}\` |"$'\n'
-      fi
-    else
-      # Copy mode: fragments are flattened into .agentic/fragments/
-      section+="| ${heading} | \`.agentic/fragments/${fname}\` |"$'\n'
-    fi
+    frag_ref=$(fragment_reference_path "$frag")
+    section+="| ${heading} | \`${frag_ref}\` |"$'\n'
   done
 
   printf '%s' "$section"
@@ -708,15 +713,21 @@ compose_nested() {
     done
   done
 
-  # ── Copy ALL fragments to .agentic/fragments/ (always in nested mode) ───────
+  # ── Materialize fragments for nested mode ───────────────────────────────────
   local dest="$TARGET/.agentic/fragments"
-  mkdir -p "$dest"
-  for f in "${root_frags[@]+"${root_frags[@]}"}"; do
-    cp "$f" "$dest/$(basename "$f")"
-  done
-  for f in "${all_tier_frags[@]+"${all_tier_frags[@]}"}"; do
-    cp "$f" "$dest/$(basename "$f")"
-  done
+  if [[ "$LINK_MODE" == "true" ]]; then
+    link_fragments_to_library
+  else
+    # Remove existing symlink/dir before re-copy to avoid writing into library through symlinks.
+    safe_rm_rf "$dest"
+    mkdir -p "$dest"
+    for f in "${root_frags[@]+"${root_frags[@]}"}"; do
+      cp "$f" "$dest/$(basename "$f")"
+    done
+    for f in "${all_tier_frags[@]+"${all_tier_frags[@]}"}"; do
+      cp "$f" "$dest/$(basename "$f")"
+    done
+  fi
 
   # ── Root AGENTS.md ──────────────────────────────────────────────────────────
   local root_out="$OUTPUT"
@@ -734,22 +745,11 @@ compose_nested() {
     root_out+="| Area | File |"$'\n'
     root_out+="|------|------|"$'\n'
     for f in "${root_frags[@]+"${root_frags[@]}"}"; do
-      local h fname rel_path group
+      local h frag_ref
       h=$(grep -m1 '^## ' "$f" | head -1)
       h="${h#'## '}"
-      fname=$(basename "$f")
-      # In link mode, preserve the subdirectory structure
-      if [[ "$LINK_MODE" == "true" ]]; then
-        rel_path="${f#"$LIBRARY"/agents/}"
-        group=$(dirname "$rel_path")
-        if [[ "$group" == "." ]]; then
-          root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
-        else
-          root_out+="| ${h} | \`.agentic/fragments/${group}/${fname}\` |"$'\n'
-        fi
-      else
-        root_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
-      fi
+      frag_ref=$(fragment_reference_path "$f")
+      root_out+="| ${h} | \`${frag_ref}\` |"$'\n'
     done
   fi
 
@@ -817,11 +817,11 @@ compose_nested() {
         tier_out+="| Area | File |"$'\n'
         tier_out+="|------|------|"$'\n'
         for f in "${tier_frags[@]}"; do
-          local h fname
+          local h frag_ref
           h=$(grep -m1 '^## ' "$f" | head -1)
           h="${h#'## '}"
-          fname=$(basename "$f")
-          tier_out+="| ${h} | \`.agentic/fragments/${fname}\` |"$'\n'
+          frag_ref=$(fragment_reference_path "$f")
+          tier_out+="| ${h} | \`${frag_ref}\` |"$'\n'
         done
       fi
     fi
@@ -850,6 +850,8 @@ compose_nested() {
   mkdir -p "$TARGET/.agentic"
   local compose_mode="lean"
   [[ "$FULL_MODE" == "true" ]] && compose_mode="full"
+  local deploy_mode_str="copy"
+  [[ "$LINK_MODE" == "true" ]] && deploy_mode_str="link"
   {
     echo "# yaml-language-server: \$schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/config.schema.json"
     echo "# Managed by agentic library — do not edit manually"
@@ -860,6 +862,7 @@ compose_nested() {
     echo "composed_at: \"${GENERATED_AT}\""
     echo "mode: ${compose_mode}"
     echo "agentic_root: \"${LIBRARY}\""
+    echo "deploy_mode: ${deploy_mode_str}"
     echo "active_vendors: []"
     echo "structure: nested"
     echo "tiers:"
