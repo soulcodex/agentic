@@ -29,8 +29,8 @@ Automatically capture every agent-produced plan as a discoverable file in
 `.agentic/plans/` — so plans are preserved locally but never pollute the git tree.
 
 When a plan is tied to a GitHub issue and issue persistence is desired, prefer
-`github-issue-planning` to persist/update a managed issue comment first. Keep this
-skill as the local-file persistence path.
+`github-issue-planning` for issue-backed plan persistence on GitHub (prefer MCP,
+fallback to `gh` CLI). Keep this skill as the local-file persistence path.
 
 > **This skill is agent-invoked, not user-invoked.** Do not prompt the user for
 > metadata. Derive everything from context and write silently.

@@ -21,26 +21,30 @@ Claude Code reads `AGENTS.md` natively. In lean mode, `CLAUDE.md` is a redirect 
 
 ### GitHub Copilot
 
-Copilot does not read `AGENTS.md` natively. The vendor adapter splits `AGENTS.md` into:
-- **`.github/copilot-instructions.md`** — always-on global instructions (security, git conventions, code review, testing philosophy, documentation).
-- **`.github/instructions/*.instructions.md`** — glob-scoped files that activate per file pattern. The language-specific sections (TypeScript, Go, Python, PHP) are placed here with `applyTo: "**/*.ts"` etc.
+Copilot does not read `AGENTS.md` natively. The adapter transforms it into two
+Copilot-native surfaces:
+
+| Output | Purpose |
+|---|---|
+| `.github/copilot-instructions.md` | Always-on global guidance (security, git conventions, code review, testing philosophy, documentation) |
+| `.github/instructions/*.instructions.md` | Glob-scoped guidance activated per file pattern |
+
+Language-specific guidance (TypeScript, Go, Python, PHP) is emitted into
+`.github/instructions/*.instructions.md` with frontmatter such as:
+- `applyTo: "**/*.ts"`
+- `applyTo: "**/*.go"`
 
 The adapter reads the mapping from `vendors/copilot/adapter.json`.
 
 ### Copilot Glob Mechanism
 
-Each language instruction file has frontmatter that tells Copilot when to apply it:
+Language files in `.github/instructions/` are activated by `applyTo` globs.
 
 ```markdown
 ---
 applyTo: "**/*.go"
 ---
-## Go
-
-[Go-specific guidelines here]
 ```
-
-This means the Go conventions are injected only when Copilot is working on `.go` files, keeping the global context lean.
 
 ### Gemini CLI
 
@@ -56,17 +60,32 @@ Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`.
 
 ### Cursor
 
-Cursor uses `.cursor/rules/*.mdc`. The adapter generates files into
-`.agentic/vendor-files/cursor/rules/`, then `agentic switch cursor` symlinks only
-`.cursor/rules`. This preserves unrelated `.cursor/*` files such as `.cursor/mcp.json`.
-For nested profiles, vendor-gen also emits tier-specific rule trees under
-`.agentic/vendor-files/cursor/rules/<tier>/`.
-If a real `.cursor/rules` directory already exists, switch migrates it to
-`.cursor/rules.backup` (or `.cursor/rules.backup.N`) before linking.
-If a multi-vendor switch fails after mutation begins, agentic rolls back prior
-symlinks/config and restores migrated Cursor rules.
-Cursor provider/model mapping is intentionally unsupported until Cursor publishes
-an official project-local contract for that configuration surface.
+Cursor uses `.cursor/rules/*.mdc` as its runtime rules surface.
+
+- The adapter generates canonical artifacts under:
+  - `.agentic/vendor-files/cursor/rules/`
+- `agentic switch cursor` links only:
+  - `.cursor/rules` → `.agentic/vendor-files/cursor/rules`
+- This is intentionally rules-only, so unrelated `.cursor/*` files are preserved
+  (for example `.cursor/mcp.json`).
+
+For nested profiles:
+
+- `vendor-gen` also generates tier-specific rule trees at:
+  - `.agentic/vendor-files/cursor/rules/<tier>/`
+
+Safety and recovery behavior:
+
+- If a real `.cursor/rules` directory already exists, switch migrates it to:
+  - `.cursor/rules.backup`, then `.cursor/rules.backup.N` on subsequent collisions.
+- If a multi-vendor switch fails after mutations start, agentic rolls back:
+  - prior symlinks/config state, and
+  - any migrated Cursor rules directories.
+
+Scope boundary:
+
+- Cursor provider/model mapping is intentionally unsupported until Cursor
+  publishes an official project-local contract for that configuration surface.
 
 ## MCP Pivot Model
 
@@ -86,7 +105,7 @@ Generated targets:
 
 Source of truth:
 
-1. `.agentic/mcp.yaml` (authoritative)
+- `.agentic/mcp.yaml` (authoritative)
 
 ## Vendor Commands
 

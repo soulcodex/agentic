@@ -1,11 +1,10 @@
 ---
 name: github-issue-planning
 description: >
-  Builds and persists implementation plans directly on a GitHub issue comment
-  with an idempotent managed marker. Prefers GitHub MCP when available and
-  falls back to gh CLI for persistence when MCP is unavailable or misconfigured.
-  Uses local plan persistence only when issue persistence is unavailable or not
-  desired.
+  Issue-backed plan persistence on GitHub via one managed issue comment with an
+  idempotent marker. Prefers GitHub MCP when available and falls back to `gh`
+  CLI when MCP is unavailable or misconfigured. Uses local plan persistence
+  only when issue persistence is unavailable or not desired.
 version: 1.0.0
 tags:
   - agentic
