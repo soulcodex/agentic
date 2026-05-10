@@ -39,7 +39,8 @@ my-project/
   ui/AGENTS.md         ← UI-specific languages, frameworks, architecture
   .agentic/
     config.yaml        (mode, structure: nested, tiers: [backend, ui])
-    fragments/         ← ALL fragments copied here (root + all tiers)
+    profile.yaml       (local profile used by sync)
+    fragments/         ← all fragment references (copied in copy mode, symlinked in link mode)
 ```
 
 Each tier gets its own `languages`, `frameworks`, `architecture`, and `commands` block from the profile's `tiers:` section.
@@ -80,11 +81,3 @@ tiers:
 | `output.structure` | — | `flat` (default) or `nested` |
 | `tiers` | — | Per-tier fragment + command declarations (nested only) |
 | `vendors.enabled` | — | Which vendor adapters to generate |
-
-## Dry-Run
-
-Preview the composed AGENTS.md without writing any files:
-
-```bash
-agentic compose typescript-hexagonal-microservice --dry-run
-```

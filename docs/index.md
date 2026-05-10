@@ -44,7 +44,7 @@ Installs the `agentic` CLI to `~/.local/bin`. The installer checks prerequisites
 
     Reusable agent task definitions. Deploy shared skills from the library or add project-local ones in `.agentic/project-skills/`.
 
--   :material-file-document-edit:{ .lg .middle } **Agents Orchestration Switching**
+-   :material-file-document-edit:{ .lg .middle } **Agents Orchestration**
 
     ---
 
@@ -64,7 +64,7 @@ Installs the `agentic` CLI to `~/.local/bin`. The installer checks prerequisites
 
 | Without agentic | With agentic |
 |---|---|
-| Maintain `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/systemPrompt.md`… separately | Maintain one `AGENTS.md` — all vendor files are generated or symlinked automatically |
+| Maintain `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/system.md`… separately | Maintain one `AGENTS.md` — all vendor files are generated or symlinked automatically |
 | Every new project starts from scratch | Pick a profile, deploy in one command |
 | Adding a new AI tool means updating N files | Run `agentic switch <vendor>` |
 
@@ -82,7 +82,7 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 
 ---
 
-> **Agents orchestration switching:** optional, project-local agent orchestration is documented in [Agents Orchestration Switching](agents.md).
+> **Agents orchestration:** optional, project-local agent orchestration is documented in [Agents Orchestration](agents.md).
 
 ## Sections
 
@@ -92,6 +92,6 @@ agentic deploy typescript-hexagonal-microservice ~/code/my-api claude
 - [**Profiles**](profiles.md) — all available profiles and their fragments
 - [**Skills**](skills.md) — shared skill catalog plus persistent and ad hoc (selective) skill usage paths
 - [**Vendors**](vendors.md) — supported AI tools and their output files
-- [**Agents Orchestration Switching**](agents.md) — opt-in, project-local agent orchestration via `.agentic/agents.yaml`
+- [**Agents Orchestration**](agents.md) — opt-in, project-local agent orchestration via `.agentic/agents.yaml`
 - [**Customization**](customization.md) — per-project overrides, project skills, proprietary libraries, link mode vs copy mode
 - [**Custom Rules**](custom-rules.md) — `AGENTS.local.md` injection

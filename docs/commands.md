@@ -65,7 +65,7 @@ agentic deploy <profile> [target] <vendors> [options]
 |---|---|
 | `--full` | Inline all fragment content into a monolithic `AGENTS.md` |
 | `--link` | Use symlinks instead of file copies (POSIX only, not Windows without WSL) |
-| `--skills LIST` | Deploy specific skills only (default: all skills declared in the profile) |
+| `--skills LIST` | Deploy specific skills only (default: all library skills) |
 
 **Examples:**
 ```bash
@@ -75,9 +75,9 @@ agentic deploy python-fastapi-microservice gemini --full
 ```
 
 > **Link mode (`--link`):** Creates POSIX symlinks instead of copying files — POSIX only,
-> not supported on Windows without WSL. The target repo stays minimal: only `config.yaml`,
-> `profile.yaml`, and `project-skills/` are committed; fragments, skills, and vendor-files
-> are live symlinks to the library. Run `agentic sync` to re-create broken symlinks.
+> not supported on Windows without WSL. Runtime directories (`.agentic/fragments/`,
+> `.agentic/skills/`, `.agentic/vendor-files/`) stay as live symlinks to the library and
+> should be gitignored. Run `agentic sync` to re-create broken symlinks.
 
 ### compose
 
@@ -127,6 +127,7 @@ Creates:
 - `.agentic/profile.yaml`
 - `.agentic/mcp.yaml`
 - `.agentic/providers.yaml`
+- `.agentic/agents.yaml`
 - `.agentic/project-skills/`
 
 **Examples:**
@@ -136,12 +137,6 @@ agentic init ./my-project
 agentic init ./my-project --link
 agentic init ./my-project --link --sync
 agentic init ./my-project --sync
-```
-
-Library recipe equivalent:
-
-```bash
-just init /path/to/project
 ```
 
 ### switch
@@ -162,18 +157,25 @@ agentic switch claude,copilot      # Activate multiple vendors
 agentic switch list                # Show available vendors
 ```
 
-Cursor-specific behavior:
-- `switch` uses `.agentic/vendor-files/cursor/switch-manifest.json` to manage one or more
-  Cursor rule paths (for example `.cursor/rules`, `backend/.cursor/rules`, `ui/.cursor/rules`).
-- If a managed Cursor rules path is a real directory, it is migrated to deterministic backups:
-  `<path>.backup`, then `<path>.backup.N`.
-- If activation fails mid-switch, agentic rolls back to the prior symlink/config state.
+Cursor switch behavior:
 
-Agents orchestration switching behavior:
-- Canonical generated outputs live under `.agentic/agents/{provider}/`.
-- `agents` are defined in `.agentic/agents.yaml`; provider-local `subagents` paths are created by switch.
-- Switching `codex` creates `.codex/agents -> ../.agentic/agents/codex` when available.
-- Switching `opencode` creates `.opencode/agents -> ../.agentic/agents/opencode` when available.
+1. Rule paths are driven by `.agentic/vendor-files/cursor/switch-manifest.json`.
+2. Managed paths can include `.cursor/rules`, `backend/.cursor/rules`, and `ui/.cursor/rules`.
+3. If a managed path already exists as a real directory, it is migrated to:
+   `<path>.backup`, then `<path>.backup.N` on collisions.
+4. If activation fails after mutations begin, switch rolls back to the prior
+   symlink/config state.
+
+Agents orchestration switch behavior:
+
+- Canonical outputs are generated under `.agentic/agents/{provider}/`.
+- Agent definitions come from `.agentic/agents.yaml`.
+- Switch creates provider-local runtime paths only when provider outputs exist.
+
+| Provider | Runtime path created by `switch` |
+|---|---|
+| `codex` | `.codex/agents -> ../.agentic/agents/codex` |
+| `opencode` | `.opencode/agents -> ../.agentic/agents/opencode` |
 
 ### sync
 

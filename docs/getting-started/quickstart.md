@@ -48,6 +48,8 @@ agentic sync ~/code/my-api
 
 This scaffolds `.agentic/profile.yaml` and `.agentic/mcp.yaml` so you can
 customize fragments, commands, skills, and MCP servers from scratch.
+This also creates `.agentic/config.yaml`, `.agentic/providers.yaml`,
+`.agentic/agents.yaml`, and `.agentic/project-skills/`.
 
 ## 4. Switch active vendor
 

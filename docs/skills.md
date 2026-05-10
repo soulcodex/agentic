@@ -2,16 +2,18 @@
 
 This page indexes all shared skills in this library, grouped by top-level skill type.
 
-## agentic
+## Skills by Category
+
+### Agentic
 
 - `compose-agents-md` — Create project-specific `AGENTS.md` instructions from the agentic library.
 - `configure-mcp` — Set up and configure MCP servers for agent tool access.
 - `deploy-config` — Deploy composed config, vendor files, and skills to a target project.
-- `github-issue-planning` — Persist implementation plans on GitHub issues with MCP-first and `gh` fallback.
+- `github-issue-planning` — Issue-backed plan persistence on GitHub (prefer MCP, fallback to `gh` CLI).
 - `persist-plan` — Save the current plan as a structured file under `.agentic/plans/`.
 - `write-plan` — Auto-persist generated plans and keep a local plans index updated.
 
-## backend
+### Backend
 
 - `ddd-aggregate-modeling` — Model aggregates, value objects, invariants, snapshots, and repository boundaries in DDD services.
 - `golang-manual-di` — Implement explicit dependency injection wiring patterns for Go services.
@@ -24,12 +26,12 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `terraform-infrastructure` — Structure and review Terraform IaC modules, state, and pipelines.
 - `webhook-development` — Build secure, reliable webhook receivers/senders with retries and idempotency.
 
-## data
+### Data
 
 - `json-to-toon` — Convert JSON into TOON format to reduce LLM token usage.
 - `relational-database-design` — Design or review relational schemas, constraints, and migrations.
 
-## development
+### Development
 
 - `add-tests` — Add focused tests for existing code based on behavior and edge cases.
 - `code-review` — Perform structured code review focused on correctness, risk, and quality.
@@ -43,19 +45,19 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `refactor` — Refactor code for clarity and structure without changing behavior.
 - `static-code-analysis` — Configure and integrate static analysis tooling into local and CI workflows.
 
-## devops
+### Devops
 
 - `docker-compose-local-setup` — Configure local multi-service `docker compose` stacks with readiness, envs, volumes, migrations, and verification.
 - `write-dockerfile` — Generate production-ready Dockerfiles with secure, efficient build patterns.
 
-## documentation
+### Documentation
 
 - `sync-confluence` — Sync engineering docs from the repo into Confluence Cloud.
 - `write-adr` — Create Architecture Decision Records with context, decision, and consequences.
 - `write-changelog` — Generate release changelog entries from commit history.
 - `write-readme` — Generate or update README content based on project source and structure.
 
-## ui
+### UI
 
 - `internationalization-i18n` — Add or improve i18n/l10n architecture, messages, and workflows.
 - `next-application-structure` — Define scalable Next.js App Router project structure and conventions.
@@ -72,7 +74,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 
 Some profiles do not include every skill by default. There are two supported paths:
 
-1. Persistent/additive path: add the skill to `.agentic/profile.yaml`, then run `agentic sync` to apply the updated profile-defined skill set.
+1. Persistent/additive path: add the skill to `.agentic/profile.yaml`, run `agentic sync` to update AGENTS composition, then run `agentic deploy <profile> [target] <vendor>` to refresh `.agentic/skills/`.
 2. Ad hoc selective path: pass explicit skills during deploy, for example `agentic deploy <profile> <target> <vendor> --skills <skill-name>`.
 
-When `--skills` is used, it acts as a selective override for that deployment rather than merging with all profile-default skills.
+When `--skills` is used, it acts as a selective override for that deployment rather than deploying the full library skill set.

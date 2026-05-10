@@ -15,11 +15,11 @@ A centralized, vendor-agnostic library for composing AI agent instructions — p
 my-project/
 ├── CLAUDE.md
 ├── .github/
-│   └── copilot-instr.md
+│   └── copilot-instructions.md
 ├── .cursor/rules/
 │   └── *.mdc
 └── .gemini/
-    └── systemPrompt.md
+    └── system.md
 ```
 
 **With agentic**
@@ -28,23 +28,41 @@ my-project/
 my-project/
 ├── AGENTS.md                        ← source of truth
 ├── CLAUDE.md                        ← symlink
+├── GEMINI.md                        ← symlink
 ├── .github/
-│   └── copilot-instructions.md      ← symlink
+│   ├── copilot-instructions.md      ← symlink
+│   └── instructions/                ← symlink
+├── .cursor/
+│   └── rules/                       ← symlink
 ├── .gemini/
-│   ├── GEMINI.md                    ← auto-discovered
 │   ├── system.md                    ← symlink
 │   └── skills/                      ← symlink
+├── .claude/
+│   └── skills/                      ← symlink
+├── .agents/
+│   └── skills/                      ← symlink
+├── .opencode/
+│   ├── skills/                      ← symlink
+│   └── agents/                      ← symlink (if agents enabled)
+├── .codex/
+│   └── agents/                      ← symlink (if agents enabled)
 └── .agentic/
     ├── config.yaml                  ← locked config
     ├── profile.yaml                 ← customize per-project
-    ├── mcp.yaml                     ← MCP declarations (seed source)
-    ├── project-skills/              ← your custom skills
+    ├── mcp.yaml                     ← optional (created via init/custom flow)
+    ├── providers.yaml               ← optional (created via init/custom flow)
+    ├── agents.yaml                  ← optional (created via init/custom flow)
+    ├── project-skills/              ← optional (project-local custom skills)
     ├── fragments/                   ← on-demand context
     ├── skills/                      ← deployed skills
+    ├── agents/                      ← optional generated provider artifacts
     └── vendor-files/                ← generated once
         ├── claude/
         ├── copilot/
-        └── gemini/
+        ├── codex/
+        ├── gemini/
+        ├── opencode/
+        └── cursor/
 ```
 
 Instructions drift and contradict each other. Every new project starts from scratch. Adding a new AI tool means updating N files manually.

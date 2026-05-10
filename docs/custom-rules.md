@@ -12,23 +12,19 @@ Add project-specific rules to your AGENTS.md without modifying the library or fo
 
 ## Use Cases
 
-### 1. Migrating from Existing AGENTS.md
+### Migrating from Existing AGENTS.md
 
 You already have an AGENTS.md and want to install agentic:
 
 ```bash
 # Run compose — it detects your existing AGENTS.md is user-authored
 agentic compose typescript-hexagonal-microservice
-
-# Options:
-# --import adopt    → copies existing AGENTS.md to AGENTS.local.md, then composes
-# --import skip    → aborts, requires manual migration
-# --import overwrite → replaces, requires --yes or confirmation
 ```
 
-The adapter behavior depends on `output.custom_rules.import_strategy` in your profile (default: `adopt`).
+Migration behavior is controlled by `output.custom_rules.import_strategy` in your
+profile (default: `adopt`).
 
-### 2. Adding Fresh Project Rules
+### Adding Fresh Project Rules
 
 Start from scratch:
 
@@ -48,7 +44,7 @@ EOF
 agentic sync
 ```
 
-## The --import Flag
+## Import Strategy
 
 Three strategies for existing user-authored AGENTS.md:
 
@@ -56,7 +52,7 @@ Three strategies for existing user-authored AGENTS.md:
 |----------|----------|
 | `adopt` (default) | Copies existing AGENTS.md → AGENTS.local.md, then composes. Skips if AGENTS.local.md already exists. |
 | `skip` | Aborts with error. Use when you want to review and migrate manually. |
-| `overwrite` | Replaces existing AGENTS.md. Prompts for confirmation unless `-y`/`--yes` is passed. |
+| `overwrite` | Replaces existing AGENTS.md. Prompts for confirmation in interactive terminals. |
 
 Profile-level setting: `output.custom_rules.import_strategy` (default: `adopt`).
 
@@ -112,9 +108,9 @@ Tier-level overrides follow the same placement rules but apply only to their tie
 | Scenario | Approach |
 |----------|----------|
 | New project, want custom rules | Create AGENTS.local.md after first compose |
-| Existing AGENTS.md, migrate to agentic | `agentic compose <profile> --import adopt` |
-| Want to review before migrate | `agentic compose <profile> --import skip`, then create AGENTS.local.md manually |
-| Quick overwrite existing | `agentic compose <profile> --import overwrite --yes` |
+| Existing AGENTS.md, migrate to agentic | Set `output.custom_rules.import_strategy: adopt`, then run `agentic compose <profile>` |
+| Want to review before migrate | Set `output.custom_rules.import_strategy: skip`, then create AGENTS.local.md manually |
+| Quick overwrite existing | Set `output.custom_rules.import_strategy: overwrite`, then run `agentic compose <profile>` |
 | Nested, rules for one tier only | Create `<tier>/AGENTS.local.md` |
 | Nested, rules for all tiers | Use root AGENTS.local.md |
 
@@ -130,6 +126,4 @@ Tier-level overrides follow the same placement rules but apply only to their tie
 Validation runs automatically during `agentic sync`.
 
 - ✅ If `AGENTS.local.md` exists, your custom rules are recognized and included.
-- ⚠️ If `custom_rules` is configured in the profile but `AGENTS.local.md` is missing, you get a warning.
-- ⚠️ If an H2 section is duplicated between `AGENTS.local.md` and generated `AGENTS.md`, you get a warning.
 - 🔒 Regeneration never overwrites `AGENTS.local.md`, so your custom rules persist across updates.

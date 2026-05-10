@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-05T22:03:41Z",
+  "generated_at": "2026-05-10T19:45:09Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -42,7 +42,7 @@
       "name": "github-issue-planning",
       "group": "agentic",
       "path": "skills/agentic/github-issue-planning/SKILL.md",
-      "description": "Builds and persists implementation plans directly on a GitHub issue comment with an idempotent managed marker. Prefers G",
+      "description": "Issue-backed plan persistence on GitHub via one managed issue comment with an idempotent marker. Prefers GitHub MCP when",
       "version": "1.0.0",
       "tags": [
         "agentic",
