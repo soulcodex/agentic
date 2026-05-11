@@ -1,10 +1,10 @@
 # Agentic
 
-**One library. One deploy. All your AI tools stay in sync.**
+**Vendor-agnostic configs. Production-minded architecture.**
 
-A centralized, vendor-agnostic library for composing AI agent instructions.
-Pick a profile, run one command, and every AI tool in your project reads the
-same `AGENTS.md` source of truth — automatically.
+An opinionated library of composable AGENTS, profiles, skills, and vendor adapters.
+Pick a profile, run one command, and every AI tool in your project reads the same
+`AGENTS.md` source of truth — with a clear baseline you can evolve.
 
 ---
 

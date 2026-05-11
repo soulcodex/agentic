@@ -1,6 +1,10 @@
 # 🧩 agentic
 
-A centralized, vendor-agnostic library for composing AI agent instructions — pick a profile, run one command, and every AI tool in your project reads the same source of truth.
+**Vendor-agnostic configs. Production-minded architecture.**
+
+An opinionated library of composable AGENTS, profiles, skills, and vendor adapters.
+Pick a profile, run one command, and every AI tool in your project reads the same
+clear, maintainable source of truth.
 
 ![CI](https://github.com/soulcodex/agentic/actions/workflows/validate.yml/badge.svg)
 ![Coverage](https://codecov.io/gh/soulcodex/agentic/graph/badge.svg?branch=main)
