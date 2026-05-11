@@ -24,7 +24,7 @@ fragments:
   domains: []
 
 tech_stack:
-  language_runtime: "Node.js 20+ / browser-compatible"
+  language_runtime: "Node.js 24+ / browser-compatible"
   package_manager: "pnpm"
   test_framework: "Vitest"
   build_tool: "tsup / tsc"

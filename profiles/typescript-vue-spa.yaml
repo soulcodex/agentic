@@ -30,7 +30,7 @@ fragments:
   domains: []
 
 tech_stack:
-  language_runtime: "Node 22+"
+  language_runtime: "Node 24+"
   package_manager: "pnpm"
   frontend_framework: "Vue 3 (SPA)"
   ui_component_library: "shadcn/vue"

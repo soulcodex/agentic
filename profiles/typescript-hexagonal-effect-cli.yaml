@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "TypeScript Hexagonal Effect CLI"
+  description: >
+    TypeScript CLI application using @effect/cli and @effect/platform-node with
+    pnpm. Follows ports and adapters (hexagonal) so command handlers remain thin
+    adapters and domain/application logic stays framework-agnostic.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+
+  languages:
+    - typescript
+
+  frameworks:
+    - effect-cli
+
+  architecture:
+    - hexagonal
+    - ddd
+
+  practices:
+    - tdd
+    - observability
+    - ci-cd
+
+  domains: []
+
+tech_stack:
+  language_runtime: "Node 24+"
+  package_manager: "pnpm"
+  cli_framework: "@effect/cli + @effect/platform-node"
+  test_framework: "Vitest"
+  additional:
+    - "Effect"
+
+skills:
+  - code-review
+  - add-tests
+  - ddd-aggregate-modeling
+  - write-adr
+  - write-changelog
+  - static-code-analysis
+  - github-actions-workflow
+
+output:
+  build_command: "pnpm build"
+  test_command: "pnpm test --run"
+  lint_command: "pnpm lint"
+  structure: flat
+  project_header: |
+    TypeScript CLI tool built with @effect/cli and @effect/platform-node.
+    Commands are adapters: parse input, call use cases, render output.
+    Keep domain/application logic framework-agnostic behind ports.
+    Use alias imports for cross-directory modules and ESM import/export syntax only.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

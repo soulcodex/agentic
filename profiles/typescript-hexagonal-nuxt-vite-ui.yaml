@@ -34,7 +34,8 @@ tiers:
   backend:
     languages:
       - typescript
-    frameworks: []
+    frameworks:
+      - hono
     architecture:
       - hexagonal
       - ddd
@@ -67,7 +68,7 @@ tiers:
         description: "Design system tokens"
 
 tech_stack:
-  language_runtime: "Node 22+"
+  language_runtime: "Node 24+"
   package_manager: "pnpm"
   backend_framework: "Hono"
   frontend_framework: "Nuxt 3"
