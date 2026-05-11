@@ -1,6 +1,6 @@
 # Contributing to agentic
 
-Thank you for your interest in contributing to agentic! This library serves as a vendor-agnostic foundation for AI agent configurations, and we welcome contributions that improve its quality, coverage, and usability.
+Thank you for your interest in contributing to agentic. We build vendor-agnostic configs with production-minded architecture, and we welcome contributions that improve clarity, quality, and usability.
 
 ## Prerequisites
 
