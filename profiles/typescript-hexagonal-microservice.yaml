@@ -17,7 +17,8 @@ fragments:
   languages:
     - typescript
 
-  frameworks: []
+  frameworks:
+    - hono
 
   architecture:
     - hexagonal

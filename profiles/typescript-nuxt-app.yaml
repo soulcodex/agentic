@@ -33,7 +33,7 @@ fragments:
   domains: []
 
 tech_stack:
-  language_runtime: "Node 22+"
+  language_runtime: "Node 24+"
   package_manager: "pnpm"
   frontend_framework: "Nuxt 3"
   ui_component_library: "shadcn/vue"

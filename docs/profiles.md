@@ -16,6 +16,7 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 | `typescript-hexagonal-react-vite-ui` | Hono backend + React SPA frontend (no SSR) | TypeScript |
 | `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend (SSR) | TypeScript |
 | `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend (no SSR) | TypeScript |
+| `typescript-hexagonal-effect-cli` | TypeScript CLI with @effect/cli + @effect/platform-node, hexagonal + DDD | TypeScript |
 | `go-hexagonal-microservice` | Go backend microservice, hexagonal + DDD | Go |
 | `golang-hexagonal-next-ui` | Go backend + Next.js frontend (SSR) | Go + TypeScript |
 | `golang-hexagonal-react-vite-ui` | Go backend + React SPA frontend (no SSR) | Go + TypeScript |

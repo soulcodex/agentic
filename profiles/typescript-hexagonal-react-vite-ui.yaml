@@ -34,7 +34,8 @@ tiers:
   backend:
     languages:
       - typescript
-    frameworks: []
+    frameworks:
+      - hono
     architecture:
       - hexagonal
       - ddd
@@ -58,7 +59,7 @@ tiers:
       lint_command:  "pnpm --filter ui lint"
 
 tech_stack:
-  language_runtime: "Node 22+"
+  language_runtime: "Node 24+"
   package_manager: "pnpm"
   backend_framework: "Hono"
   frontend_framework: "React (SPA)"

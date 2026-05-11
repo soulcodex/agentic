@@ -92,3 +92,6 @@ src/
    the application boundary (e.g., `ErrNotFound`, `ErrPermissionDenied`). Never let
    infrastructure-specific errors (SQL errors, HTTP status codes, driver errors) leak upward
    through the port interface.
+9. **Keep business rules cohesive**: do not spread domain logic across utility/helper functions
+   in unrelated packages. Place invariants and decisions in aggregates, value objects, or domain
+   services with explicit names.

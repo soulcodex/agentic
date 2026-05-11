@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-05T22:55:29Z",
+  "generated_at": "2026-05-11T20:59:19Z",
   "fragments": [
     {
       "name": "bff",
@@ -42,7 +42,7 @@
       "group": "architecture",
       "path": "agents/architecture/hexagonal.md",
       "heading": "Hexagonal Architecture",
-      "words": 568
+      "words": 598
     },
     {
       "name": "microservices",
@@ -92,6 +92,20 @@
       "path": "agents/frameworks/cobra.md",
       "heading": "Cobra CLI (Go)",
       "words": 363
+    },
+    {
+      "name": "effect-cli",
+      "group": "frameworks",
+      "path": "agents/frameworks/effect-cli.md",
+      "heading": "Effect CLI (TypeScript)",
+      "words": 220
+    },
+    {
+      "name": "hono",
+      "group": "frameworks",
+      "path": "agents/frameworks/hono.md",
+      "heading": "Hono API (TypeScript)",
+      "words": 357
     },
     {
       "name": "next-patterns",
@@ -189,7 +203,7 @@
       "group": "languages",
       "path": "agents/languages/go.md",
       "heading": "Go",
-      "words": 505
+      "words": 543
     },
     {
       "name": "php",
@@ -210,7 +224,7 @@
       "group": "languages",
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
-      "words": 520
+      "words": 583
     },
     {
       "name": "api-design",
