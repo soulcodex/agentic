@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-11T20:26:49Z",
+  "generated_at": "2026-05-11T20:59:19Z",
   "fragments": [
     {
       "name": "bff",
@@ -105,7 +105,7 @@
       "group": "frameworks",
       "path": "agents/frameworks/hono.md",
       "heading": "Hono API (TypeScript)",
-      "words": 297
+      "words": 357
     },
     {
       "name": "next-patterns",
@@ -224,7 +224,7 @@
       "group": "languages",
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
-      "words": 555
+      "words": 583
     },
     {
       "name": "api-design",

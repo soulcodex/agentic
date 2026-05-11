@@ -5,27 +5,33 @@
 - Define HTTP controllers as classes, not free-floating route functions.
 - One controller class per bounded context/resource (`UsersController`, `BillingController`).
 - Controller constructors receive application-layer ports/use cases only; no direct repository or SDK wiring.
-- Expose a semantic `build()` method that returns the configured route subtree and middleware stack.
+- Expose a semantic `register(app: Hono)` method that registers routes/middleware on a provided app instance.
 
 ```ts
 export class UsersController {
   constructor(private readonly getUser: GetUserUseCase) {}
 
-  build(): Hono {
-    const app = new Hono()
+  register(app: Hono): void {
     app.get("/:userId", this.getById)
-    return app
   }
 
   private getById = async (c: Context) => { ... }
 }
 ```
 
-### Semantic Builders
+### Semantic Registration
 
-- `build()` methods must be intent-revealing (`buildPublicRoutes()`, `buildAdminRoutes()`) when a controller exposes multiple route families.
-- Route registration order and middleware composition are owned by the controller builder, not scattered across bootstrap files.
-- Bootstrap/composition root mounts prebuilt controller route trees; it does not define business endpoints inline.
+- `register()` methods must be intent-revealing (`registerPublicRoutes(app)`, `registerAdminRoutes(app)`) when a controller exposes multiple route families.
+- Route registration order and middleware composition are owned by the composition root, not scattered across bootstrap files.
+- Bootstrap/composition root owns app instantiation and mounts controller registrations; it does not define business endpoints inline.
+
+### Middleware Dependency Injection
+
+- Middleware that depends on external resources (Redis, config, clients, feature flags) must be
+  created in the composition root and injected into controllers as ready handlers or factories.
+- Controllers may compose middleware, but must never initialize infrastructure clients directly.
+- Keep cross-cutting middleware order (auth, request ID, tracing, global rate-limit) in bootstrap;
+  keep resource-specific middleware registration inside the controller.
 
 ### Params and Input Contracts
 
