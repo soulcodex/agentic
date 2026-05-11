@@ -68,7 +68,11 @@ Always enable strict mode in `tsconfig.json`:
   ```
 - Reserve `throw` for truly exceptional/unexpected conditions (programming errors, I/O failures).
 - Never `catch` an error and silently swallow it. At minimum, log it.
-- Use custom error classes with typed properties for domain errors.
+- Prefer custom domain/application error classes over generic `Error` for business failures.
+- Use explicit type guards for error branching (for example `isOrderAlreadyPaidError(err)`), never
+  `instanceof` chains spread across handlers.
+- Co-locate `isXxxError()` helpers with the corresponding error type and reuse them across controllers,
+  presenters, and tests.
 
 ### Boundary Validation and Webhooks
 

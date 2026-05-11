@@ -18,6 +18,9 @@
 - Always wrap errors with context using `fmt.Errorf("context: %w", err)` so the call stack
   is reconstructable from the error message.
 - Define sentinel errors with `errors.New` for expected conditions that callers must handle.
+- Prefer custom domain error types over generic errors when modeling business failures.
+- Add explicit `IsXxxError(err error) bool` helper functions per domain error to centralize `errors.Is`
+  / `errors.As` checks and avoid duplicating matching logic at call sites.
 - Use custom error types (implementing `error`) when callers need to inspect error properties.
 - Never ignore errors. Use `_` only when the error is probably irrelevant (e.g., writing to
   an in-memory buffer that never fails).
