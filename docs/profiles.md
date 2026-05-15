@@ -28,6 +28,7 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 | `php-hexagonal-ddd` | PHP 8.3+ Symfony application, hexagonal + DDD + CQRS | PHP |
 | `go-library` | Go reusable library/package with stable public API and minimal transitive dependencies | Go |
 | `typescript-library` | TypeScript reusable library for npm/private registry, ESM-first, zero framework dependencies | TypeScript |
+| `hcl-aws-terraform-module` | AWS-focused Terraform module development with design, module scaffolding, and test guardrails | HCL |
 
 ## Nested Output Mode
 

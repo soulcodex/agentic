@@ -47,7 +47,11 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 
 ### Devops
 
+- `create-terraform-module` — Create AWS-oriented Terraform module scaffolding with explicit interfaces, provider constraints, and reusable layout guardrails.
+- `create-terraform-tests` — Design and implement risk-focused Terraform module tests (`terraform test`) with CI-friendly validation flow.
+- `design-aws-terraform-iac` — Plan AWS Terraform architecture, service/module boundaries, state strategy, and acceptance criteria before implementation.
 - `docker-compose-local-setup` — Configure local multi-service `docker compose` stacks with readiness, envs, volumes, migrations, and verification.
+- `use-aws-mini-stack-emulator` — Use lightweight AWS emulation safely for local Terraform feedback loops, with explicit handoff to real AWS checks.
 - `write-dockerfile` — Generate production-ready Dockerfiles with secure, efficient build patterns.
 
 ### Documentation

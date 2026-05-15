@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
+meta:
+  name: "HCL AWS Terraform Module"
+  description: >
+    AWS-focused Terraform module profile for designing, implementing, and testing
+    reusable infrastructure modules with explicit state, security, and validation
+    guardrails.
+  version: "1.0.0"
+
+fragments:
+  base:
+    - git-conventions
+    - security
+    - code-review
+    - testing-philosophy
+    - documentation
+  languages: []
+  frameworks: []
+  architecture: []
+  practices:
+    - ci-cd
+  domains: []
+
+tech_stack:
+  language_runtime: "Terraform CLI 1.7+"
+  backend_framework: "AWS Provider (hashicorp/aws)"
+  test_framework: "terraform test"
+  build_tool: "terraform fmt/validate/plan"
+
+skills:
+  - design-aws-terraform-iac
+  - create-terraform-module
+  - create-terraform-tests
+  - use-aws-mini-stack-emulator
+  - code-review
+
+output:
+  build_command: "terraform fmt -check -recursive"
+  test_command: "terraform test"
+  lint_command: "terraform validate"
+  project_header: |
+    This project manages AWS infrastructure modules in Terraform (HCL).
+    Keep modules reusable, keep environment values outside modules, and enforce
+    security and state-management guardrails.
+
+vendors:
+  enabled:
+    - claude
+    - copilot
+    - codex
+    - gemini
+    - opencode

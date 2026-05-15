@@ -4,12 +4,21 @@
   "title": "Composition Profile",
   "description": "Declares which agent fragments to combine into a single AGENTS.md",
   "type": "object",
-  "required": ["meta", "fragments", "output", "vendors"],
+  "required": [
+    "meta",
+    "fragments",
+    "output",
+    "vendors"
+  ],
   "additionalProperties": false,
   "properties": {
     "meta": {
       "type": "object",
-      "required": ["name", "description", "version"],
+      "required": [
+        "name",
+        "description",
+        "version"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -33,37 +42,49 @@
       "properties": {
         "base": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Fragment names from agents/base/ (without .md extension)",
           "default": []
         },
         "languages": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Fragment names from agents/languages/ (without .md extension)",
           "default": []
         },
         "frameworks": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Fragment names from agents/frameworks/ (without .md, with subdir: frontend/react)",
           "default": []
         },
         "architecture": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Fragment names from agents/architecture/ (without .md extension)",
           "default": []
         },
         "practices": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Fragment names from agents/practices/ (without .md extension)",
           "default": []
         },
         "domains": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Fragment names from agents/domains/ (without .md extension)",
           "default": []
         }
@@ -74,20 +95,44 @@
       "description": "Optional tech stack metadata used to generate a Technical Stack section in AGENTS.md",
       "additionalProperties": false,
       "properties": {
-        "language_runtime": { "type": "string" },
-        "package_manager": { "type": "string" },
-        "backend_framework": { "type": "string" },
-        "frontend_framework": { "type": "string" },
-        "ui_component_library": { "type": "string" },
-        "css_framework": { "type": "string" },
-        "build_tool": { "type": "string" },
-        "test_framework": { "type": "string" },
-        "cli_framework": { "type": "string" },
-        "database": { "type": "string" },
-        "messaging": { "type": "string" },
+        "language_runtime": {
+          "type": "string"
+        },
+        "package_manager": {
+          "type": "string"
+        },
+        "backend_framework": {
+          "type": "string"
+        },
+        "frontend_framework": {
+          "type": "string"
+        },
+        "ui_component_library": {
+          "type": "string"
+        },
+        "css_framework": {
+          "type": "string"
+        },
+        "build_tool": {
+          "type": "string"
+        },
+        "test_framework": {
+          "type": "string"
+        },
+        "cli_framework": {
+          "type": "string"
+        },
+        "database": {
+          "type": "string"
+        },
+        "messaging": {
+          "type": "string"
+        },
         "additional": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Extra libraries or tools not covered by the named fields"
         },
         "proprietary_libraries": {
@@ -95,12 +140,24 @@
           "description": "Internal/private packages — listed with context in the Proprietary Libraries section",
           "items": {
             "type": "object",
-            "required": ["name", "description"],
+            "required": [
+              "name",
+              "description"
+            ],
             "additionalProperties": false,
             "properties": {
-              "name":        { "type": "string", "description": "Package identifier (e.g. @acme/core)" },
-              "description": { "type": "string", "description": "What this package provides" },
-              "url_doc":     { "type": "string", "description": "URL to the package documentation (optional)" }
+              "name": {
+                "type": "string",
+                "description": "Package identifier (e.g. @acme/core)"
+              },
+              "description": {
+                "type": "string",
+                "description": "What this package provides"
+              },
+              "url_doc": {
+                "type": "string",
+                "description": "URL to the package documentation (optional)"
+              }
             }
           }
         }
@@ -116,8 +173,11 @@
           "code-review",
           "compose-agents-md",
           "configure-mcp",
+          "create-terraform-module",
+          "create-terraform-tests",
           "ddd-aggregate-modeling",
           "deploy-config",
+          "design-aws-terraform-iac",
           "diagram-design",
           "docker-compose-local-setup",
           "fix-bug",
@@ -147,6 +207,7 @@
           "sync-confluence",
           "technical-roadmap-planning",
           "terraform-infrastructure",
+          "use-aws-mini-stack-emulator",
           "vue-application-structure",
           "vue-component-design",
           "vue-component-testing",
@@ -169,17 +230,41 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "languages":    { "type": "array", "items": { "type": "string" }, "default": [] },
-          "frameworks":   { "type": "array", "items": { "type": "string" }, "default": [] },
-          "architecture": { "type": "array", "items": { "type": "string" }, "default": [] },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "frameworks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "architecture": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
           "commands": {
             "type": "object",
             "additionalProperties": false,
             "description": "Per-tier build/test/lint commands emitted into this tier's AGENTS.md",
             "properties": {
-              "build_command": { "type": "string" },
-              "test_command":  { "type": "string" },
-              "lint_command":  { "type": "string" }
+              "build_command": {
+                "type": "string"
+              },
+              "test_command": {
+                "type": "string"
+              },
+              "lint_command": {
+                "type": "string"
+              }
             }
           },
           "proprietary_libraries": {
@@ -187,12 +272,21 @@
             "description": "Tier-specific private packages",
             "items": {
               "type": "object",
-              "required": ["name", "description"],
+              "required": [
+                "name",
+                "description"
+              ],
               "additionalProperties": false,
               "properties": {
-                "name":        { "type": "string" },
-                "description": { "type": "string" },
-                "url_doc":     { "type": "string" }
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "url_doc": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -221,13 +315,19 @@
         },
         "structure": {
           "type": "string",
-          "enum": ["flat", "nested"],
+          "enum": [
+            "flat",
+            "nested"
+          ],
           "default": "flat",
           "description": "Output structure: flat (single AGENTS.md) or nested (reserved for future use)"
         },
         "mode": {
           "type": "string",
-          "enum": ["lean", "full"],
+          "enum": [
+            "lean",
+            "full"
+          ],
           "description": "lean (default): slim AGENTS.md with fragment refs copied to .agentic/fragments/; full: all content inlined"
         },
         "custom_rules": {
@@ -237,7 +337,11 @@
           "properties": {
             "placement": {
               "type": "string",
-              "enum": ["append", "prepend", "after_section"],
+              "enum": [
+                "append",
+                "prepend",
+                "after_section"
+              ],
               "default": "append",
               "description": "Where to inject AGENTS.local.md content: append (default), prepend (after header), or after_section"
             },
@@ -251,7 +355,11 @@
             },
             "import_strategy": {
               "type": "string",
-              "enum": ["adopt", "skip", "overwrite"],
+              "enum": [
+                "adopt",
+                "skip",
+                "overwrite"
+              ],
               "default": "adopt",
               "description": "How to handle existing user-authored AGENTS.md on first compose"
             }
@@ -261,14 +369,22 @@
     },
     "vendors": {
       "type": "object",
-      "required": ["enabled"],
+      "required": [
+        "enabled"
+      ],
       "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["claude", "copilot", "codex", "gemini", "opencode"]
+            "enum": [
+              "claude",
+              "copilot",
+              "codex",
+              "gemini",
+              "opencode"
+            ]
           },
           "description": "Which vendor adapter files to generate"
         }
@@ -281,7 +397,10 @@
       "properties": {
         "strategy": {
           "type": "string",
-          "enum": ["merge", "replace"],
+          "enum": [
+            "merge",
+            "replace"
+          ],
           "default": "merge",
           "description": "merge: profile servers are added without removing existing ones. replace: all vendor MCP files are fully replaced by the profile declaration."
         },
@@ -290,13 +409,35 @@
           "description": "MCP server entries. Keys are server names; values follow the .mcp.json entry shape.",
           "additionalProperties": {
             "type": "object",
-            "required": ["type"],
+            "required": [
+              "type"
+            ],
             "properties": {
-              "type":    { "type": "string", "enum": ["stdio", "http"] },
-              "command": { "type": "string" },
-              "args":    { "type": "array", "items": { "type": "string" } },
-              "url":     { "type": "string" },
-              "env":     { "type": "object", "additionalProperties": { "type": "string" } }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "stdio",
+                  "http"
+                ]
+              },
+              "command": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "url": {
+                "type": "string"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
