@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-10T19:45:09Z",
+  "generated_at": "2026-05-15T22:59:45Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -376,6 +376,46 @@
       ]
     },
     {
+      "name": "create-terraform-module",
+      "group": "devops",
+      "path": "skills/devops/create-terraform-module/SKILL.md",
+      "description": "Creates or updates AWS-oriented Terraform module structure and implementation scaffolding. Focuses on file layout, varia",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "terraform",
+        "aws",
+        "modules"
+      ]
+    },
+    {
+      "name": "create-terraform-tests",
+      "group": "devops",
+      "path": "skills/devops/create-terraform-tests/SKILL.md",
+      "description": "Designs and implements Terraform module tests for AWS-targeted modules. Covers terraform-native tests, validation gates,",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "terraform",
+        "testing",
+        "aws"
+      ]
+    },
+    {
+      "name": "design-aws-terraform-iac",
+      "group": "devops",
+      "path": "skills/devops/design-aws-terraform-iac/SKILL.md",
+      "description": "Designs AWS-targeted Terraform infrastructure plans before implementation. Focuses on service selection, module boundari",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "terraform",
+        "aws",
+        "iac",
+        "architecture"
+      ]
+    },
+    {
       "name": "docker-compose-local-setup",
       "group": "devops",
       "path": "skills/devops/docker-compose-local-setup/SKILL.md",
@@ -386,6 +426,19 @@
         "docker",
         "compose",
         "local-development"
+      ]
+    },
+    {
+      "name": "use-aws-mini-stack-emulator",
+      "group": "devops",
+      "path": "skills/devops/use-aws-mini-stack-emulator/SKILL.md",
+      "description": "Uses lightweight AWS stack emulation for faster local Terraform iteration. Defines what can be safely validated locally,",
+      "version": "1.0.0",
+      "tags": [
+        "devops",
+        "terraform",
+        "aws",
+        "local-testing"
       ]
     },
     {

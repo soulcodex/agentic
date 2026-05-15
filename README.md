@@ -114,7 +114,7 @@ agentic list profiles|skills|vendors          # list available resources
 
 ## Profiles
 
-21 ready-made profiles covering TypeScript, Go, Python, PHP — frontend SPAs, microservices, CLIs, full-stack.
+23 ready-made profiles covering TypeScript, Go, Python, PHP, HCL — frontend SPAs, microservices, CLIs, full-stack, and AWS Terraform modules.
 
 → [Browse all profiles](https://agentic.soulcodex.link/profiles)
 
