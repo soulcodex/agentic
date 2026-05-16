@@ -37,6 +37,45 @@ Always enable strict mode in `tsconfig.json`:
 - Use explicit `toPrimitives` / `fromSnapshot` mapping at boundaries.
 - Mapping code is acceptable when contexts have different semantics.
 
+### Money and Precision Rules
+
+- Mandatory: if the domain handles money/currency, taxes, fees, discounts, balances, rates,
+  or any precision-sensitive quantity, do not use native `number` arithmetic.
+- Mandatory: use `decimal.js` as the default decimal arithmetic library. If another decimal
+  library is chosen, document the rationale and keep usage consistent across the codebase.
+- Store/transport monetary values using explicit strategies only:
+  - integer minor units (`amountMinor: 1234`, `currency: 'USD'`), or
+  - canonical decimal strings (`amount: '12.34'`, `currency: 'USD'`).
+- Introduce a domain value object (for example `Money`) that owns parsing, scale normalization,
+  rounding mode, and serialization boundaries. Keep formatting/localization in adapters/UI.
+- Do not mix `number` and decimal instances in the same calculation chain.
+- Do not round implicitly at arbitrary steps; round only at explicit domain boundaries.
+
+```typescript
+// Do: decimal-safe domain operations
+import Decimal from 'decimal.js'
+class Money {
+  private constructor(private readonly amount: Decimal, readonly currency: string) {}
+  static fromDecimalString(amount: string, currency: string): Money {
+    return new Money(new Decimal(amount), currency)
+  }
+  add(other: Money): Money {
+    if (other.currency !== this.currency) throw new Error('Currency mismatch')
+    return new Money(this.amount.plus(other.amount), this.currency)
+  }
+  toDecimalString(): string {
+    return this.amount.toFixed(2)
+  }
+}
+```
+
+```typescript
+// Don't: floating-point money math
+const subtotal = 19.99
+const tax = 0.2
+const total = subtotal + subtotal * tax // precision risk
+```
+
 ### Naming Conventions
 
 | Construct | Convention | Example |
