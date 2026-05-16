@@ -48,24 +48,52 @@ Always enable strict mode in `tsconfig.json`:
   - canonical decimal strings (`amount: '12.34'`, `currency: 'USD'`).
 - Introduce a domain value object (for example `Money`) that owns parsing, scale normalization,
   rounding mode, and serialization boundaries. Keep formatting/localization in adapters/UI.
+- Keep decimal library types (for example `Decimal`) at infrastructure/application boundaries.
+  Domain entities/value objects must not expose library-specific types in their public API.
 - Do not mix `number` and decimal instances in the same calculation chain.
 - Do not round implicitly at arbitrary steps; round only at explicit domain boundaries.
 
 ```typescript
-// Do: decimal-safe domain operations
+// Do: keep the domain model library-agnostic and currency-scale aware
 import Decimal from 'decimal.js'
+
+type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
+type Currency = 'USD' | 'JPY' | 'KWD'
+type MoneyError = { type: 'CURRENCY_MISMATCH'; left: Currency; right: Currency }
+
+const CURRENCY_SCALE: Record<Currency, number> = { USD: 2, JPY: 0, KWD: 3 }
+
 class Money {
-  private constructor(private readonly amount: Decimal, readonly currency: string) {}
-  static fromDecimalString(amount: string, currency: string): Money {
-    return new Money(new Decimal(amount), currency)
+  private constructor(
+    readonly amountMinor: bigint,
+    readonly currency: Currency,
+    readonly scale: number,
+  ) {}
+
+  static fromMinor(amountMinor: bigint, currency: Currency): Money {
+    return new Money(amountMinor, currency, CURRENCY_SCALE[currency])
   }
-  add(other: Money): Money {
-    if (other.currency !== this.currency) throw new Error('Currency mismatch')
-    return new Money(this.amount.plus(other.amount), this.currency)
+
+  add(other: Money): Result<Money, MoneyError> {
+    if (other.currency !== this.currency) {
+      return {
+        ok: false,
+        error: { type: 'CURRENCY_MISMATCH', left: this.currency, right: other.currency },
+      }
+    }
+    return { ok: true, value: Money.fromMinor(this.amountMinor + other.amountMinor, this.currency) }
   }
-  toDecimalString(): string {
-    return this.amount.toFixed(2)
+
+  toPrimitives(): { amountMinor: string; currency: Currency } {
+    return { amountMinor: this.amountMinor.toString(), currency: this.currency }
   }
+}
+
+// Boundary mapper: decimal.js stays outside the domain type.
+function moneyFromDecimalString(amount: string, currency: Currency): Money {
+  const scale = CURRENCY_SCALE[currency]
+  const minor = new Decimal(amount).mul(new Decimal(10).pow(scale)).toDecimalPlaces(0)
+  return Money.fromMinor(BigInt(minor.toString()), currency)
 }
 ```
 
