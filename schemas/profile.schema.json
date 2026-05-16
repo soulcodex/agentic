@@ -189,6 +189,7 @@
           "health-check-endpoints",
           "internationalization-i18n",
           "json-to-toon",
+          "memory-continuity",
           "microservices-architecture",
           "monorepo-management",
           "new-gh-issue-orchestration",

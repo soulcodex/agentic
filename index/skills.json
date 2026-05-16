@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-15T22:59:45Z",
+  "generated_at": "2026-05-16T17:15:20Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -49,6 +49,19 @@
         "planning",
         "github",
         "issues"
+      ]
+    },
+    {
+      "name": "memory-continuity",
+      "group": "agentic",
+      "path": "skills/agentic/memory-continuity/SKILL.md",
+      "description": "Maintains concise cross-session continuity by writing structured memory handoff artifacts under .agentic/memories/ and l",
+      "version": "1.0.0",
+      "tags": [
+        "agentic",
+        "memory",
+        "continuity",
+        "workflow"
       ]
     },
     {

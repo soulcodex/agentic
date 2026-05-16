@@ -10,6 +10,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `configure-mcp` — Set up and configure MCP servers for agent tool access.
 - `deploy-config` — Deploy composed config, vendor files, and skills to a target project.
 - `github-issue-planning` — Issue-backed plan persistence on GitHub (prefer MCP, fallback to `gh` CLI).
+- `memory-continuity` — Maintain concise cross-session handoff memory with deterministic artifacts and pruning rules.
 - `persist-plan` — Save the current plan as a structured file under `.agentic/plans/`.
 - `write-plan` — Auto-persist generated plans and keep a local plans index updated.
 
