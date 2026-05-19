@@ -2,6 +2,10 @@
 
 **Timestamp**: YYYY-MM-DDTHH:MM:SSZ
 **Session Scope**: {short scope label}
+**Owner Agent**: {agent-name-or-id}
+**Worktree**: {/abs/path/to/worktree}
+**Branch**: {branch-name}
+**Linked Issue/PR**: {url or n/a}
 
 ## Current Objective
 
