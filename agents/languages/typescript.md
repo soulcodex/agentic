@@ -43,38 +43,53 @@ Always enable strict mode in `tsconfig.json`:
   or any precision-sensitive quantity, do not use native `number` arithmetic.
 - Mandatory: use `decimal.js` as the default decimal arithmetic library. If another decimal
   library is chosen, document the rationale and keep usage consistent across the codebase.
-- Store/transport monetary values using explicit strategies only:
-  - integer minor units (`amountMinor: 1234`, `currency: 'USD'`), or
-  - canonical decimal strings (`amount: '12.34'`, `currency: 'USD'`).
+- Canonical money representation in domain and persistence is signed integer minor units
+  (`amountMinor: -1234`, `currency: 'USD'`). Negative values are valid when the domain allows
+  debts, refunds, credits, or reversals.
+- Use decimal strings only at explicit interoperability boundaries (external APIs, CSV/import,
+  UI formatting/parsing), then map to/from minor units.
 - Introduce a domain value object (for example `Money`) that owns parsing, scale normalization,
   rounding mode, and serialization boundaries. Keep formatting/localization in adapters/UI.
 - Keep decimal library types (for example `Decimal`) at infrastructure/application boundaries.
   Domain entities/value objects must not expose library-specific types in their public API.
+- Currency policy source:
+  - fixed-currency products: keep scale/rounding/symbol metadata in code.
+  - dynamic/multi-tenant currency catalogs: resolve metadata through a port/adaptor and pass
+    normalized policy data into domain operations.
+- For expected domain mismatches (for example currency mismatch), use one project-level convention
+  consistently across the codebase (for example Result-union style or typed domain errors), and
+  do not mix styles per module.
 - Do not mix `number` and decimal instances in the same calculation chain.
 - Do not round implicitly at arbitrary steps; round only at explicit domain boundaries.
 
 ```typescript
-// Do: keep the domain model library-agnostic and currency-scale aware
+// Do: canonical domain representation uses signed minor units.
 import Decimal from 'decimal.js'
 
-type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
+// Use your project's standard expected-error contract consistently.
+type DomainResult<T, E> = { ok: true; value: T } | { ok: false; error: E }
 type Currency = 'USD' | 'JPY' | 'KWD'
 type MoneyError = { type: 'CURRENCY_MISMATCH'; left: Currency; right: Currency }
 
-const CURRENCY_SCALE: Record<Currency, number> = { USD: 2, JPY: 0, KWD: 3 }
+type CurrencyPolicy = { scale: number; symbol: string }
+const CURRENCY_POLICY: Record<Currency, CurrencyPolicy> = {
+  USD: { scale: 2, symbol: 'USD' },
+  JPY: { scale: 0, symbol: 'JPY' },
+  KWD: { scale: 3, symbol: 'KWD' },
+}
 
 class Money {
   private constructor(
     readonly amountMinor: bigint,
     readonly currency: Currency,
-    readonly scale: number,
+    readonly policy: CurrencyPolicy,
   ) {}
 
   static fromMinor(amountMinor: bigint, currency: Currency): Money {
-    return new Money(amountMinor, currency, CURRENCY_SCALE[currency])
+    return new Money(amountMinor, currency, CURRENCY_POLICY[currency])
   }
 
-  add(other: Money): Result<Money, MoneyError> {
+  add(other: Money): DomainResult<Money, MoneyError> {
     if (other.currency !== this.currency) {
       return {
         ok: false,
@@ -91,7 +106,7 @@ class Money {
 
 // Boundary mapper: decimal.js stays outside the domain type.
 function moneyFromDecimalString(amount: string, currency: Currency): Money {
-  const scale = CURRENCY_SCALE[currency]
+  const scale = CURRENCY_POLICY[currency].scale
   const minor = new Decimal(amount).mul(new Decimal(10).pow(scale)).toDecimalPlaces(0)
   return Money.fromMinor(BigInt(minor.toString()), currency)
 }
