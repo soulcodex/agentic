@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-16T17:15:24Z",
+  "generated_at": "2026-05-19T23:53:53Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -68,7 +68,7 @@
       "name": "plan-memory-index",
       "group": "agentic",
       "path": "skills/agentic/plan-memory-index/SKILL.md",
-      "description": "Maintains an indexed memory of applied plans under .agentic/plans/ so agents can retrieve relevant prior context quickly",
+      "description": "Maintains concise indexed memory entries for applied plans under .agentic/memories/ with clear boundaries between memory",
       "version": "1.0.0",
       "tags": [
         "agentic",

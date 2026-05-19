@@ -4,6 +4,7 @@ plan_slug: issue-000-example-plan
 summary: "One to three sentence summary of the applied plan (max 280 chars)."
 linked_issues:
   - https://github.com/org/repo/issues/000
+plan_file: ".agentic/plans/YYYY-MM-DD-example-plan.md"
 status: done
 last_used_at: "YYYY-MM-DDTHH:MM:SSZ"
 tags: ["plans", "example"]

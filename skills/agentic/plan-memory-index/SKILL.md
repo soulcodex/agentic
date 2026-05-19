@@ -1,10 +1,9 @@
 ---
 name: plan-memory-index
 description: >
-  Maintains an indexed memory of applied plans under .agentic/plans/ so agents
-  can retrieve relevant prior context quickly before pulling full issue threads.
-  Stores concise per-plan memory entries with optional GitHub issue links and
-  status metadata, then supports list-first and select-first retrieval.
+  Maintains concise indexed memory entries for applied plans under
+  .agentic/memories/ with clear boundaries between memory and plan sources.
+  Memory retrieval is prioritized before loading historical plan files.
 version: 1.0.0
 tags:
   - agentic
@@ -35,27 +34,30 @@ Ensure this directory structure exists:
 
 ```text
 .agentic/
+  memories/
+    plan-memory/
+      index.md
+      entries/
   plans/
-    index.md
-    memory/
+    INDEX.md
 ```
 
 Rules:
-- Create `.agentic/plans/` and `.agentic/plans/memory/` when missing.
-- Keep the index filename exactly `index.md` (lowercase).
-- Keep all plan memory entries in `.agentic/plans/memory/`.
+- Create `.agentic/memories/plan-memory/` and `.agentic/memories/plan-memory/entries/` when missing.
+- Keep the memory index filename exactly `.agentic/memories/plan-memory/index.md`.
+- Treat `.agentic/plans/INDEX.md` as the canonical plans index (do not create `.agentic/plans/index.md`).
 
 ### Step 2 - Create or Update a Memory Entry
 
 Create one Markdown file per memory entry:
 
 ```text
-.agentic/plans/memory/YYYY-MM-DD-{plan-slug}.md
+.agentic/memories/plan-memory/entries/YYYY-MM-DD-{plan-slug}.md
 ```
 
 Example:
 ```text
-.agentic/plans/memory/2026-05-16-issue-149-plan-memory-index.md
+.agentic/memories/plan-memory/entries/2026-05-16-issue-149-plan-memory-index.md
 ```
 
 Frontmatter fields:
@@ -63,6 +65,7 @@ Frontmatter fields:
 - `plan_slug`: kebab-case plan identifier
 - `summary`: concise applied-plan excerpt
 - `linked_issues`: optional list of GitHub issue URLs
+- `plan_file`: optional path to canonical plan file under `.agentic/plans/`
 - `status`: one of `draft`, `in-progress`, `done`, `superseded`
 - `last_used_at`: ISO-8601 UTC timestamp
 - `tags`: short list for retrieval
@@ -77,10 +80,10 @@ Keep memory entries high signal and small:
 - Do not copy full issue bodies, long logs, or full plans into memory entries.
 - If more detail is needed, store a short pointer in `summary` and defer deep fetch.
 
-### Step 4 - Upsert `.agentic/plans/index.md`
+### Step 4 - Upsert `.agentic/memories/plan-memory/index.md`
 
-Create `index.md` from `index-template.md` if missing. Then add or update a single row
-for the memory entry.
+Create `.agentic/memories/plan-memory/index.md` from `index-template.md` if missing.
+Then add or update a single row for the memory entry.
 
 Required columns:
 - `id`
@@ -89,6 +92,7 @@ Required columns:
 - `last_used_at`
 - `linked_issues`
 - `memory_file`
+- `plan_file`
 
 Upsert behavior:
 - If `id` already exists, update that row in place.
@@ -98,11 +102,12 @@ Upsert behavior:
 ### Step 5 - Retrieval Workflow (Select Before Deep Fetch)
 
 When context is needed:
-1. Read only `.agentic/plans/index.md`.
+1. Read only `.agentic/memories/plan-memory/index.md`.
 2. Filter by `plan_slug`, `tags`, or `linked_issues`.
 3. Select one candidate memory entry.
 4. Read the selected memory file.
-5. Fetch full GitHub issue context only if still needed.
+5. Load `.agentic/plans/INDEX.md` and specific plan files only if still needed.
+6. Fetch full GitHub issue context only if still needed.
 
 This list-first workflow avoids loading unnecessary historical context.
 
@@ -120,3 +125,10 @@ Prune rules:
   in the same change.
 - During periodic cleanup, archive or remove entries not used for 180+ days only when
   they are `done` or `superseded` and have no active dependencies.
+
+### Step 7 - Source-of-Truth Boundaries
+
+- `.agentic/memories/` is the source of truth for memory indexing and retrieval state.
+- `.agentic/plans/` is the source of truth for plan artifacts and plan lifecycle history.
+- Memory updates must not rewrite original plan artifacts; plan updates must not implicitly
+  mutate memory rows without an explicit memory update step.
