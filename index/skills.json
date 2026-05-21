@@ -52,6 +52,19 @@
       ]
     },
     {
+      "name": "memory-continuity",
+      "group": "agentic",
+      "path": "skills/agentic/memory-continuity/SKILL.md",
+      "description": "Preserves cross-session continuity with deterministic MEMORY.md, index.md, and snapshot handoffs under .agentic/memories",
+      "version": "1.0.0",
+      "tags": [
+        "agentic",
+        "memory",
+        "continuity",
+        "workflow"
+      ]
+    },
+    {
       "name": "persist-plan",
       "group": "agentic",
       "path": "skills/agentic/persist-plan/SKILL.md",
