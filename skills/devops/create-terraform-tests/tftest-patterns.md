@@ -33,3 +33,5 @@ Use for controls such as:
 - Keep fixtures minimal and deterministic.
 - Make test names reflect intended risk (`s3_blocks_public_access`).
 - Separate test data from secrets; never hardcode credentials.
+- In CI, run `terraform init -backend=false` before `terraform test` to avoid
+  accidental backend writes during validation-oriented pipelines.

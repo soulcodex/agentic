@@ -12,7 +12,7 @@ Use this matrix to keep service choice and Terraform ownership explicit.
 | Data (relational) | RDS / Aurora, RDS Proxy | `data-rds` | Encrypt, back up, and parameterize maintenance windows. |
 | Data (NoSQL) | DynamoDB, DAX (optional) | `data-dynamodb` | Model capacity/autoscaling per access pattern. |
 | Object storage | S3, S3 Lifecycle, S3 Replication | `storage-s3` | Block public access by default and enforce encryption. |
-| Secrets/config | Secrets Manager, SSM Parameter Store | `secrets-config` | Do not put secrets in tfvars/state outputs. |
+| Secrets/config | Secrets Manager, SSM Parameter Store | `secrets-config` | Do not put secrets in tfvars or outputs; treat Terraform state/plan artifacts as sensitive. |
 | Observability | CloudWatch Logs/Metrics/Alarms, X-Ray | `observability` | Define alarm routing and actionable thresholds. |
 | Eventing/queues | SQS, SNS, EventBridge | `messaging` | Preserve DLQ and retry semantics by design. |
 | Access controls at perimeter | WAF, Shield | `security-edge` | Tie rules to app risk model and rollout safely. |

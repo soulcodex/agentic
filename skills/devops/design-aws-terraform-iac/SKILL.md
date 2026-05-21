@@ -48,10 +48,12 @@ platform, and workload layers.
 ### Step 3 - Define State and Environment Strategy
 
 Decide and document:
-- remote backend (`s3` + `dynamodb` locking)
+- remote backend (prefer `s3` with `use_lockfile = true`; use DynamoDB locking
+  only as a temporary compatibility bridge for older Terraform workflows)
 - state key strategy per environment and region
 - promotion model (`dev` -> `staging` -> `prod`)
 - drift and rollback expectations
+- explicit handling for sensitive values in state and plans
 
 ### Step 4 - Define Security and Policy Baselines
 
@@ -60,6 +62,8 @@ Specify minimum required controls:
 - encryption at rest and in transit
 - tag standards for ownership, cost, and data classification
 - log/audit coverage and retention
+- secret source-of-truth and rotation boundary (for example, Secrets Manager
+  references rather than plaintext values in variables)
 
 ### Step 5 - Produce a Design Brief and Acceptance Criteria
 

@@ -53,6 +53,11 @@ Ensure deterministic checks in CI:
 3. `terraform validate`
 4. `terraform test`
 
+CI safety guardrails:
+- do not point tests at production/shared backends
+- use ephemeral credentials/accounts for apply-capable tests
+- skip or scope tests when required cloud credentials are not present
+
 ### Step 4 - Keep Tests Bounded
 
 Use minimal fixtures and avoid long-running integration behavior unless explicitly
