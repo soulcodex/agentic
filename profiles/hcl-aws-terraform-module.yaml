@@ -35,9 +35,9 @@ skills:
   - code-review
 
 output:
-  build_command: "terraform fmt -check -recursive"
+  build_command: "terraform fmt -check -recursive && terraform init -backend=false && terraform validate"
   test_command: "terraform test"
-  lint_command: "terraform validate"
+  lint_command: "terraform fmt -check -recursive && terraform init -backend=false && terraform validate"
   project_header: |
     This project manages AWS infrastructure modules in Terraform (HCL).
     Keep modules reusable, keep environment values outside modules, and enforce

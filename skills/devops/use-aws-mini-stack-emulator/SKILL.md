@@ -37,6 +37,8 @@ Classify each planned check as:
 
 Keep local endpoint wiring isolated from production configuration. Use explicit
 variables or per-environment override files for emulator endpoint settings.
+Use local state or `terraform init -backend=false` for emulator-first CI checks
+to avoid touching shared remote backends.
 
 ### Step 3 - Validate Fast Feedback Cases
 

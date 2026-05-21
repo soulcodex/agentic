@@ -35,6 +35,8 @@ Define module inputs/outputs first:
 - typed structures (`object`, `list(object)`) where appropriate
 - sensitive inputs marked with `sensitive = true`
 - outputs scoped to consumer needs only
+- do not treat `sensitive = true` as state protection; avoid module interfaces
+  that require raw secret values when a reference/ARN can be passed instead
 
 ### Step 2 - Create Module Structure
 
@@ -44,6 +46,8 @@ Rules:
 - include `README.md`, `versions.tf`, `providers.tf`, `main.tf`, `variables.tf`, `outputs.tf`
 - keep environment-specific values outside reusable modules
 - avoid hidden dependencies on caller-side locals/naming
+- child modules must not configure provider credentials/regions directly; define
+  `required_providers` and let the root module pass provider instances/aliases
 
 ### Step 3 - Implement AWS Resources Safely
 

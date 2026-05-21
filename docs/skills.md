@@ -59,6 +59,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 ### Documentation
 
 - `sync-confluence` — Sync engineering docs from the repo into Confluence Cloud.
+- `format-markdown` — Format Markdown files with repo-native tooling first, then validate with markdown checks/lint.
 - `write-adr` — Create Architecture Decision Records with context, decision, and consequences.
 - `write-changelog` — Generate release changelog entries from commit history.
 - `write-readme` — Generate or update README content based on project source and structure.

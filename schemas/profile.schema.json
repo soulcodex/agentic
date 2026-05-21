@@ -181,6 +181,7 @@
           "diagram-design",
           "docker-compose-local-setup",
           "fix-bug",
+          "format-markdown",
           "git-flow-pr",
           "git-worktree-workspaces",
           "github-actions-workflow",

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-19T23:53:53Z",
+  "generated_at": "2026-05-21T17:47:06Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -477,6 +477,19 @@
         "devops",
         "docker",
         "containers"
+      ]
+    },
+    {
+      "name": "format-markdown",
+      "group": "documentation",
+      "path": "skills/documentation/format-markdown/SKILL.md",
+      "description": "Formats Markdown files consistently using project-native tooling first (repo scripts/config), then safe fallback formatt",
+      "version": "1.0.0",
+      "tags": [
+        "documentation",
+        "markdown",
+        "formatting",
+        "linting"
       ]
     },
     {
