@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-19T23:50:29Z",
+  "generated_at": "2026-05-21T17:31:00Z",
   "fragments": [
     {
       "name": "bff",
@@ -224,7 +224,7 @@
       "group": "languages",
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
-      "words": 1053
+      "words": 1095
     },
     {
       "name": "api-design",

@@ -56,6 +56,10 @@ Always enable strict mode in `tsconfig.json`:
   - fixed-currency products: keep scale/rounding/symbol metadata in code.
   - dynamic/multi-tenant currency catalogs: resolve metadata through a port/adaptor and pass
     normalized policy data into domain operations.
+- For complex financial/precision workloads (allocation engines, compound interest schedules,
+  tax/regulatory rules, cross-currency settlement, or long chained calculations), delegate to a
+  specialized precision port/service. Do not embed ad-hoc complex math in domain/application code
+  where language/runtime numeric behavior can leak into business outcomes.
 - For expected domain mismatches (for example currency mismatch), use one project-level convention
   consistently across the codebase (for example Result-union style or typed domain errors), and
   do not mix styles per module.
