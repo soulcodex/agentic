@@ -11,6 +11,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `deploy-config` — Deploy composed config, vendor files, and skills to a target project.
 - `github-issue-planning` — Issue-backed plan persistence on GitHub (prefer MCP, fallback to `gh` CLI).
 - `memory-continuity` — Maintain concise cross-session handoff memory with explicit MEMORY/index templates, snapshot indexing, and multi-agent worktree coordination.
+- `plan-memory-index` — Keep indexed, concise memory entries for applied plans under `.agentic/memories/plan-memory/`, while keeping `.agentic/plans/` as plan source of truth.
 - `persist-plan` — Save the current plan as a structured file under `.agentic/plans/`.
 - `write-plan` — Auto-persist generated plans and keep a local plans index updated.
 
