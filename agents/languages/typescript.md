@@ -22,12 +22,31 @@ Always enable strict mode in `tsconfig.json`:
   Use `interface` for object shapes that may be extended (especially public APIs).
 - Never use `any`. Use `unknown` for genuinely unknown values and narrow with guards.
 - Avoid type assertions (`as Foo`) except at system boundaries with validation.
+- Prefer `satisfies` for object literals/config maps when you need type conformance checks
+  without widening away useful inferred literal types.
 - Use discriminated unions for modeling state:
   ```typescript
   type Result<T> = { ok: true; value: T } | { ok: false; error: Error }
   ```
 - Prefer `readonly` for all data that should not be mutated.
 - Use template literal types for string-constrained values: `type EventName = `${string}.${string}``
+
+```typescript
+// Do: validate shape with `satisfies` and keep literal precision.
+type RetryPolicy = { maxRetries: number; strategy: 'linear' | 'exponential' }
+const RETRY_POLICY = {
+  maxRetries: 3,
+  strategy: 'exponential',
+} satisfies RetryPolicy
+```
+
+```typescript
+// Avoid: `as` hides incompatibilities and can mask mistakes.
+const RETRY_POLICY = {
+  maxRetries: 3,
+  strategy: 'expo', // typo could be forced through with `as RetryPolicy`
+} as RetryPolicy
+```
 
 ### Domain Modeling Conventions
 
