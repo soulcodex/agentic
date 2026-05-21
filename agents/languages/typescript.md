@@ -37,6 +37,92 @@ Always enable strict mode in `tsconfig.json`:
 - Use explicit `toPrimitives` / `fromSnapshot` mapping at boundaries.
 - Mapping code is acceptable when contexts have different semantics.
 
+### Money and Precision Rules
+
+- Mandatory: if the domain handles money/currency, taxes, fees, discounts, balances, rates,
+  or any precision-sensitive quantity, do not use native `number` arithmetic.
+- Mandatory: use `decimal.js` as the default decimal arithmetic library. If another decimal
+  library is chosen, document the rationale and keep usage consistent across the codebase.
+- Canonical money representation in domain and persistence is signed integer minor units
+  (`amountMinor: -1234`, `currency: 'USD'`). Negative values are valid when the domain allows
+  debts, refunds, credits, or reversals.
+- Use decimal strings only at explicit interoperability boundaries (external APIs, CSV/import,
+  UI formatting/parsing), then map to/from minor units.
+- Introduce a domain value object (for example `Money`) that owns parsing, scale normalization,
+  rounding mode, and serialization boundaries. Keep formatting/localization in adapters/UI.
+- Keep decimal library types (for example `Decimal`) at infrastructure/application boundaries.
+  Domain entities/value objects must not expose library-specific types in their public API.
+- Currency policy source:
+  - fixed-currency products: keep scale/rounding/symbol metadata in code.
+  - dynamic/multi-tenant currency catalogs: resolve metadata through a port/adaptor and pass
+    normalized policy data into domain operations.
+- For complex financial/precision workloads (allocation engines, compound interest schedules,
+  tax/regulatory rules, cross-currency settlement, or long chained calculations), delegate to a
+  specialized precision port/service. Do not embed ad-hoc complex math in domain/application code
+  where language/runtime numeric behavior can leak into business outcomes.
+- For expected domain mismatches (for example currency mismatch), use one project-level convention
+  consistently across the codebase (for example Result-union style or typed domain errors), and
+  do not mix styles per module.
+- Do not mix `number` and decimal instances in the same calculation chain.
+- Do not round implicitly at arbitrary steps; round only at explicit domain boundaries.
+
+```typescript
+// Do: canonical domain representation uses signed minor units.
+import Decimal from 'decimal.js'
+
+// Use your project's standard expected-error contract consistently.
+type DomainResult<T, E> = { ok: true; value: T } | { ok: false; error: E }
+type Currency = 'USD' | 'JPY' | 'KWD'
+type MoneyError = { type: 'CURRENCY_MISMATCH'; left: Currency; right: Currency }
+
+type CurrencyPolicy = { scale: number; symbol: string }
+const CURRENCY_POLICY: Record<Currency, CurrencyPolicy> = {
+  USD: { scale: 2, symbol: 'USD' },
+  JPY: { scale: 0, symbol: 'JPY' },
+  KWD: { scale: 3, symbol: 'KWD' },
+}
+
+class Money {
+  private constructor(
+    readonly amountMinor: bigint,
+    readonly currency: Currency,
+    readonly policy: CurrencyPolicy,
+  ) {}
+
+  static fromMinor(amountMinor: bigint, currency: Currency): Money {
+    return new Money(amountMinor, currency, CURRENCY_POLICY[currency])
+  }
+
+  add(other: Money): DomainResult<Money, MoneyError> {
+    if (other.currency !== this.currency) {
+      return {
+        ok: false,
+        error: { type: 'CURRENCY_MISMATCH', left: this.currency, right: other.currency },
+      }
+    }
+    return { ok: true, value: Money.fromMinor(this.amountMinor + other.amountMinor, this.currency) }
+  }
+
+  toPrimitives(): { amountMinor: string; currency: Currency } {
+    return { amountMinor: this.amountMinor.toString(), currency: this.currency }
+  }
+}
+
+// Boundary mapper: decimal.js stays outside the domain type.
+function moneyFromDecimalString(amount: string, currency: Currency): Money {
+  const scale = CURRENCY_POLICY[currency].scale
+  const minor = new Decimal(amount).mul(new Decimal(10).pow(scale)).toDecimalPlaces(0)
+  return Money.fromMinor(BigInt(minor.toString()), currency)
+}
+```
+
+```typescript
+// Don't: floating-point money math
+const subtotal = 19.99
+const tax = 0.2
+const total = subtotal + subtotal * tax // precision risk
+```
+
 ### Naming Conventions
 
 | Construct | Convention | Example |
