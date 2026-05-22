@@ -5,6 +5,7 @@
 # Provides:
 # - ANSI color constants
 # - Output helpers (die, warn, info, ok, fail)
+# - normalize_markdown_spacing() — lightweight newline normalization for generated markdown
 # - format_markdown() — canonical markdown formatter
 # - safe_rm_rf() — guarded path removal
 # - require_arg() — argument validation
@@ -68,6 +69,23 @@ fail() {
 # ══════════════════════════════════════════════════════════════════════════════
 # Markdown formatter
 # ══════════════════════════════════════════════════════════════════════════════
+
+# Normalizes generated markdown spacing without changing semantic content:
+# - collapse 3+ consecutive blank lines into a single blank line separator
+# - ensure file ends with a newline
+normalize_markdown_spacing() {
+  local file="$1"
+  [[ ! -f "$file" ]] && return
+
+  local content
+  content=$(cat "$file")
+
+  while [[ "$content" == *$'\n\n\n'* ]]; do
+    content="${content//$'\n\n\n'/$'\n\n'}"
+  done
+
+  printf '%s\n' "$content" > "$file"
+}
 
 # Formats markdown files if mdformat is available (optional, silent if missing)
 format_markdown() {

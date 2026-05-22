@@ -367,6 +367,46 @@
               "description": "How to handle existing user-authored AGENTS.md on first compose"
             }
           }
+        },
+        "custom_index": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Custom markdown context index rendered into AGENTS.md so agents can load important project docs early.",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Optional section title. Defaults to 'Additional Markdown Context'."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional short intro shown above the index table."
+            },
+            "element": {
+              "type": "array",
+              "description": "Markdown context entries.",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "Path to markdown file relative to target repo root."
+                  },
+                  "why": {
+                    "type": "string",
+                    "description": "Why this file matters."
+                  },
+                  "when": {
+                    "type": "string",
+                    "description": "When to read this file."
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },

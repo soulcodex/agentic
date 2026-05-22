@@ -297,6 +297,40 @@ build_proprietary_libraries_section() {
   printf '%s' "$section"
 }
 
+# ── Custom markdown index section ─────────────────────────────────────────────
+build_custom_index_section() {
+  local count
+  count=$(yq '.output.custom_index.element | length' "$PROFILE_FILE" 2>/dev/null || echo "0")
+  [[ "$count" == "0" || "$count" == "null" ]] && return
+
+  local title intro section
+  title=$(yq '.output.custom_index.title // "Additional Markdown Context"' "$PROFILE_FILE")
+  intro=$(yq '.output.custom_index.description // ""' "$PROFILE_FILE")
+
+  section+=$'\n## '"${title}"$'\n\n'
+  if [[ -n "$intro" && "$intro" != "null" ]]; then
+    section+="${intro}"$'\n\n'
+  else
+    section+="Load these markdown files before making changes in the related areas."$'\n\n'
+  fi
+
+  section+="| File | Why It Matters | When To Read |"$'\n'
+  section+="|------|----------------|--------------|"$'\n'
+
+  local i=0
+  while [[ $i -lt $count ]]; do
+    local path why when
+    path=$(yq ".output.custom_index.element[$i].path" "$PROFILE_FILE")
+    why=$(yq ".output.custom_index.element[$i].why // \"—\"" "$PROFILE_FILE")
+    when=$(yq ".output.custom_index.element[$i].when // \"—\"" "$PROFILE_FILE")
+    [[ -z "$path" || "$path" == "null" ]] && path="(missing-path)"
+    section+="| \`${path}\` | ${why} | ${when} |"$'\n'
+    i=$(( i + 1 ))
+  done
+
+  printf '%s' "$section"
+}
+
 # ── Skills section ────────────────────────────────────────────────────────────
 build_skills_section() {
   local full_mode="$1"  # "true" or "false"
@@ -553,6 +587,7 @@ compose_flat() {
   fi
 
   OUTPUT+=$(build_commands_block "$BUILD_CMD" "$TEST_CMD" "$LINT_CMD")
+  OUTPUT+=$(build_custom_index_section)
 
   if [[ "$FULL_MODE" == "true" ]]; then
     OUTPUT+=$(inline_fragments)
@@ -576,6 +611,7 @@ compose_flat() {
     printf '%s\n' "$OUTPUT" > "$tmp_agents"
     mv "$tmp_agents" "$TARGET/AGENTS.md"
     tmp_agents=""  # clear so RETURN trap is a no-op
+    normalize_markdown_spacing "$TARGET/AGENTS.md"
     format_markdown "$TARGET/AGENTS.md"
 
     LOCK_DIR="$TARGET/.agentic"
@@ -753,6 +789,8 @@ compose_nested() {
     done
   fi
 
+  root_out+=$(build_custom_index_section)
+
   # Tier listing (always a reference table regardless of --full)
   root_out+=$'\n## Tiers\n\n'
   root_out+="> Load the relevant tier file for tier-specific language, framework, and architecture guidelines."$'\n\n'
@@ -775,6 +813,7 @@ compose_nested() {
   printf '%s\n' "$root_out" > "$tmp_agents"
   mv "$tmp_agents" "$TARGET/AGENTS.md"
   tmp_agents=""  # clear so RETURN trap is a no-op
+  normalize_markdown_spacing "$TARGET/AGENTS.md"
   format_markdown "$TARGET/AGENTS.md"
 
   # ── Per-tier AGENTS.md ──────────────────────────────────────────────────────
@@ -842,6 +881,7 @@ compose_nested() {
     printf '%s\n' "$tier_out" > "$tmp_tier_agents"
     mv "$tmp_tier_agents" "$TARGET/$tier/AGENTS.md"
     tmp_tier_agents=""  # clear so RETURN trap is a no-op
+    normalize_markdown_spacing "$TARGET/$tier/AGENTS.md"
     format_markdown "$TARGET/$tier/AGENTS.md"
     echo "Composed ${tier}/AGENTS.md → $TARGET/${tier}/AGENTS.md"
   done

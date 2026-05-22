@@ -110,6 +110,24 @@ assert_json_min_count() {
   fi
 }
 
+assert_no_triple_blank_lines() {
+  local file="$1" label="$2"
+  if awk '
+    BEGIN { blank = 0 }
+    /^[[:space:]]*$/ {
+      blank++
+      if (blank >= 3) exit 1
+      next
+    }
+    { blank = 0 }
+    END { exit 0 }
+  ' "$file"; then
+    pass "$label — no triple blank-line runs in $file"
+  else
+    fail "$label — found 3+ consecutive blank lines in $file"
+  fi
+}
+
 assert_symlink_exists() {
   local path="$1" label="$2"
   if [[ -L "$path" ]]; then
@@ -3640,6 +3658,56 @@ assert_symlink_exists "$TMP/t136/CLAUDE.md" "T136 claude restored"
 assert_file_not_exists "$TMP/t136/.cursor/rules" "T136 root cursor link removed"
 assert_file_not_exists "$TMP/t136/backend/.cursor/rules" "T136 backend cursor link removed"
 assert_file_contains "$TMP/t136/ui/.cursor" "blocker" "T136 blocker file preserved"
+
+# T154 — compose: output.custom_index.element[] renders markdown context table
+run_test "T154 — compose: custom markdown context index section"
+mkdir -p "$TMP/t154"
+cat > "$TMP/t154-profile.yaml" <<'EOF'
+meta:
+  name: Test Custom Index
+  description: Test profile with custom markdown context index
+  version: "1.0.0"
+fragments:
+  base:
+    - git-conventions
+output:
+  custom_index:
+    title: "Project Context Docs"
+    description: "Important markdown references for this project."
+    element:
+      - path: "docs/architecture.md"
+        why: "Core boundaries and decisions"
+        when: "Before editing architecture or service boundaries"
+      - path: "docs/runbooks/release.md"
+        why: "Release and rollback runbook"
+        when: "Before CI/CD or release pipeline changes"
+vendors:
+  enabled: []
+EOF
+
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile-file "$TMP/t154-profile.yaml" \
+  --target "$TMP/t154" \
+  > /dev/null 2>&1
+
+assert_file_contains "$TMP/t154/AGENTS.md" "## Project Context Docs" "T154"
+assert_file_contains "$TMP/t154/AGENTS.md" "docs/architecture.md" "T154"
+assert_file_contains "$TMP/t154/AGENTS.md" "Core boundaries and decisions" "T154"
+assert_file_contains "$TMP/t154/AGENTS.md" "docs/runbooks/release.md" "T154"
+
+# T155 — compose: generated AGENTS markdown has stable section spacing
+run_test "T155 — compose: no triple blank-line runs in generated AGENTS"
+mkdir -p "$TMP/t155"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile typescript-hexagonal-next-ui \
+  --target "$TMP/t155" \
+  > /dev/null 2>&1
+
+assert_no_triple_blank_lines "$TMP/t155/AGENTS.md" "T155 root"
+assert_no_triple_blank_lines "$TMP/t155/backend/AGENTS.md" "T155 backend"
+assert_no_triple_blank_lines "$TMP/t155/ui/AGENTS.md" "T155 ui"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
