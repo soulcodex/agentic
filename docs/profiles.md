@@ -79,6 +79,7 @@ tiers:
 | `fragments.*` | ✓ | Fragment lists per layer |
 | `tech_stack` | — | Generates `## Technical Stack` table |
 | `tech_stack.proprietary_libraries` | — | Internal packages with doc links |
+| `output.custom_index.element[]` | — | Custom markdown context table entries in generated `AGENTS.md` |
 | `skills` | — | On-demand agent task skill names |
 | `output.structure` | — | `flat` (default) or `nested` |
 | `tiers` | — | Per-tier fragment + command declarations (nested only) |

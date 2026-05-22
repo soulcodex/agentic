@@ -182,6 +182,33 @@ tiers:
 
 `url_doc` is optional. When omitted the Docs column in `AGENTS.md` shows `—`.
 
+## Add Custom Markdown Context Index
+
+If your project has critical markdown documents agents should read first, declare them in:
+`output.custom_index.element[]` inside `.agentic/profile.yaml`.
+
+```yaml
+output:
+  custom_index:
+    title: "Project Knowledge Base"
+    description: "Read these docs before changing architecture, infra, or release workflow."
+    element:
+      - path: "docs/architecture.md"
+        why: "Defines bounded contexts and dependency rules."
+        when: "Before touching domain or service boundaries."
+      - path: "docs/runbooks/release.md"
+        why: "Contains release gates and rollback procedure."
+        when: "Before CI/CD or versioning changes."
+```
+
+Then run:
+
+```bash
+agentic sync
+```
+
+This adds a dedicated markdown context table to generated `AGENTS.md`.
+
 ## When to Use What
 
 | Need | Solution |
