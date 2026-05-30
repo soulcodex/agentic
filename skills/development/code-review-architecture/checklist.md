@@ -29,7 +29,8 @@ Extends the generic checklist. Apply every item to architectural concerns.
   *Ref: [Domain Events — Martin Fowler](https://martinfowler.com/eaaDev/DomainEvent.html)*
 - [ ] No cross-context direct import: bounded contexts communicate via domain events or ACL, not shared domain models
   *Ref: [DDD — Bounded Context, Eric Evans, 2003, ch. 14](https://www.domainlanguage.com/ddd/reference/)*
-- [ ] Authorization checks NOT inside aggregate methods or domain services
+- [ ] Authorization is handled in the application layer (command/query handlers, middleware, policy services) — not inside aggregate methods or domain services, unless: (a) authorization *is* the core business domain (e.g. an IAM or permission-management service), or (b) the team has made an explicit, documented architectural trade-off to encode access rules inside the domain
+  *Ref: [Domain-Driven Design — Eric Evans, 2003, ch. 4 — Isolating the Domain](https://www.domainlanguage.com/ddd/reference/); [Hexagonal Architecture — Alistair Cockburn, 2005](https://alistair.cockburn.us/hexagonal-architecture/)*
 - [ ] Domain objects not leaked to transport or persistence adapters — `ToPrimitives`/`FromPrimitives` mappers used
 
 ## CQRS
