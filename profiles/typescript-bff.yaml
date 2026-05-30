@@ -4,7 +4,7 @@ meta:
   description: >
     TypeScript Backend for Frontend layer that aggregates downstream microservices
     and exposes a client-optimized API. Stateless, no domain logic.
-  version: "1.1.0"
+  version: "1.1.1"
 
 fragments:
   base:
@@ -31,6 +31,7 @@ fragments:
   domains: []
 
 skills:
+  - project-map
   - docker-compose-local-setup
   - write-dockerfile
   - webhook-development

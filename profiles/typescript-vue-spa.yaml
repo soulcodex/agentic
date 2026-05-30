@@ -6,7 +6,7 @@ meta:
     and Vitest. No server-side rendering. Covers component design, composition
     patterns, prop drilling prevention, Tailwind v4 styling discipline, and a
     three-tier test strategy (unit / component / acceptance).
-  version: "1.0.0"
+  version: "1.0.1"
 
 fragments:
   base:
@@ -43,6 +43,7 @@ tech_stack:
     - "Playwright (acceptance)"
 
 skills:
+  - project-map
   - code-review
   - add-tests
   - vue-application-structure
