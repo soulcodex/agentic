@@ -5,7 +5,7 @@ meta:
     TypeScript CLI application using @effect/cli and @effect/platform-node with
     pnpm. Follows ports and adapters (hexagonal) so command handlers remain thin
     adapters and domain/application logic stays framework-agnostic.
-  version: "1.0.0"
+  version: "1.0.1"
 
 fragments:
   base:
@@ -41,6 +41,7 @@ tech_stack:
     - "Effect"
 
 skills:
+  - project-map
   - code-review
   - add-tests
   - ddd-aggregate-modeling

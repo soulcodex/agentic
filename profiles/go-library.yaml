@@ -5,7 +5,7 @@ meta:
     Go reusable library/package intended to be imported by other modules.
     Prioritises stable public API, backward compatibility, minimal transitive
     dependencies, and idiomatic Go interface design.
-  version: "1.0.0"
+  version: "1.0.1"
 
 fragments:
   base:
@@ -30,6 +30,7 @@ tech_stack:
   test_framework: "testify / stdlib testing"
 
 skills:
+  - project-map
   - add-tests
   - code-review
   - refactor

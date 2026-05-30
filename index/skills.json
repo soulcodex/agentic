@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-21T17:47:06Z",
+  "generated_at": "2026-05-30T18:21:40Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -276,15 +276,83 @@
       ]
     },
     {
+      "name": "code-review-architecture",
+      "group": "development",
+      "path": "skills/development/code-review-architecture/SKILL.md",
+      "description": "Architecture-focused code review covering hexagonal boundary violations, DDD anti-patterns, CQRS misuse, and microservic",
+      "version": "1.0.0",
+      "tags": [
+        "review",
+        "quality",
+        "architecture",
+        "ddd",
+        "cqrs",
+        "microservices"
+      ]
+    },
+    {
+      "name": "code-review-go",
+      "group": "development",
+      "path": "skills/development/code-review-go/SKILL.md",
+      "description": "Deep Go-specific code review covering goroutine lifecycle, data races, error wrapping, domain modeling, and interface de",
+      "version": "1.0.0",
+      "tags": [
+        "review",
+        "quality",
+        "go",
+        "concurrency"
+      ]
+    },
+    {
+      "name": "code-review-php",
+      "group": "development",
+      "path": "skills/development/code-review-php/SKILL.md",
+      "description": "Deep PHP-specific code review covering strict types, PHPStan compliance, PSR standards, domain modeling, and ORM boundar",
+      "version": "1.0.0",
+      "tags": [
+        "review",
+        "quality",
+        "php",
+        "static-analysis"
+      ]
+    },
+    {
+      "name": "code-review-python",
+      "group": "development",
+      "path": "skills/development/code-review-python/SKILL.md",
+      "description": "Deep Python-specific code review covering type annotations, async pitfalls, mutable defaults, threading safety, and doma",
+      "version": "1.0.0",
+      "tags": [
+        "review",
+        "quality",
+        "python",
+        "async"
+      ]
+    },
+    {
+      "name": "code-review-typescript",
+      "group": "development",
+      "path": "skills/development/code-review-typescript/SKILL.md",
+      "description": "Deep TypeScript-specific code review covering type safety, ESM/CJS, async correctness, money precision, and domain model",
+      "version": "1.0.0",
+      "tags": [
+        "review",
+        "quality",
+        "typescript",
+        "javascript"
+      ]
+    },
+    {
       "name": "code-review",
       "group": "development",
       "path": "skills/development/code-review/SKILL.md",
-      "description": "Performs a structured code review on the current diff or specified files. Checks for correctness, security vulnerabiliti",
-      "version": "1.0.0",
+      "description": "Orchestrates code review by detecting the project language and architecture, then routing to the appropriate specialized",
+      "version": "2.0.0",
       "tags": [
         "quality",
         "review",
-        "security"
+        "security",
+        "orchestration"
       ]
     },
     {
@@ -362,6 +430,18 @@
         "issue",
         "orchestration",
         "automation"
+      ]
+    },
+    {
+      "name": "project-map",
+      "group": "development",
+      "path": "skills/development/project-map/SKILL.md",
+      "description": "Generates a compact structural orientation document (.agentic/project-map.md) so any agent can understand codebase struc",
+      "version": "1.0.0",
+      "tags": [
+        "documentation",
+        "exploration",
+        "onboarding"
       ]
     },
     {
