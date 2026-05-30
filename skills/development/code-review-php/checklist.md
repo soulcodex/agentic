@@ -37,8 +37,8 @@ Extends the generic checklist. Apply every item to PHP-specific concerns.
   *Ref: [Refactoring — Replace Primitive with Object, Martin Fowler](https://refactoring.com/catalog/replacePrimitiveWithObject.html)*
 - [ ] No `static` methods in domain services — static methods cannot be mocked or overridden
   *Ref: [PHPUnit docs — Test doubles](https://phpunit.de/documentation.html)*
-- [ ] Authorization checks NOT inside domain entities or aggregates (keep domain ignorant of permissions)
-  *Ref: [Hexagonal Architecture, Alistair Cockburn](https://alistair.cockburn.us/hexagonal-architecture/)*
+- [ ] Authorization is handled in the application layer (controllers, middleware, command handlers) — not inside domain entities or aggregates, unless: (a) authorization *is* the core business domain, or (b) the team has an explicit, documented trade-off to encode access rules inside the domain
+  *Ref: [Hexagonal Architecture — Alistair Cockburn, 2005](https://alistair.cockburn.us/hexagonal-architecture/)*
 - [ ] No direct `$_GET`/`$_POST`/`$_REQUEST`/`$_SERVER` access outside adapter/controller layer
 
 ## PSR Compliance
