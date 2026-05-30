@@ -6,7 +6,7 @@ meta:
     SPA frontend. Hono handles all business logic and HTTP APIs; React delivers a
     client-side single-page application with Vite for fast builds and Vitest
     for unit tests. No SSR.
-  version: "1.1.0"
+  version: "1.1.1"
 
 fragments:
   base:
@@ -71,6 +71,7 @@ tech_stack:
     - "React Router"
 
 skills:
+  - project-map
   - code-review
   - add-tests
   - ddd-aggregate-modeling

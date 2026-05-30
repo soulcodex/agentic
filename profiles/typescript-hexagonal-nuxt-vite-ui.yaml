@@ -6,7 +6,7 @@ meta:
     Nuxt 3 / Vue 3 frontend. Hono handles all business logic and HTTP APIs;
     Nuxt delivers SSR-capable pages with Vite for fast builds and Vitest for
     unit tests. Monorepo or split-repo — same language end to end.
-  version: "1.1.0"
+  version: "1.1.1"
 
 fragments:
   base:
@@ -85,6 +85,7 @@ tech_stack:
       description: "Core domain primitives shared across all services"
 
 skills:
+  - project-map
   - docker-compose-local-setup
   - write-dockerfile
   - code-review

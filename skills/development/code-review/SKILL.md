@@ -1,15 +1,18 @@
 ---
 name: code-review
 description: >
-  Performs a structured code review on the current diff or specified files.
-  Checks for correctness, security vulnerabilities, test coverage, code style,
-  and adherence to the project's architecture patterns. Invoked when the user
-  asks for a review, code check, pr review, or quality assessment.
-version: 1.0.0
+  Orchestrates code review by detecting the project language and architecture, then
+  routing to the appropriate specialized review skill (code-review-go,
+  code-review-typescript, code-review-python, code-review-php,
+  code-review-architecture). Falls back to the generic checklist when no specific
+  skill applies. Invoked when the user asks for a review, code check, PR review,
+  or quality assessment.
+version: 2.0.0
 tags:
   - quality
   - review
   - security
+  - orchestration
 resources:
   - checklist.md
 vendor_support:
@@ -22,52 +25,100 @@ vendor_support:
 
 ## Code Review Skill
 
-Perform a structured, thorough code review following the process below.
+Entry point for all code reviews. Detects context and routes to the right specialized skill.
 
-### Step 1 — Load the Checklist
+### Step 0 — Load Project Map
 
-Read `checklist.md` (in this skill's directory) and apply every item before writing the review.
+Check for `.agentic/project-map.md`:
+- **If present**: read it. Use the layer structure, key modules, and conventions it defines
+  as the foundation for all findings. Skip redundant filesystem exploration.
+- **If absent**: run lightweight auto-discovery:
+  - Detect language from `go.mod`, `package.json`, `tsconfig.json`, `pyproject.toml`, `composer.json`
+  - List top-level directories to understand project structure
+  - Read the entry point file (e.g. `main.go`, `src/index.ts`, `app/main.py`) for ~20 lines of context
+  - Suggest running the `project-map` skill after this review to avoid discovery overhead next time
 
-### Step 2 — Determine Scope
+### Step 1 — Detect Language and Architecture
 
-- If the user specifies files, review those.
-- Otherwise, review the current diff (`git diff HEAD` or the staged changes).
-- Do not review files outside the stated scope.
+**Language detection** (inspect file extensions + manifest files):
 
-### Step 3 — Analyze
+| Signal | Language |
+|---|---|
+| `go.mod` present | Go |
+| `tsconfig.json` or `package.json` with TypeScript devDep | TypeScript |
+| `pyproject.toml` or `setup.py` | Python |
+| `composer.json` | PHP |
 
-Work through the checklist systematically. For each issue found, note:
-- File path and line number
-- Severity: `blocking`, `suggestion`, or `nit`
-- Clear description of the issue and why it matters
+**Architecture detection** (inspect directory names and import patterns):
 
-### Step 4 — Write the Review
+| Signal | Architecture |
+|---|---|
+| `domain/`, `application/`, `infrastructure/`, `ports/` directories | Hexagonal / Clean |
+| Aggregate root classes, domain events, value objects | DDD |
+| `command/` + `query/` directories, command/query handler classes | CQRS |
+| Multiple independent services each with their own data store | Microservices |
 
-Output the review in this exact format:
+### Step 2 — Route to Specialized Skill(s)
+
+Load and apply the appropriate skill(s):
+
+| Detected | Skill to apply |
+|---|---|
+| Go | `code-review-go` |
+| TypeScript / JavaScript | `code-review-typescript` |
+| Python | `code-review-python` |
+| PHP | `code-review-php` |
+| Hexagonal / DDD / CQRS / Microservices markers | `code-review-architecture` (in addition to language skill) |
+| Mixed or unrecognized | Apply generic `checklist.md` only |
+
+Multiple skills can be active simultaneously (e.g. Go + Architecture for a Go hexagonal service).
+
+### Step 3 — Apply Generic Checklist as Baseline
+
+Always apply `checklist.md` (in this skill's directory) in addition to any specialized checklist.
+This ensures correctness, security, tests, design, readability, performance, and observability
+are evaluated regardless of language.
+
+### Step 4 — Write the Combined Review
+
+Merge findings from all active skills. Deduplicate findings that appear in multiple checklists.
+
+Output format:
 
 ```
 ## Code Review
 
-### Summary
-[One paragraph: overall quality, confidence in the change, merge recommendation]
-
-### Blocking Issues
-<!-- Must be fixed before merge. Empty = none. -->
-- `path/to/file.ts:42` [blocking] Description and why it must change.
-
-### Suggestions
-<!-- Non-blocking improvements worth considering. -->
-- `path/to/file.ts:18` [suggestion] Description.
-
-### Nits
-<!-- Trivial style or wording notes. -->
-- `path/to/file.ts:5` [nit] Description.
-
 ### What Works Well
 - [At least one specific positive observation]
+
+### Findings
+
+#### Critical
+- `path/to/file:line` [critical] Description. Why it must change. *Source: [name](url)*
+
+#### High
+- `path/to/file:line` [high] Description.
+
+#### Medium
+- `path/to/file:line` [medium] Description.
+
+#### Low
+- `path/to/file:line` [low] Minor note.
+
+### Suggested Improvements
+[Concrete alternatives and solutions for the most impactful findings]
+
+### Summary
+[One paragraph: overall quality, main risks, merge recommendation]
 ```
 
-### Step 5 — Tone
+### Step 5 — Tone and Sources
 
-Be direct and specific. Reference exact line numbers. Explain *why* — not just *what* to change.
-Assume good intent. Acknowledge what is done well.
+- Be direct and specific. Reference exact line numbers.
+- Cite verifiable sources (language specs, official docs, well-known style guides) inline for
+  non-obvious findings. Format: *Source: [name](url)*
+- Explain *why*, not just *what* to change.
+- Assume good intent. Use sandwich communication: open with positives, then findings by
+  severity descending, then actionable improvement path.
+- For concurrency / state-machine issues too complex for prose: emit a `stateDiagram-v2`
+  Mermaid block showing the problematic and correct state transitions.
