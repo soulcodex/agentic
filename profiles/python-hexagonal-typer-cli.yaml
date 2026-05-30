@@ -6,7 +6,7 @@ meta:
     Typer + Rich for the command layer; domain and application layers have
     zero CLI framework dependencies. Fully type-annotated, tested with pytest,
     linted with ruff, and type-checked with mypy.
-  version: "1.0.1"
+  version: "1.0.0"
 
 fragments:
   base:
@@ -44,7 +44,6 @@ tech_stack:
     - "mypy"
 
 skills:
-  - project-map
   - code-review
   - add-tests
   - write-adr

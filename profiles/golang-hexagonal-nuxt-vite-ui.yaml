@@ -5,7 +5,7 @@ meta:
     Full-stack application with a Go hexagonal backend and a Nuxt 3 / Vue 3
     frontend. Go handles all business logic and HTTP APIs; Nuxt delivers
     SSR-capable pages with Vite for fast builds and Vitest for unit tests.
-  version: "1.1.1"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -70,7 +70,6 @@ tech_stack:
     - "VueRouter"
 
 skills:
-  - project-map
   - docker-compose-local-setup
   - write-dockerfile
   - code-review

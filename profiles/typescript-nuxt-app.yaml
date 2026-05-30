@@ -7,7 +7,7 @@ meta:
     error handling, plugins, runtime config, Nitro caching, Layers), Vue component
     design, composition patterns, prop drilling prevention, styling discipline, and
     a three-tier test strategy (unit / component / acceptance).
-  version: "1.0.1"
+  version: "1.0.0"
 
 fragments:
   base:
@@ -48,7 +48,6 @@ tech_stack:
     - "Playwright (acceptance)"
 
 skills:
-  - project-map
   - code-review
   - add-tests
   - vue-application-structure

@@ -4,7 +4,7 @@ meta:
   description: >
     Python microservice with FastAPI, hexagonal architecture, and full type annotations.
     Uses uv for dependency management, Pydantic for validation, and pytest for testing.
-  version: "1.0.1"
+  version: "1.0.0"
 
 fragments:
   base:
@@ -32,7 +32,6 @@ fragments:
   domains: []
 
 skills:
-  - project-map
   - docker-compose-local-setup
   - write-dockerfile
   - relational-database-design

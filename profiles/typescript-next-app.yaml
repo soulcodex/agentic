@@ -7,7 +7,7 @@ meta:
     route handlers, caching, middleware, runtime config), React component design,
     hooks patterns, styling discipline, and a three-tier test strategy
     (unit / component / acceptance).
-  version: "1.0.1"
+  version: "1.0.0"
 
 fragments:
   base:
@@ -45,7 +45,6 @@ tech_stack:
     - "Playwright (acceptance)"
 
 skills:
-  - project-map
   - code-review
   - add-tests
   - react-application-structure

@@ -5,7 +5,7 @@ meta:
     AWS-focused Terraform module profile for designing, implementing, and testing
     reusable infrastructure modules with explicit state, security, and validation
     guardrails.
-  version: "1.0.1"
+  version: "1.0.0"
 
 fragments:
   base:
@@ -28,7 +28,6 @@ tech_stack:
   build_tool: "terraform fmt/validate/plan"
 
 skills:
-  - project-map
   - design-aws-terraform-iac
   - create-terraform-module
   - create-terraform-tests

@@ -4,7 +4,7 @@ meta:
   description: >
     PHP 8.3+ application using Symfony, hexagonal architecture, and DDD patterns.
     Strict types everywhere. PHPStan level 8. PHP-CS-Fixer for formatting.
-  version: "1.0.1"
+  version: "1.0.0"
 
 fragments:
   base:
@@ -36,7 +36,6 @@ skills:
   - docker-compose-local-setup
   - write-dockerfile
   - relational-database-design
-  - project-map
 
 output:
   build_command: "composer install --no-dev --optimize-autoloader"

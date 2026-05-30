@@ -5,7 +5,7 @@ meta:
     Full-stack application with a Go hexagonal backend and a Next.js
     frontend. Go handles all business logic and HTTP APIs; Next.js delivers
     SSR-capable pages with modern build performance and Vitest for unit tests.
-  version: "1.1.1"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -69,7 +69,6 @@ tech_stack:
     - "App Router"
 
 skills:
-  - project-map
   - code-review
   - add-tests
   - ddd-aggregate-modeling

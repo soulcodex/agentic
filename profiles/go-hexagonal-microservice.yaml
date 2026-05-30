@@ -4,7 +4,7 @@ meta:
   description: >
     Go backend microservice following hexagonal architecture with DDD patterns.
     Idiomatic Go: explicit error handling, small interfaces, no global state.
-  version: "1.1.1"
+  version: "1.1.0"
 
 fragments:
   base:
@@ -34,7 +34,6 @@ fragments:
   domains: []
 
 skills:
-  - project-map
   - ddd-aggregate-modeling
   - docker-compose-local-setup
   - write-dockerfile

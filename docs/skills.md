@@ -36,13 +36,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 ### Development
 
 - `add-tests` — Add focused tests for existing code based on behavior and edge cases.
-- `code-review` — Orchestrates code review by detecting project language and architecture, routing to specialized language skills (Go, TypeScript, Python, PHP) and architecture skills dynamically.
-- `code-review-go` — Deep Go-specific code review: goroutine lifecycle, data races, error wrapping, domain modeling, and interface design.
-- `code-review-typescript` — Deep TypeScript-specific code review: type safety, ESM/CJS, async correctness, money precision, and domain modeling.
-- `code-review-python` — Deep Python-specific code review: type annotations, async pitfalls, mutable defaults, threading safety, and domain modeling.
-- `code-review-php` — Deep PHP-specific code review: strict types, PHPStan compliance, PSR standards, domain modeling, and ORM boundary violations.
-- `code-review-architecture` — Architecture-focused code review: hexagonal boundary violations, DDD anti-patterns, CQRS misuse, and microservices coupling issues.
-- `project-map` — Generate a compact `.agentic/project-map.md` orientation document so any agent can understand codebase structure without filesystem exploration.
+- `code-review` — Perform structured code review focused on correctness, risk, and quality.
 - `fix-bug` — Investigate root cause and implement a verified bug fix with regression coverage.
 - `git-flow-pr` — Execute branch, commit, rebase, push, and pull request workflow end-to-end.
 - `git-worktree-workspaces` — Use Git worktrees to run parallel branch workspaces safely.
