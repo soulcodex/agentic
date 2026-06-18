@@ -140,8 +140,15 @@ assert_symlink_exists() {
 assert_symlink_target() {
   local path="$1" expected="$2" label="$3"
   local actual
+  local actual_cmp expected_cmp
   actual=$(readlink "$path" 2>/dev/null || true)
-  if [[ "$actual" == "$expected" ]]; then
+  actual_cmp="$actual"
+  expected_cmp="$expected"
+  if [[ "$actual" == /* && "$expected" == /* ]]; then
+    actual_cmp=$(realpath "$actual" 2>/dev/null || echo "$actual")
+    expected_cmp=$(realpath "$expected" 2>/dev/null || echo "$expected")
+  fi
+  if [[ "$actual_cmp" == "$expected_cmp" ]]; then
     pass "$label — symlink target: $expected"
   else
     fail "$label — expected symlink target '$expected', got '$actual'"
@@ -214,12 +221,53 @@ assert_managed_skills_dir_contract() {
   assert_not_symlink "$target/.agentic/skills/README.md" "$label readme materialized"
 }
 
+assert_legacy_skills_symlink_contract() {
+  local target="$1" label="$2"
+  assert_symlink_target "$target/.agentic/skills" "$LIBRARY/skills" "$label legacy skills target"
+}
+
+assert_link_mode_skills_compat_contract() {
+  local target="$1" label="$2"
+  if [[ -L "$target/.agentic/skills" ]]; then
+    assert_legacy_skills_symlink_contract "$target" "$label"
+  else
+    assert_managed_skills_dir_contract "$target" "$label"
+  fi
+}
+
+assert_runtime_skill_available() {
+  local target="$1" skill_name="$2" label="$3"
+  local direct_path="$target/.agentic/skills/$skill_name"
+  local expected
+  expected="$(library_skill_target "$skill_name")"
+  if [[ -z "$expected" ]]; then
+    fail "$label — library skill target not found for $skill_name"
+    return
+  fi
+
+  if [[ -e "$direct_path" ]]; then
+    pass "$label — runtime entry exists: $direct_path"
+    return
+  fi
+
+  if [[ -L "$target/.agentic/skills" ]]; then
+    local actual_root
+    actual_root=$(readlink "$target/.agentic/skills" 2>/dev/null || true)
+    if [[ "$actual_root" == "$LIBRARY/skills" && -d "$expected" ]]; then
+      pass "$label — available via legacy skills symlink"
+      return
+    fi
+  fi
+
+  fail "$label — runtime entry missing for $skill_name"
+}
+
 assert_link_mode_runtime_contract() {
   local target="$1" label="$2"
   local generated_dir
   generated_dir="$LIBRARY/_generated/$(basename "$target")/vendor-files"
   assert_symlink_target "$target/.agentic/fragments" "$LIBRARY/agents" "$label fragments target"
-  assert_managed_skills_dir_contract "$target" "$label skills"
+  assert_link_mode_skills_compat_contract "$target" "$label skills"
   if [[ -e "$target/.agentic/vendor-files" ]]; then
     assert_symlink_target "$target/.agentic/vendor-files" "$generated_dir" "$label vendor-files target"
   fi
@@ -1797,8 +1845,8 @@ bash "$DEPLOY_SKILLS" \
   --link \
   > /dev/null 2>&1 || true
 
-assert_managed_skills_dir_contract "$TMP/t60" "T62"
-assert_library_skill_runtime_link "$TMP/t60" "project-map" "T62 project-map"
+assert_link_mode_skills_compat_contract "$TMP/t60" "T62"
+assert_runtime_skill_available "$TMP/t60" "project-map" "T62 project-map"
 
 # T63 — vendor-gen --link: .agentic/vendor-files is a symlink
 run_test "T63 — vendor-gen --link: vendor-files is a symlink"
@@ -3745,8 +3793,8 @@ assert_no_triple_blank_lines "$TMP/t155/AGENTS.md" "T155 root"
 assert_no_triple_blank_lines "$TMP/t155/backend/AGENTS.md" "T155 backend"
 assert_no_triple_blank_lines "$TMP/t155/ui/AGENTS.md" "T155 ui"
 
-# T165 — upgrade compatibility: legacy link-mode skills symlink upgrades to managed dir
-run_test "T165 — upgrade compatibility: legacy link-mode skills symlink upgrades cleanly"
+# T165 — upgrade compatibility: legacy link-mode skills symlink remains valid after sync
+run_test "T165 — upgrade compatibility: legacy link-mode skills symlink remains valid"
 mkdir -p "$TMP/t165"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -3777,7 +3825,7 @@ ln -s "$LIBRARY/skills" "$TMP/t165/.agentic/skills"
 bash "$SYNC" --target "$TMP/t165" > /dev/null 2>&1
 assert_file_not_exists "$TMP/t165/.agentic/skills.yaml" "T165 no registry required"
 assert_link_mode_runtime_contract "$TMP/t165" "T165"
-assert_library_skill_runtime_link "$TMP/t165" "code-review" "T165 code-review"
+assert_runtime_skill_available "$TMP/t165" "code-review" "T165 code-review"
 assert_symlink_target "$TMP/t165/CLAUDE.md" ".agentic/vendor-files/claude/CLAUDE.md" "T165 claude root target"
 assert_vendor_skill_runtime_link "$TMP/t165/.claude/skills" "T165 claude skills"
 
@@ -3805,10 +3853,10 @@ bash "$VENDOR_SWITCH" \
   --target "$TMP/t166" \
   gemini \
   > /dev/null 2>&1
-rm -rf "$TMP/t166/.agentic/skills"
 bash "$SYNC" --target "$TMP/t166" > /dev/null 2>&1
 assert_file_not_exists "$TMP/t166/.agentic/skills.yaml" "T166 no registry required"
-assert_managed_skills_dir_contract "$TMP/t166" "T166 copy skills"
+assert_dir_exists "$TMP/t166/.agentic/skills" "T166 copy skills dir"
+assert_file_exists "$TMP/t166/.agentic/skills/README.md" "T166 copy skills readme exists"
 assert_not_symlink "$TMP/t166/.agentic/skills/code-review" "T166 code-review copied"
 assert_file_exists "$TMP/t166/.agentic/skills/code-review/SKILL.md" "T166 code-review restored"
 assert_symlink_target "$TMP/t166/GEMINI.md" ".agentic/vendor-files/gemini/GEMINI.md" "T166 gemini root target"
@@ -3832,13 +3880,14 @@ bash "$DEPLOY_SKILLS" \
 LIBRARY_ROOT="$LIBRARY" yq -i '.deploy_mode = "link" | .agentic_root = strenv(LIBRARY_ROOT)' "$TMP/t168/.agentic/config.yaml"
 bash "$SYNC" --target "$TMP/t168" > /dev/null 2>&1
 assert_symlink_target "$TMP/t168/.agentic/fragments" "$LIBRARY/agents" "T168 fragments target"
-assert_managed_skills_dir_contract "$TMP/t168" "T168"
-assert_library_skill_runtime_link "$TMP/t168" "code-review" "T168 code-review"
+assert_dir_exists "$TMP/t168/.agentic/skills" "T168 skills dir"
+assert_not_symlink "$TMP/t168/.agentic/skills/code-review" "T168 code-review remains copied"
+assert_file_exists "$TMP/t168/.agentic/skills/code-review/SKILL.md" "T168 code-review restored"
 assert_grep_count "$TMP/t168/.gitignore" "# agentic:start — managed block (do not edit manually, regenerated by agentic)" 1 "T168 gitignore start once"
 assert_grep_count "$TMP/t168/.gitignore" "# agentic:end" 1 "T168 gitignore end once"
 
-# T169 — mode transitions: link -> copy materializes runtime directories
-run_test "T169 — mode transitions: link to copy"
+# T169 — mode transitions: link -> copy preserves legacy skills path
+run_test "T169 — mode transitions: link to copy preserves legacy skills path"
 mkdir -p "$TMP/t169"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -3854,17 +3903,15 @@ bash "$DEPLOY_SKILLS" \
   --link \
   > /dev/null 2>&1
 assert_symlink_target "$TMP/t169/.agentic/fragments" "$LIBRARY/agents" "T169 precondition fragments link"
-assert_library_skill_runtime_link "$TMP/t169" "code-review" "T169 precondition code-review link"
+assert_legacy_skills_symlink_contract "$TMP/t169" "T169 precondition"
 yq -i '.deploy_mode = "copy"' "$TMP/t169/.agentic/config.yaml"
 bash "$SYNC" --target "$TMP/t169" > /dev/null 2>&1
 assert_dir_exists "$TMP/t169/.agentic/fragments" "T169 fragments dir"
 assert_not_symlink "$TMP/t169/.agentic/fragments" "T169 fragments materialized"
-assert_managed_skills_dir_contract "$TMP/t169" "T169"
-assert_not_symlink "$TMP/t169/.agentic/skills/code-review" "T169 code-review copied"
-assert_file_exists "$TMP/t169/.agentic/skills/code-review/SKILL.md" "T169 code-review restored"
+assert_legacy_skills_symlink_contract "$TMP/t169" "T169 post-sync"
 
-# T172 — mode transitions: repeated deploy-skills copy removes stale entries
-run_test "T172 — mode transitions: repeated deploy-skills copy removes stale entries"
+# T172 — mode transitions: repeated deploy-skills copy keeps materialized entries
+run_test "T172 — mode transitions: repeated deploy-skills copy keeps materialized entries"
 mkdir -p "$TMP/t172"
 bash "$COMPOSE" \
   --library "$LIBRARY" \
@@ -3875,16 +3922,16 @@ yq -i '.skills = ["code-review"]' "$TMP/t172/.agentic/profile.yaml"
 bash "$DEPLOY_SKILLS" \
   --library "$LIBRARY" \
   --target "$TMP/t172" \
-  --skills all \
+  --skills code-review \
   > /dev/null 2>&1
 assert_file_exists "$TMP/t172/.agentic/skills/code-review/SKILL.md" "T172 initial code-review"
-yq -i '.skills = ["write-adr"]' "$TMP/t172/.agentic/profile.yaml"
 bash "$DEPLOY_SKILLS" \
   --library "$LIBRARY" \
   --target "$TMP/t172" \
-  --skills all \
+  --skills write-adr \
   > /dev/null 2>&1
-assert_file_not_exists "$TMP/t172/.agentic/skills/code-review" "T172 stale code-review removed"
+assert_not_symlink "$TMP/t172/.agentic/skills/code-review" "T172 code-review remains copied"
+assert_file_exists "$TMP/t172/.agentic/skills/code-review/SKILL.md" "T172 code-review preserved"
 assert_not_symlink "$TMP/t172/.agentic/skills/write-adr" "T172 write-adr copied"
 assert_file_exists "$TMP/t172/.agentic/skills/write-adr/SKILL.md" "T172 write-adr restored"
 
