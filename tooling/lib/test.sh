@@ -157,6 +157,74 @@ assert_not_symlink() {
   fi
 }
 
+assert_dir_exists() {
+  local path="$1" label="$2"
+  if [[ -d "$path" ]]; then
+    pass "$label — directory exists: $path"
+  else
+    fail "$label — expected directory does not exist: $path"
+  fi
+}
+
+assert_grep_count() {
+  local file="$1" pattern="$2" expected="$3" label="$4"
+  local count
+  count=$(grep -cF -- "$pattern" "$file" 2>/dev/null || true)
+  if [[ "$count" -eq "$expected" ]]; then
+    pass "$label — count $count matches for: $pattern"
+  else
+    fail "$label — expected count $expected for '$pattern', got $count"
+  fi
+}
+
+library_skill_target() {
+  local skill_name="$1"
+  find "$LIBRARY/skills" -maxdepth 2 -type d -name "$skill_name" | head -1
+}
+
+assert_vendor_skill_runtime_link() {
+  local path="$1" label="$2"
+  assert_symlink_exists "$path" "$label exists"
+  assert_symlink_target "$path" "../.agentic/skills" "$label target"
+}
+
+assert_library_skill_runtime_link() {
+  local target="$1" skill_name="$2" label="$3"
+  local expected
+  expected="$(library_skill_target "$skill_name")"
+  if [[ -z "$expected" ]]; then
+    fail "$label — library skill target not found for $skill_name"
+    return
+  fi
+  assert_symlink_exists "$target/.agentic/skills/$skill_name" "$label exists"
+  assert_symlink_target "$target/.agentic/skills/$skill_name" "$expected" "$label target"
+}
+
+assert_project_skill_runtime_link() {
+  local target="$1" skill_name="$2" label="$3"
+  assert_symlink_exists "$target/.agentic/skills/$skill_name" "$label exists"
+  assert_symlink_target "$target/.agentic/skills/$skill_name" "../project-skills/$skill_name" "$label target"
+}
+
+assert_managed_skills_dir_contract() {
+  local target="$1" label="$2"
+  assert_dir_exists "$target/.agentic/skills" "$label dir"
+  assert_not_symlink "$target/.agentic/skills" "$label dir materialized"
+  assert_file_exists "$target/.agentic/skills/README.md" "$label readme exists"
+  assert_not_symlink "$target/.agentic/skills/README.md" "$label readme materialized"
+}
+
+assert_link_mode_runtime_contract() {
+  local target="$1" label="$2"
+  local generated_dir
+  generated_dir="$LIBRARY/_generated/$(basename "$target")/vendor-files"
+  assert_symlink_target "$target/.agentic/fragments" "$LIBRARY/agents" "$label fragments target"
+  assert_managed_skills_dir_contract "$target" "$label skills"
+  if [[ -e "$target/.agentic/vendor-files" ]]; then
+    assert_symlink_target "$target/.agentic/vendor-files" "$generated_dir" "$label vendor-files target"
+  fi
+}
+
 run_test() {
   local name="$1"
   # Extract just the number part (e.g., "02" from "T02 — compose: ...")
@@ -614,9 +682,11 @@ bash "$VENDOR_SWITCH" \
   claude \
   > /dev/null 2>&1
 
-# Claude should have CLAUDE.md symlink and .claude/skills symlink
+# Symlink contract: Claude entrypoints
 assert_file_exists     "$TMP/t28/CLAUDE.md"                                   "T28 claude"
 assert_file_exists     "$TMP/t28/.agentic/vendor-files/claude/CLAUDE.md"      "T28 claude"
+assert_symlink_target  "$TMP/t28/CLAUDE.md" ".agentic/vendor-files/claude/CLAUDE.md" "T28 claude root target"
+assert_vendor_skill_runtime_link "$TMP/t28/.claude/skills" "T28 claude skills"
 assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"      "T28 claude"
 assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - claude"           "T28 claude"
 
@@ -627,10 +697,13 @@ bash "$VENDOR_SWITCH" \
   gemini \
   > /dev/null 2>&1
 
-# Gemini should have symlink, claude symlinks should be gone
+# Symlink contract: Gemini entrypoints
 assert_file_exists "$TMP/t28/GEMINI.md"            "T28 gemini GEMINI.md root symlink"
 assert_file_exists "$TMP/t28/.gemini/system.md"     "T28 gemini system.md"
 assert_file_exists "$TMP/t28/.agentic/vendor-files/gemini/GEMINI.md" "T28 gemini vendor file"
+assert_symlink_target "$TMP/t28/GEMINI.md" ".agentic/vendor-files/gemini/GEMINI.md" "T28 gemini root target"
+assert_symlink_target "$TMP/t28/.gemini/system.md" "../.agentic/vendor-files/gemini/system.md" "T28 gemini system target"
+assert_vendor_skill_runtime_link "$TMP/t28/.gemini/skills" "T28 gemini skills"
 assert_file_not_exists "$TMP/t28/CLAUDE.md"                                    "T28 gemini (no claude)"
 assert_file_contains   "$TMP/t28/.agentic/config.yaml" "active_vendors:"       "T28 gemini"
 assert_file_contains   "$TMP/t28/.agentic/config.yaml" "  - gemini"            "T28 gemini"
@@ -664,12 +737,7 @@ bash "$DEPLOY_SKILLS" \
 
 # Should have canonical location and symlink
 assert_file_exists "$TMP/t30/.agentic/skills/code-review/SKILL.md" "T30"
-# Check .claude/skills is a symlink pointing to ../.agentic/skills
-if [[ -L "$TMP/t30/.claude/skills" ]]; then
-  pass "T30 — .claude/skills is a symlink"
-else
-  fail "T30 — .claude/skills should be a symlink"
-fi
+assert_vendor_skill_runtime_link "$TMP/t30/.claude/skills" "T30 claude skills"
 
 # T31 — deploy-skills: creates multiple vendor symlinks
 run_test "T31 — deploy-skills: creates symlinks for multiple vendors"
@@ -681,22 +749,9 @@ bash "$DEPLOY_SKILLS" \
   --vendor claude,codex,opencode \
   > /dev/null 2>&1
 
-# Check all three vendor symlinks
-if [[ -L "$TMP/t31/.claude/skills" ]]; then
-  pass "T31 — .claude/skills is a symlink"
-else
-  fail "T31 — .claude/skills should be a symlink"
-fi
-if [[ -L "$TMP/t31/.agents/skills" ]]; then
-  pass "T31 — .agents/skills is a symlink (codex)"
-else
-  fail "T31 — .agents/skills should be a symlink"
-fi
-if [[ -L "$TMP/t31/.opencode/skills" ]]; then
-  pass "T31 — .opencode/skills is a symlink"
-else
-  fail "T31 — .opencode/skills should be a symlink"
-fi
+assert_vendor_skill_runtime_link "$TMP/t31/.claude/skills" "T31 claude skills"
+assert_vendor_skill_runtime_link "$TMP/t31/.agents/skills" "T31 codex skills"
+assert_vendor_skill_runtime_link "$TMP/t31/.opencode/skills" "T31 opencode skills"
 
 # T32 — vendor-switch: creates skill symlinks automatically
 run_test "T32 — vendor-switch: creates skill symlinks for codex"
@@ -721,12 +776,7 @@ bash "$VENDOR_SWITCH" \
   codex \
   > /dev/null 2>&1
 
-# Codex should have .agents/skills symlink
-if [[ -L "$TMP/t32/.agents/skills" ]]; then
-  pass "T32 — .agents/skills symlink created for codex"
-else
-  fail "T32 — .agents/skills should be a symlink for codex"
-fi
+assert_vendor_skill_runtime_link "$TMP/t32/.agents/skills" "T32 codex skills"
 assert_file_contains "$TMP/t32/.agentic/config.yaml" "active_vendors:" "T32"
 assert_file_contains "$TMP/t32/.agentic/config.yaml" "  - codex" "T32"
 
@@ -832,6 +882,7 @@ assert_file_contains "$TMP/t38/AGENTS.md" "v77.0.0" "T38"
 # Active vendors should be preserved
 assert_file_contains "$TMP/t38/.agentic/config.yaml" "active_vendors:" "T38"
 assert_file_contains "$TMP/t38/.agentic/config.yaml" "  - claude" "T38"
+assert_symlink_target "$TMP/t38/CLAUDE.md" ".agentic/vendor-files/claude/CLAUDE.md" "T38 claude root target"
 
 # T39 — deploy-skills: project: prefix deploys project-local skills
 run_test "T39 — deploy-skills: project: prefix deploys project-local skills"
@@ -1153,9 +1204,8 @@ T138_EXIT=0
 bash "$CLI" deploy golang-hexagonal-cobra-cli "$TMP/t138" codex --link > /dev/null 2>&1 || T138_EXIT=$?
 assert_exit_code 0 "$T138_EXIT" "T138"
 assert_file_exists "$TMP/t138/AGENTS.md" "T138"
-assert_symlink_exists "$TMP/t138/.agentic/fragments" "T138 fragments link"
-assert_symlink_exists "$TMP/t138/.agentic/skills" "T138 skills link"
-assert_symlink_exists "$TMP/t138/.agentic/vendor-files" "T138 vendor-files link"
+assert_link_mode_runtime_contract "$TMP/t138" "T138"
+assert_vendor_skill_runtime_link "$TMP/t138/.agents/skills" "T138 codex skills"
 assert_file_contains "$TMP/t138/.agentic/config.yaml" "deploy_mode: link" "T138"
 
 # T139 — CLI: compose accepts --link and writes link-mode config
@@ -1165,7 +1215,7 @@ T139_EXIT=0
 bash "$CLI" compose golang-hexagonal-cobra-cli "$TMP/t139" --link > /dev/null 2>&1 || T139_EXIT=$?
 assert_exit_code 0 "$T139_EXIT" "T139"
 assert_file_exists "$TMP/t139/AGENTS.md" "T139"
-assert_symlink_exists "$TMP/t139/.agentic/fragments" "T139 fragments link"
+assert_symlink_target "$TMP/t139/.agentic/fragments" "$LIBRARY/agents" "T139 fragments target"
 assert_file_contains "$TMP/t139/.agentic/config.yaml" "deploy_mode: link" "T139"
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1729,11 +1779,7 @@ bash "$COMPOSE" \
   --link \
   > /dev/null 2>&1 || true
 
-if [[ -L "$TMP/t60/.agentic/fragments" ]]; then
-  pass "T60 — .agentic/fragments is a symlink"
-else
-  fail "T60 — .agentic/fragments should be a symlink, not a real directory"
-fi
+assert_symlink_target "$TMP/t60/.agentic/fragments" "$LIBRARY/agents" "T60 fragments target"
 assert_file_contains "$TMP/t60/.agentic/config.yaml" "deploy_mode: link" "T60"
 
 # T61 — compose --link: AGENTS.md is still generated correctly
@@ -1742,8 +1788,8 @@ assert_file_exists "$TMP/t60/AGENTS.md" "T61"
 assert_file_contains "$TMP/t60/AGENTS.md" "<!-- AUTO-GENERATED by agentic library -->" "T61"
 assert_file_contains "$TMP/t60/AGENTS.md" "## Conventions & Patterns" "T61"
 
-# T62 — deploy-skills --link: .agentic/skills is a symlink
-run_test "T62 — deploy-skills --link: skills is a symlink"
+# T62 — deploy-skills --link: .agentic/skills is a managed runtime directory
+run_test "T62 — deploy-skills --link: skills managed dir"
 bash "$DEPLOY_SKILLS" \
   --library "$LIBRARY" \
   --target "$TMP/t60" \
@@ -1751,15 +1797,8 @@ bash "$DEPLOY_SKILLS" \
   --link \
   > /dev/null 2>&1 || true
 
-if [[ -L "$TMP/t60/.agentic/skills" ]]; then
-  pass "T62 — .agentic/skills is a symlink"
-else
-  fail "T62 — .agentic/skills should be a symlink"
-fi
-# Skill files must still be accessible through the symlink
-# Skills are in subdirectories under $LIBRARY/skills/ (e.g. development/code-review/),
-# accessible as .agentic/skills/development/code-review/SKILL.md
-assert_file_exists "$TMP/t60/.agentic/skills/development/code-review/SKILL.md" "T62 skill accessible"
+assert_managed_skills_dir_contract "$TMP/t60" "T62"
+assert_library_skill_runtime_link "$TMP/t60" "project-map" "T62 project-map"
 
 # T63 — vendor-gen --link: .agentic/vendor-files is a symlink
 run_test "T63 — vendor-gen --link: vendor-files is a symlink"
@@ -1770,11 +1809,7 @@ bash "$VENDOR_GEN" \
   --link \
   > /dev/null 2>&1 || true
 
-if [[ -L "$TMP/t60/.agentic/vendor-files" ]]; then
-  pass "T63 — .agentic/vendor-files is a symlink"
-else
-  fail "T63 — .agentic/vendor-files should be a symlink"
-fi
+assert_symlink_target "$TMP/t60/.agentic/vendor-files" "$LIBRARY/_generated/t60/vendor-files" "T63 vendor-files target"
 assert_file_exists "$TMP/t60/.agentic/vendor-files/claude/CLAUDE.md" "T63 vendor file accessible"
 
 # T64 — config.yaml: deploy_mode and agentic_root are set in link mode
@@ -1790,11 +1825,8 @@ rm "$TMP/t60/.agentic/fragments" 2>/dev/null || true
 bash "$SYNC_LINKS" \
   --target "$TMP/t60" \
   > /dev/null 2>&1 || true
-if [[ -L "$TMP/t60/.agentic/fragments" ]]; then
-  pass "T65 — .agentic/fragments symlink re-created by sync-links"
-else
-  fail "T65 — sync-links failed to re-create .agentic/fragments symlink"
-fi
+assert_symlink_target "$TMP/t60/.agentic/fragments" "$LIBRARY/agents" "T65 fragments target"
+assert_symlink_target "$TMP/t60/.agentic/skills" "$LIBRARY/skills" "T65 legacy skills target"
 
 # T66 — regression: compose without --link still copies files (not symlinks)
 run_test "T66 — regression: compose without --link uses real directories"
@@ -2258,10 +2290,12 @@ bash "$VENDOR_SWITCH" \
   > /dev/null 2>&1
 
 assert_symlink_exists "$TMP/t93/GEMINI.md" "T93 GEMINI.md symlink"
+assert_symlink_target "$TMP/t93/GEMINI.md" ".agentic/vendor-files/gemini/GEMINI.md" "T93 GEMINI.md target"
 
 # T94 — vendor-switch: .gemini/system.md symlink created after switching to gemini
 run_test "T94 — vendor-switch: .gemini/system.md symlink created"
 assert_symlink_exists "$TMP/t93/.gemini/system.md" "T94 .gemini/system.md symlink"
+assert_symlink_target "$TMP/t93/.gemini/system.md" "../.agentic/vendor-files/gemini/system.md" "T94 .gemini/system target"
 
 # T95 — vendor-switch: .gemini/skills symlink created when skills exist
 run_test "T95 — vendor-switch: .gemini/skills symlink created when skills exist"
@@ -2278,7 +2312,7 @@ bash "$VENDOR_SWITCH" \
   gemini \
   > /dev/null 2>&1
 
-assert_symlink_exists "$TMP/t93/.gemini/skills" "T95 .gemini/skills symlink"
+assert_vendor_skill_runtime_link "$TMP/t93/.gemini/skills" "T95 gemini skills"
 
 # T96 — deploy-skills: .gemini/skills symlink created with --vendor gemini
 run_test "T96 — deploy-skills: .gemini/skills symlink created with --vendor gemini"
@@ -2290,7 +2324,7 @@ bash "$DEPLOY_SKILLS" \
   --vendor gemini \
   > /dev/null 2>&1
 
-assert_symlink_exists "$TMP/t96/.gemini/skills" "T96 .gemini/skills symlink"
+assert_vendor_skill_runtime_link "$TMP/t96/.gemini/skills" "T96 gemini skills"
 
 # T97 — vendor isolation: vendors/gemini/gen.sh exists and is a regular file
 run_test "T97 — vendor isolation: vendors/gemini/gen.sh exists"
@@ -2353,7 +2387,7 @@ mkdir -p "$TMP/t101a"
 AGENTIC_REPO_ROOT="$LIBRARY" "$CLI" init "$TMP/t101a" --link --sync > /dev/null 2>&1
 assert_file_exists "$TMP/t101a/AGENTS.md" "T101A AGENTS"
 assert_file_contains "$TMP/t101a/.agentic/config.yaml" "deploy_mode: link" "T101A config link mode"
-assert_symlink_exists "$TMP/t101a/.agentic/fragments" "T101A fragments symlink"
+assert_symlink_target "$TMP/t101a/.agentic/fragments" "$LIBRARY/agents" "T101A fragments target"
 
 # T101B — sync: respects deploy_mode: link from config
 run_test "T101B — sync respects deploy_mode link"
@@ -2380,7 +2414,7 @@ deploy_mode: link
 active_vendors: []
 EOF
 bash "$LIBRARY/tooling/lib/sync.sh" --target "$TMP/t101b" > /dev/null 2>&1
-assert_symlink_exists "$TMP/t101b/.agentic/fragments" "T101B fragments symlink after sync"
+assert_symlink_target "$TMP/t101b/.agentic/fragments" "$LIBRARY/agents" "T101B fragments target after sync"
 
 # T102 — compose: .agentic/mcp.yaml takes precedence over profile mcp
 run_test "T102 — compose: mcp.yaml precedence"
@@ -3354,7 +3388,7 @@ bash "$VENDOR_SWITCH" \
   cursor \
   > /dev/null 2>&1
 
-assert_symlink_exists "$TMP/t124/.cursor/rules" "T126 cursor rules symlink"
+assert_symlink_target "$TMP/t124/.cursor/rules" "$TMP/t124/.agentic/vendor-files/cursor/rules" "T126 cursor rules target"
 assert_file_contains "$TMP/t124/.agentic/config.yaml" "  - cursor" "T126 active vendor"
 
 # T127 — vendor-switch: preserve unrelated .cursor/mcp.json
@@ -3398,7 +3432,7 @@ bash "$VENDOR_SWITCH" \
   --target "$TMP/t127b" \
   cursor \
   > /dev/null 2>&1
-assert_symlink_exists "$TMP/t127b/.cursor/rules" "T127B rules symlink created"
+assert_symlink_target "$TMP/t127b/.cursor/rules" "$TMP/t127b/.agentic/vendor-files/cursor/rules" "T127B rules target"
 assert_file_exists "$TMP/t127b/.cursor/rules.backup/custom.mdc" "T127B backup created"
 assert_file_contains "$TMP/t127b/.agentic/config.yaml" "  - cursor" "T127B active vendor updated"
 
@@ -3424,7 +3458,7 @@ bash "$VENDOR_SWITCH" \
   --target "$TMP/t127c" \
   cursor \
   > /dev/null 2>&1
-assert_symlink_exists "$TMP/t127c/.cursor/rules" "T127C rules symlink created"
+assert_symlink_target "$TMP/t127c/.cursor/rules" "$TMP/t127c/.agentic/vendor-files/cursor/rules" "T127C rules target"
 assert_file_exists "$TMP/t127c/.cursor/rules.backup.1/custom.mdc" "T127C incremental backup created"
 assert_file_exists "$TMP/t127c/.cursor/rules.backup/existing.txt" "T127C existing backup retained"
 
@@ -3464,6 +3498,7 @@ else
 fi
 assert_stdout_contains "$T127D_OUTPUT" "rolling back state" "T127D rollback message"
 assert_symlink_exists "$TMP/t127d/CLAUDE.md" "T127D claude symlink restored"
+assert_symlink_target "$TMP/t127d/CLAUDE.md" ".agentic/vendor-files/claude/CLAUDE.md" "T127D claude target restored"
 assert_not_symlink "$TMP/t127d/.cursor/rules" "T127D cursor rules restored as directory"
 assert_file_exists "$TMP/t127d/.cursor/rules/custom.mdc" "T127D cursor rules content restored"
 assert_file_not_exists "$TMP/t127d/GEMINI.md" "T127D gemini root link removed on rollback"
@@ -3515,7 +3550,7 @@ bash "$VENDOR_SWITCH" \
 T130_CODE=$?
 set -e
 assert_exit_code 1 "$T130_CODE" "T130"
-assert_symlink_exists "$TMP/t130/.cursor/rules" "T130 cursor symlink preserved"
+assert_symlink_target "$TMP/t130/.cursor/rules" "$TMP/t130/.agentic/vendor-files/cursor/rules" "T130 cursor target preserved"
 assert_file_not_exists "$TMP/t130/GEMINI.md" "T130 gemini root link removed on rollback"
 assert_file_not_exists "$TMP/t130/.gemini/system.md" "T130 gemini system link removed on rollback"
 assert_file_not_exists "$TMP/t130/.gemini/skills" "T130 gemini skills link removed on rollback"
@@ -3554,7 +3589,7 @@ bash "$VENDOR_SWITCH" \
   > /dev/null 2>&1
 assert_file_exists "$TMP/t132/.cursor/mcp.json" "T132 mcp preserved"
 assert_file_exists "$TMP/t132/.cursor/rules.backup/custom.mdc" "T132 backup created"
-assert_symlink_exists "$TMP/t132/.cursor/rules" "T132 rules symlink created"
+assert_symlink_target "$TMP/t132/.cursor/rules" "$TMP/t132/.agentic/vendor-files/cursor/rules" "T132 rules target"
 
 # T133 — vendor-switch: backup naming increments across repeated migrations
 run_test "T133 — vendor-switch: deterministic incremental backup naming"
@@ -3624,9 +3659,9 @@ bash "$VENDOR_SWITCH" \
   cursor \
   > /dev/null 2>&1
 assert_file_exists "$TMP/t135/.agentic/vendor-files/cursor/switch-manifest.json" "T135 manifest"
-assert_symlink_exists "$TMP/t135/.cursor/rules" "T135 root symlink"
-assert_symlink_exists "$TMP/t135/backend/.cursor/rules" "T135 backend symlink"
-assert_symlink_exists "$TMP/t135/ui/.cursor/rules" "T135 ui symlink"
+assert_symlink_target "$TMP/t135/.cursor/rules" "$TMP/t135/.agentic/vendor-files/cursor/rules" "T135 root target"
+assert_symlink_target "$TMP/t135/backend/.cursor/rules" "$TMP/t135/.agentic/vendor-files/cursor/rules/backend" "T135 backend target"
+assert_symlink_target "$TMP/t135/ui/.cursor/rules" "$TMP/t135/.agentic/vendor-files/cursor/rules/ui" "T135 ui target"
 
 # T136 — vendor-switch: cursor multi-path failure rolls back cleanly
 run_test "T136 — vendor-switch: cursor multi-path rollback on partial failure"
@@ -3655,6 +3690,7 @@ T136_EXIT=${T136_EXIT:-0}
 assert_exit_code 1 "$T136_EXIT" "T136"
 assert_stdout_contains "$T136_OUTPUT" "rolling back state" "T136 rollback message"
 assert_symlink_exists "$TMP/t136/CLAUDE.md" "T136 claude restored"
+assert_symlink_target "$TMP/t136/CLAUDE.md" ".agentic/vendor-files/claude/CLAUDE.md" "T136 claude target restored"
 assert_file_not_exists "$TMP/t136/.cursor/rules" "T136 root cursor link removed"
 assert_file_not_exists "$TMP/t136/backend/.cursor/rules" "T136 backend cursor link removed"
 assert_file_contains "$TMP/t136/ui/.cursor" "blocker" "T136 blocker file preserved"
@@ -3708,6 +3744,149 @@ bash "$COMPOSE" \
 assert_no_triple_blank_lines "$TMP/t155/AGENTS.md" "T155 root"
 assert_no_triple_blank_lines "$TMP/t155/backend/AGENTS.md" "T155 backend"
 assert_no_triple_blank_lines "$TMP/t155/ui/AGENTS.md" "T155 ui"
+
+# T165 — upgrade compatibility: legacy link-mode skills symlink upgrades to managed dir
+run_test "T165 — upgrade compatibility: legacy link-mode skills symlink upgrades cleanly"
+mkdir -p "$TMP/t165"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t165" \
+  --link \
+  > /dev/null 2>&1
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t165" \
+  --vendors claude \
+  --link \
+  > /dev/null 2>&1
+yq -i '.skills = ["code-review"]' "$TMP/t165/.agentic/profile.yaml"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t165" \
+  --skills all \
+  --link \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t165" \
+  claude \
+  > /dev/null 2>&1
+rm -rf "$TMP/t165/.agentic/skills"
+ln -s "$LIBRARY/skills" "$TMP/t165/.agentic/skills"
+bash "$SYNC" --target "$TMP/t165" > /dev/null 2>&1
+assert_file_not_exists "$TMP/t165/.agentic/skills.yaml" "T165 no registry required"
+assert_link_mode_runtime_contract "$TMP/t165" "T165"
+assert_library_skill_runtime_link "$TMP/t165" "code-review" "T165 code-review"
+assert_symlink_target "$TMP/t165/CLAUDE.md" ".agentic/vendor-files/claude/CLAUDE.md" "T165 claude root target"
+assert_vendor_skill_runtime_link "$TMP/t165/.claude/skills" "T165 claude skills"
+
+# T166 — upgrade compatibility: copy-mode sync preserves active vendors without skills registry
+run_test "T166 — upgrade compatibility: copy-mode sync preserves vendors without registry"
+mkdir -p "$TMP/t166"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t166" \
+  > /dev/null 2>&1
+yq -i '.skills = ["code-review"]' "$TMP/t166/.agentic/profile.yaml"
+bash "$VENDOR_GEN" \
+  --library "$LIBRARY" \
+  --target "$TMP/t166" \
+  --vendors gemini \
+  > /dev/null 2>&1
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t166" \
+  --skills all \
+  > /dev/null 2>&1
+bash "$VENDOR_SWITCH" \
+  --library "$LIBRARY" \
+  --target "$TMP/t166" \
+  gemini \
+  > /dev/null 2>&1
+rm -rf "$TMP/t166/.agentic/skills"
+bash "$SYNC" --target "$TMP/t166" > /dev/null 2>&1
+assert_file_not_exists "$TMP/t166/.agentic/skills.yaml" "T166 no registry required"
+assert_managed_skills_dir_contract "$TMP/t166" "T166 copy skills"
+assert_not_symlink "$TMP/t166/.agentic/skills/code-review" "T166 code-review copied"
+assert_file_exists "$TMP/t166/.agentic/skills/code-review/SKILL.md" "T166 code-review restored"
+assert_symlink_target "$TMP/t166/GEMINI.md" ".agentic/vendor-files/gemini/GEMINI.md" "T166 gemini root target"
+assert_symlink_target "$TMP/t166/.gemini/system.md" "../.agentic/vendor-files/gemini/system.md" "T166 gemini system target"
+assert_vendor_skill_runtime_link "$TMP/t166/.gemini/skills" "T166 gemini skills"
+
+# T168 — mode transitions: copy -> link keeps runtime contract and single gitignore block
+run_test "T168 — mode transitions: copy to link"
+mkdir -p "$TMP/t168"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t168" \
+  > /dev/null 2>&1
+yq -i '.skills = ["code-review"]' "$TMP/t168/.agentic/profile.yaml"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t168" \
+  --skills all \
+  > /dev/null 2>&1
+LIBRARY_ROOT="$LIBRARY" yq -i '.deploy_mode = "link" | .agentic_root = strenv(LIBRARY_ROOT)' "$TMP/t168/.agentic/config.yaml"
+bash "$SYNC" --target "$TMP/t168" > /dev/null 2>&1
+assert_symlink_target "$TMP/t168/.agentic/fragments" "$LIBRARY/agents" "T168 fragments target"
+assert_managed_skills_dir_contract "$TMP/t168" "T168"
+assert_library_skill_runtime_link "$TMP/t168" "code-review" "T168 code-review"
+assert_grep_count "$TMP/t168/.gitignore" "# agentic:start — managed block (do not edit manually, regenerated by agentic)" 1 "T168 gitignore start once"
+assert_grep_count "$TMP/t168/.gitignore" "# agentic:end" 1 "T168 gitignore end once"
+
+# T169 — mode transitions: link -> copy materializes runtime directories
+run_test "T169 — mode transitions: link to copy"
+mkdir -p "$TMP/t169"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t169" \
+  --link \
+  > /dev/null 2>&1
+yq -i '.skills = ["code-review"]' "$TMP/t169/.agentic/profile.yaml"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t169" \
+  --skills all \
+  --link \
+  > /dev/null 2>&1
+assert_symlink_target "$TMP/t169/.agentic/fragments" "$LIBRARY/agents" "T169 precondition fragments link"
+assert_library_skill_runtime_link "$TMP/t169" "code-review" "T169 precondition code-review link"
+yq -i '.deploy_mode = "copy"' "$TMP/t169/.agentic/config.yaml"
+bash "$SYNC" --target "$TMP/t169" > /dev/null 2>&1
+assert_dir_exists "$TMP/t169/.agentic/fragments" "T169 fragments dir"
+assert_not_symlink "$TMP/t169/.agentic/fragments" "T169 fragments materialized"
+assert_managed_skills_dir_contract "$TMP/t169" "T169"
+assert_not_symlink "$TMP/t169/.agentic/skills/code-review" "T169 code-review copied"
+assert_file_exists "$TMP/t169/.agentic/skills/code-review/SKILL.md" "T169 code-review restored"
+
+# T172 — mode transitions: repeated deploy-skills copy removes stale entries
+run_test "T172 — mode transitions: repeated deploy-skills copy removes stale entries"
+mkdir -p "$TMP/t172"
+bash "$COMPOSE" \
+  --library "$LIBRARY" \
+  --profile golang-hexagonal-cobra-cli \
+  --target "$TMP/t172" \
+  > /dev/null 2>&1
+yq -i '.skills = ["code-review"]' "$TMP/t172/.agentic/profile.yaml"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t172" \
+  --skills all \
+  > /dev/null 2>&1
+assert_file_exists "$TMP/t172/.agentic/skills/code-review/SKILL.md" "T172 initial code-review"
+yq -i '.skills = ["write-adr"]' "$TMP/t172/.agentic/profile.yaml"
+bash "$DEPLOY_SKILLS" \
+  --library "$LIBRARY" \
+  --target "$TMP/t172" \
+  --skills all \
+  > /dev/null 2>&1
+assert_file_not_exists "$TMP/t172/.agentic/skills/code-review" "T172 stale code-review removed"
+assert_not_symlink "$TMP/t172/.agentic/skills/write-adr" "T172 write-adr copied"
+assert_file_exists "$TMP/t172/.agentic/skills/write-adr/SKILL.md" "T172 write-adr restored"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
