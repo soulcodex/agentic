@@ -1023,7 +1023,6 @@ assert_file_not_contains "$TMP/t41/.gitignore" "AGENTS.md" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "config.yaml" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "profile.yaml" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "project-skills" "T41"
-assert_file_not_contains "$TMP/t41/.gitignore" "opencode.json" "T41"
 # Copy mode: runtime dirs must NOT be ignored (they are real committed files in copy mode)
 assert_file_not_contains "$TMP/t41/.gitignore" ".agentic/skills/" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" ".agentic/fragments/" "T41"
@@ -1093,7 +1092,6 @@ assert_file_contains "$TMP/t_gu/.gitignore" "*.log" "T_GITIGNORE_UPDATE_BLOCK"
 assert_file_contains "$TMP/t_gu/.gitignore" "node_modules/" "T_GITIGNORE_UPDATE_BLOCK"
 # New entry from current canonical block must be present
 assert_file_contains "$TMP/t_gu/.gitignore" "GEMINI.md" "T_GITIGNORE_UPDATE_BLOCK"
-assert_file_not_contains "$TMP/t_gu/.gitignore" "opencode.json" "T_GITIGNORE_UPDATE_BLOCK"
 
 # T_GITIGNORE_STRIP_STALE_LINK_TAIL — stale legacy link-mode tail is folded into managed block
 run_test "T_GITIGNORE_STRIP_STALE_LINK_TAIL — stale link-mode tail is removed"
@@ -1210,7 +1208,7 @@ if [[ -L "$TMP/t42/.opencode/skills" ]]; then
 else
   fail "T42 — .opencode/skills symlink should be created"
 fi
-# opencode.json should NOT exist (users manage their own config)
+# Opencode should not create vendor-files artifacts
 assert_file_not_exists "$TMP/t42/.agentic/vendor-files/opencode/opencode.json" "T42"
 assert_file_not_exists "$TMP/t42/.agentic/vendor-files/opencode" "T42"
 
@@ -1586,11 +1584,11 @@ assert_file_contains "$TMP/t67/.mcp.json" "github" "T67"
 assert_file_contains "$TMP/t67/.mcp.json" "postgres" "T67"
 assert_file_contains "$TMP/t67/.mcp.json" '"command": "npx"' "T67"
 
-# T68 — compose: MCP seed does not manage opencode.json
-run_test "T68 — compose: MCP seed leaves opencode.json untouched"
+# T68 — compose: MCP seed writes to opencode.json with translations
+run_test "T68 — compose: MCP seed translates for opencode.json"
 mkdir -p "$TMP/t68/.agentic"
-# Create opencode.json first (simulating project-owned config)
-echo '{"mcp":{"existing":{"type":"local"}},"projectOwned":true}' > "$TMP/t68/opencode.json"
+# Create opencode.json first (simulating existing vendor)
+echo '{"mcp":{}}' > "$TMP/t68/opencode.json"
 cat > "$TMP/t68/.agentic/mcp.yaml" <<'EOF'
 servers:
   test-server:
@@ -1624,9 +1622,9 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 assert_file_exists "$TMP/t68/opencode.json" "T68"
-assert_file_contains "$TMP/t68/opencode.json" '"existing":{"type":"local"}' "T68 preserved content"
-assert_file_contains "$TMP/t68/opencode.json" '"projectOwned":true' "T68 preserved metadata"
-assert_file_not_contains "$TMP/t68/opencode.json" 'test-server' "T68 no opencode sync"
+assert_file_contains "$TMP/t68/opencode.json" '"local"' "T68"
+assert_file_contains "$TMP/t68/opencode.json" '"command": [' "T68 command array"
+assert_file_contains "$TMP/t68/opencode.json" '"environment"' "T68"
 
 # T69 — compose: MCP seed writes to .gemini/settings.json without type field
 run_test "T69 — compose: MCP seed translates for .gemini/settings.json"

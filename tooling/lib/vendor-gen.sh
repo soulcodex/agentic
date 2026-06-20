@@ -139,8 +139,6 @@ source "$SCRIPT_DIR/vendors/copilot/gen.sh"
 source "$SCRIPT_DIR/vendors/codex/gen.sh"
 # shellcheck source=tooling/lib/vendors/gemini/gen.sh
 source "$SCRIPT_DIR/vendors/gemini/gen.sh"
-# shellcheck source=tooling/lib/vendors/opencode/gen.sh
-source "$SCRIPT_DIR/vendors/opencode/gen.sh"
 # shellcheck source=tooling/lib/vendors/cursor/gen.sh
 source "$SCRIPT_DIR/vendors/cursor/gen.sh"
 
@@ -154,7 +152,9 @@ for vendor in $(resolve_vendors); do
     copilot)  gen_copilot  ;;
     codex)    gen_codex    ;;
     gemini)   gen_gemini   ;;
-    opencode) gen_opencode ;;
+    opencode)
+      echo "  OpenCode reads AGENTS.md natively — no vendor files generated."
+      ;;
     cursor)   gen_cursor   ;;
     *) echo "Warning: unknown vendor '$vendor' — skipping" >&2 ;;
   esac

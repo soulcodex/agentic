@@ -74,15 +74,13 @@ servers:
 `agentic sync` and `agentic compose` seed vendor MCP outputs from this file:
 
 - `.mcp.json` (Claude shape)
+- `opencode.json` (`mcp` block translation)
 - `.gemini/settings.json` (`mcpServers` translation)
 - `.cursor/mcp.json` (`mcpServers` translation)
 - existing `opencode.json`, if present in the project (`mcp` block
   translation)
 
 If `.agentic/mcp.yaml` is missing, MCP outputs are not seeded.
-
-`opencode.json` is intentionally outside agentic's managed surface. If a
-project uses Opencode-specific config, it owns that file directly.
 
 ## Project-Local Skills
 
