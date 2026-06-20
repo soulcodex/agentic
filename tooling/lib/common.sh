@@ -77,22 +77,74 @@ normalize_markdown_spacing() {
   local file="$1"
   [[ ! -f "$file" ]] && return
 
-  local content
-  content=$(cat "$file")
+  local tmp_file
+  tmp_file=$(mktemp)
 
-  while [[ "$content" == *$'\n\n\n'* ]]; do
-    content="${content//$'\n\n\n'/$'\n\n'}"
-  done
+  if awk '
+    function is_blank(line) {
+      return line ~ /^[[:space:]]*$/
+    }
 
-  printf '%s\n' "$content" > "$file"
+    function is_heading(line) {
+      return line ~ /^#{1,6}[[:space:]]/
+    }
+
+    function is_comment(line) {
+      return line ~ /^<!--[[:space:]]?.*/
+    }
+
+    {
+      sub(/\r$/, "", $0)
+      line = $0
+
+      if (is_blank(line)) {
+        pending_blank = 1
+        next
+      }
+
+      if (printed > 0) {
+        if (pending_blank && last_blank == 0) {
+          print ""
+          last_blank = 1
+        }
+
+        if (is_heading(line) && last_blank == 0) {
+          print ""
+          last_blank = 1
+        } else if (is_comment(line) && last_blank == 0 && prev_nonblank !~ /^<!--/) {
+          print ""
+          last_blank = 1
+        }
+      }
+
+      print line
+      printed++
+      prev_nonblank = line
+      last_blank = 0
+      pending_blank = 0
+    }
+
+    END {
+      if (printed > 0) {
+        print ""
+      }
+    }
+  ' "$file" > "$tmp_file"; then
+    mv "$tmp_file" "$file"
+  else
+    rm -f "$tmp_file"
+    return 1
+  fi
 }
 
 # Formats markdown files if mdformat is available (optional, silent if missing)
 format_markdown() {
   local file="$1"
+  normalize_markdown_spacing "$file"
   if command -v mdformat &>/dev/null; then
     mdformat "$file" 2>/dev/null || true
   fi
+  normalize_markdown_spacing "$file"
 }
 
 # ══════════════════════════════════════════════════════════════════════════════

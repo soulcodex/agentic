@@ -468,12 +468,12 @@ inject_local_override() {
   local_content=$(cat "$local_file")
 
   local placement="${CUSTOM_RULES_PLACEMENT:-append}"
+  local override_block
+  override_block="<!-- local override: ${override_name} -->"$'\n\n'"$local_content"
 
   case "$placement" in
     append)
-      output_ref+=$'\n\n<!-- local override: '"$override_name"' -->\n\n'
-      output_ref+="$local_content"
-      output_ref+=$'\n'
+      output_ref+=$'\n\n'"$override_block"$'\n'
       ;;
     prepend)
       # Insert after the DO NOT EDIT comment block (always present in generated header)
@@ -485,20 +485,18 @@ inject_local_override() {
         local before after
         before=$(echo "$output_ref" | head -n "$header_end")
         after=$(echo "$output_ref" | tail -n +$((header_end + 1)))
-        output_ref="$before"$'\n\n'"<!-- local override: ${override_name} -->\n\n$local_content"$'\n\n'"$after"
+        output_ref="$before"$'\n\n'"$override_block"$'\n\n'"$after"
       else
         # Defensive fallback: prepend at very top
         echo "Warning: Could not find header anchor — prepending at top" >&2
-        output_ref="<!-- local override: ${override_name} -->"$'\n\n'"$local_content"$'\n\n'"$output_ref"
+        output_ref="$override_block"$'\n\n'"$output_ref"
       fi
       ;;
     after_section)
       local after_section="${CUSTOM_RULES_AFTER_SECTION:-}"
       if [[ -z "$after_section" ]]; then
         echo "Warning: custom_rules.placement is 'after_section' but after_section is not set — using append" >&2
-        output_ref+=$'\n\n<!-- local override: '"$override_name"' -->\n\n'
-        output_ref+="$local_content"
-        output_ref+=$'\n'
+        output_ref+=$'\n\n'"$override_block"$'\n'
         return
       fi
       # Find the H2 section using fixed-string matching (not regex)
@@ -518,13 +516,11 @@ inject_local_override() {
           before="$output_ref"
           after=""
         fi
-        output_ref="$before"$'\n\n'"<!-- local override: ${override_name} -->\n\n$local_content"$'\n\n'"$after"
+        output_ref="$before"$'\n\n'"$override_block"$'\n\n'"$after"
       else
         # Section not found — append with warning
         echo "Warning: Section '## ${after_section}' not found — appending local override" >&2
-        output_ref+=$'\n\n<!-- local override: '"$override_name"' -->\n\n'
-        output_ref+="$local_content"
-        output_ref+=$'\n'
+        output_ref+=$'\n\n'"$override_block"$'\n'
       fi
       ;;
   esac
@@ -991,6 +987,12 @@ opencode.json
 .agentic/vendor-files/
 .agentic/agents/
 
+# Link-mode runtime symlinks — bare-path patterns keep the symlink paths ignored
+.agentic/skills
+.agentic/fragments
+.agentic/vendor-files
+.agentic/agents
+
 $MARKER_END
 BLOCK
 )
@@ -1002,6 +1004,17 @@ BLOCK
   else
     AGENTIC_BLOCK="$AGENTIC_BLOCK_BASE"
   fi
+
+  local LEGACY_LINK_TAIL
+  LEGACY_LINK_TAIL=$(cat <<BLOCK
+# Link-mode agentic symlinks. The managed block uses directory patterns, but
+# symlink paths need non-directory patterns to remain ignored after sync.
+.agentic/skills
+.agentic/fragments
+.agentic/vendor-files
+.agentic/agents
+BLOCK
+)
 
   # Check for marker presence using full-line matching
   local has_start=false
@@ -1031,6 +1044,9 @@ BLOCK
     full=$(< "$gitignore")
     before="${full%%"$MARKER_START"*}"
     after="${full##*"$MARKER_END"}"
+    after="${after//$'\n\n'"$LEGACY_LINK_TAIL"/$'\n'}"
+    after="${after//$'\n'"$LEGACY_LINK_TAIL"/$'\n'}"
+    after="${after//$LEGACY_LINK_TAIL/}"
     # Ensure trailing newline is preserved
     printf '%s%s%s\n' "$before" "$AGENTIC_BLOCK" "$after" > "$gitignore"
 
