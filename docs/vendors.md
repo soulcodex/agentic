@@ -99,6 +99,7 @@ Source file:
 Generated targets:
 
 - `.mcp.json` uses `mcpServers` (Claude-compatible shape)
+- `opencode.json` uses `mcp` with translated transport keys
 - `.gemini/settings.json` uses `mcpServers` with Gemini-specific field mapping
 - `.cursor/mcp.json` uses `mcpServers` (Cursor-compatible project shape)
 - existing `opencode.json`, if present, uses `mcp` with translated transport

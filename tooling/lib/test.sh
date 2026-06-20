@@ -1023,7 +1023,6 @@ assert_file_not_contains "$TMP/t41/.gitignore" "AGENTS.md" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "config.yaml" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "profile.yaml" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" "project-skills" "T41"
-assert_file_not_contains "$TMP/t41/.gitignore" "opencode.json" "T41"
 # Copy mode: runtime dirs must NOT be ignored (they are real committed files in copy mode)
 assert_file_not_contains "$TMP/t41/.gitignore" ".agentic/skills/" "T41"
 assert_file_not_contains "$TMP/t41/.gitignore" ".agentic/fragments/" "T41"
@@ -1093,7 +1092,6 @@ assert_file_contains "$TMP/t_gu/.gitignore" "*.log" "T_GITIGNORE_UPDATE_BLOCK"
 assert_file_contains "$TMP/t_gu/.gitignore" "node_modules/" "T_GITIGNORE_UPDATE_BLOCK"
 # New entry from current canonical block must be present
 assert_file_contains "$TMP/t_gu/.gitignore" "GEMINI.md" "T_GITIGNORE_UPDATE_BLOCK"
-assert_file_not_contains "$TMP/t_gu/.gitignore" "opencode.json" "T_GITIGNORE_UPDATE_BLOCK"
 
 # T_GITIGNORE_STRIP_STALE_LINK_TAIL — stale legacy link-mode tail is folded into managed block
 run_test "T_GITIGNORE_STRIP_STALE_LINK_TAIL — stale link-mode tail is removed"
@@ -1210,8 +1208,9 @@ if [[ -L "$TMP/t42/.opencode/skills" ]]; then
 else
   fail "T42 — .opencode/skills symlink should be created"
 fi
-# opencode.json should NOT exist (users manage their own config)
+# Opencode should not create vendor-files artifacts
 assert_file_not_exists "$TMP/t42/.agentic/vendor-files/opencode/opencode.json" "T42"
+assert_file_not_exists "$TMP/t42/.agentic/vendor-files/opencode" "T42"
 
 # T43 — vendor-switch: multi-vendor activation
 run_test "T43 — vendor-switch: multi-vendor activation"

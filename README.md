@@ -65,7 +65,6 @@ my-project/
         ├── copilot/
         ├── codex/
         ├── gemini/
-        ├── opencode/
         └── cursor/
 ```
 
