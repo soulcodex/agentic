@@ -949,7 +949,6 @@ $MARKER_START
 # Vendor entry-point files — recreated by \`agentic switch\` / \`agentic sync\`
 CLAUDE.md
 GEMINI.md
-opencode.json
 .github/copilot-instructions.md
 .github/instructions/
 .gemini/system.md
@@ -971,7 +970,6 @@ $MARKER_START
 # Vendor entry-point files — recreated by \`agentic switch\` / \`agentic sync\`
 CLAUDE.md
 GEMINI.md
-opencode.json
 .github/copilot-instructions.md
 .github/instructions/
 .gemini/system.md
