@@ -57,6 +57,7 @@ Skills are deployed natively to `.gemini/skills/` and activated lazily via the
 ### Opencode
 
 Opencode reads `AGENTS.md` natively. Skills are deployed to `.opencode/skills/`.
+Project-local Opencode config is intentionally unmanaged by agentic.
 
 ### Cursor
 

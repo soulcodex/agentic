@@ -1212,6 +1212,7 @@ else
 fi
 # opencode.json should NOT exist (users manage their own config)
 assert_file_not_exists "$TMP/t42/.agentic/vendor-files/opencode/opencode.json" "T42"
+assert_file_not_exists "$TMP/t42/.agentic/vendor-files/opencode" "T42"
 
 # T43 — vendor-switch: multi-vendor activation
 run_test "T43 — vendor-switch: multi-vendor activation"
@@ -1585,11 +1586,11 @@ assert_file_contains "$TMP/t67/.mcp.json" "github" "T67"
 assert_file_contains "$TMP/t67/.mcp.json" "postgres" "T67"
 assert_file_contains "$TMP/t67/.mcp.json" '"command": "npx"' "T67"
 
-# T68 — compose: MCP seed writes to opencode.json with translations
-run_test "T68 — compose: MCP seed translates for opencode.json"
+# T68 — compose: MCP seed does not manage opencode.json
+run_test "T68 — compose: MCP seed leaves opencode.json untouched"
 mkdir -p "$TMP/t68/.agentic"
-# Create opencode.json first (simulating existing vendor)
-echo '{"mcp":{}}' > "$TMP/t68/opencode.json"
+# Create opencode.json first (simulating project-owned config)
+echo '{"mcp":{"existing":{"type":"local"}},"projectOwned":true}' > "$TMP/t68/opencode.json"
 cat > "$TMP/t68/.agentic/mcp.yaml" <<'EOF'
 servers:
   test-server:
@@ -1623,9 +1624,9 @@ bash "$COMPOSE" \
   > /dev/null 2>&1
 
 assert_file_exists "$TMP/t68/opencode.json" "T68"
-assert_file_contains "$TMP/t68/opencode.json" '"local"' "T68"
-assert_file_contains "$TMP/t68/opencode.json" '"command": [' "T68 command array"
-assert_file_contains "$TMP/t68/opencode.json" '"environment"' "T68"
+assert_file_contains "$TMP/t68/opencode.json" '"existing":{"type":"local"}' "T68 preserved content"
+assert_file_contains "$TMP/t68/opencode.json" '"projectOwned":true' "T68 preserved metadata"
+assert_file_not_contains "$TMP/t68/opencode.json" 'test-server' "T68 no opencode sync"
 
 # T69 — compose: MCP seed writes to .gemini/settings.json without type field
 run_test "T69 — compose: MCP seed translates for .gemini/settings.json"

@@ -81,6 +81,9 @@ servers:
 
 If `.agentic/mcp.yaml` is missing, MCP outputs are not seeded.
 
+`opencode.json` is intentionally outside agentic's managed surface. If a
+project uses Opencode-specific config, it owns that file directly.
+
 ## Project-Local Skills
 
 For skills specific to a single project that shouldn't live in the shared library,

@@ -24,7 +24,6 @@ done
 [[ -z "$TARGET" ]] && { echo "Error: --target required" >&2; exit 1; }
 
 MCP_FILE="$TARGET/.mcp.json"
-OPENCODE_FILE="$TARGET/opencode.json"
 GEMINI_SETTINGS="$TARGET/.gemini/settings.json"
 CURSOR_MCP_FILE="$TARGET/.cursor/mcp.json"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -37,8 +36,6 @@ SEED_SERVER_NAMES=()
 source "$SCRIPT_DIR/vendors/claude/mcp.sh"
 # shellcheck source=tooling/lib/vendors/cursor/mcp.sh
 source "$SCRIPT_DIR/vendors/cursor/mcp.sh"
-# shellcheck source=tooling/lib/vendors/opencode/mcp.sh
-source "$SCRIPT_DIR/vendors/opencode/mcp.sh"
 # shellcheck source=tooling/lib/vendors/gemini/mcp.sh
 source "$SCRIPT_DIR/vendors/gemini/mcp.sh"
 
@@ -224,17 +221,6 @@ action_add() {
     exit 0
   fi
 
-  # Sync to opencode.json
-  if [[ -f "$OPENCODE_FILE" ]]; then
-    echo ""
-    if confirm_yes "Sync to opencode.json (mcp.$server_name)?"; then
-      local oc_updated
-      oc_updated=$(jq --arg n "$server_name" --argjson e "$entry" '.mcp[$n] = $e' "$OPENCODE_FILE")
-      write_json "$OPENCODE_FILE" "$oc_updated"
-      echo "  ✔  Synced to opencode.json"
-    fi
-  fi
-
   # Sync to .gemini/settings.json
   if [[ -f "$GEMINI_SETTINGS" ]]; then
     echo ""
@@ -279,17 +265,6 @@ action_remove() {
   updated=$(jq --arg n "$NAME" 'del(.mcpServers[$n])' "$MCP_FILE")
   write_json "$MCP_FILE" "$updated"
   echo "  ✔  Removed '$NAME' from .mcp.json"
-
-  # Sync removal to opencode.json
-  if [[ -f "$OPENCODE_FILE" ]]; then
-    echo ""
-    if confirm_yes "Remove from opencode.json (mcp.$NAME)?"; then
-      local oc_updated
-      oc_updated=$(jq --arg n "$NAME" 'del(.mcp[$n])' "$OPENCODE_FILE")
-      write_json "$OPENCODE_FILE" "$oc_updated"
-      echo "  ✔  Removed from opencode.json"
-    fi
-  fi
 
   # Sync removal to .gemini/settings.json
   if [[ -f "$GEMINI_SETTINGS" ]]; then
@@ -337,7 +312,6 @@ action_seed() {
 
   seed_claude_mcp_target
   seed_cursor_mcp_target
-  seed_opencode_mcp_target
   seed_gemini_mcp_target
 }
 

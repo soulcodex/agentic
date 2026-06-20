@@ -2,7 +2,7 @@
 # opencode/switch.sh — vendor-switch behavior for OpenCode
 
 vendor_opencode_files_exist() {
-  [[ -d "$VENDOR_FILES_DIR/opencode" ]]
+  [[ -f "$TARGET/AGENTS.md" ]]
 }
 
 vendor_opencode_preflight_conflicts() {

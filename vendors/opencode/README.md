@@ -5,6 +5,8 @@ This adapter generates Opencode-compatible files from an assembled `AGENTS.md`.
 ## How Opencode reads instructions
 
 Opencode reads `AGENTS.md` natively (same as Claude Code and OpenAI Codex). No transformation of the instruction content is needed — the adapter is a passthrough.
+Project-local Opencode config remains project-owned; agentic does not generate,
+seed, or manage `opencode.json`.
 
 ## Output files
 
