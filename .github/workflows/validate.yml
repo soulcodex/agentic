@@ -105,11 +105,12 @@ jobs:
           echo "Coverage: ${coverage_percent}%"
 
       - name: Upload coverage to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ steps.coverage.outputs.cobertura_file }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
