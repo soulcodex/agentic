@@ -216,6 +216,7 @@
           "sync-confluence",
           "technical-roadmap-planning",
           "terraform-infrastructure",
+          "terraform-risk-playbook",
           "use-aws-mini-stack-emulator",
           "vue-application-structure",
           "vue-component-design",

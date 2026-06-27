@@ -4,9 +4,11 @@ description: >
   Structures, writes, and reviews Terraform infrastructure code. Covers module
   layout, remote state, workspace strategy, variable and secrets handling, CI
   plan/apply pipeline, naming conventions, and multi-region deployment patterns
-  (provider aliases, per-region state, failover strategies). Invoked when the
-  user asks to write Terraform, set up infrastructure as code, or review IaC.
-version: 1.1.0
+  (provider aliases, per-region state, failover strategies), while delegating
+  shared risk classification, version guards, and rollback contract to
+  `terraform-risk-playbook`. Invoked when the user asks to write Terraform, set
+  up infrastructure as code, or review IaC.
+version: 1.2.0
 tags:
   - devops
   - terraform
@@ -22,6 +24,14 @@ vendor_support:
 ---
 
 ## Terraform Infrastructure Skill
+
+Always use `terraform-risk-playbook` first when this skill is active. That
+skill is authoritative for the response contract, risk classification,
+runtime/version assumptions, validation commands, and rollback notes.
+
+Authoritative precedence: when this skill and other Terraform skills are both
+active, this skill is authoritative for repo and stack layout, backend topology,
+CI composition, and multi-region deployment structure.
 
 ### Step 1 — Module Structure
 
@@ -60,7 +70,8 @@ Rules:
 
 ### Step 2 — Remote State
 
-Use S3 + DynamoDB for state locking (AWS):
+Use S3 remote state for AWS. Prefer native S3 lock files on Terraform 1.10+ and
+fall back to DynamoDB locking only for older runtime compatibility:
 
 ```hcl
 # environments/staging/backend.tf
@@ -69,8 +80,8 @@ terraform {
     bucket         = "acme-terraform-state"
     key            = "staging/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "acme-terraform-locks"
     encrypt        = true
+    use_lockfile   = true
   }
 }
 ```
@@ -80,6 +91,10 @@ State bucket requirements:
 - Server-side encryption enabled (SSE-S3 or SSE-KMS).
 - Block all public access.
 - Access restricted to CI role and infrastructure team.
+
+If the runtime is older than Terraform 1.10, replace `use_lockfile = true` with
+`dynamodb_table = "acme-terraform-locks"` and state that compatibility choice
+explicitly.
 
 ### Step 3 — Workspace Strategy
 
@@ -117,6 +132,9 @@ Rules:
 - Never commit `*.tfvars` files that contain secrets to version control.
 
 ### Step 5 — CI Plan / Apply Pipeline
+
+This reviewed-plan-artifact pattern is the default for production-impacting
+changes. Do not re-run plan inside the apply job.
 
 ```yaml
 # .github/workflows/terraform.yml
@@ -377,6 +395,10 @@ resource "aws_cloudwatch_metric_alarm" "replication_lag" {
 
 ### Step 11 — Multi-Region CI Pipeline
 
+Use the dependency order below for global -> primary region -> secondary
+regions. Keep the reviewed-plan-artifact and approval model from Step 5 for each
+stage rather than applying unreviewed changes directly.
+
 Apply global resources first, then the primary region, then secondary regions in parallel:
 
 ```yaml
@@ -426,6 +448,8 @@ jobs:
 - `configuration_aliases` must be declared inside `terraform { required_providers { ... } }` in the child module.
 - Always set `region` explicitly in `terraform_remote_state` config blocks.
 - Do not store all state in one region — use per-region S3 buckets to avoid a regional outage blocking applies elsewhere.
+- Do not bypass the reviewed plan artifact pattern for production-impacting
+  multi-region changes.
 
 ### Verify
 
