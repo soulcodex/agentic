@@ -3,8 +3,9 @@ name: create-terraform-tests
 description: >
   Designs and implements Terraform module tests for AWS-targeted modules.
   Covers terraform-native tests, validation gates, fixture composition, and
-  risk-focused assertions for regressions and unsafe changes.
-version: 1.0.0
+  risk-focused assertions for regressions, address migration, and unsafe
+  changes.
+version: 1.1.0
 tags:
   - devops
   - terraform
@@ -24,6 +25,10 @@ vendor_support:
 
 Author Terraform test coverage for AWS modules.
 
+Always pair this skill with `terraform-risk-playbook`. That skill is
+authoritative for the response contract, risk classification, version/runtime
+guards, validation chain, and rollback notes.
+
 Authoritative precedence: when this skill and `terraform-infrastructure` are both
 active, this skill is authoritative for module testing strategy, test layout,
 and assertion patterns.
@@ -35,6 +40,8 @@ Prioritize tests for:
 - destructive change prevention for stateful resources
 - required inputs and invalid configuration rejection
 - output contract stability
+- identity and address migration safety (`count`/`for_each`, `moved` flows)
+- provider/runtime upgrade compatibility when version constraints change
 
 ### Step 2 - Implement Terraform-Native Test Layout
 
@@ -44,6 +51,8 @@ Minimum coverage:
 - happy path apply/plan expectations
 - invalid input validation checks
 - policy/security checks for sensitive resources
+- choose `command = apply` when assertions depend on computed values or set-type
+  nested blocks
 
 ### Step 3 - Add CI-Friendly Validation Chain
 
@@ -57,6 +66,8 @@ CI safety guardrails:
 - do not point tests at production/shared backends
 - use ephemeral credentials/accounts for apply-capable tests
 - skip or scope tests when required cloud credentials are not present
+- if the risk category includes compliance or secret exposure, include the
+  repo's existing policy/security checks where applicable
 
 ### Step 4 - Keep Tests Bounded
 
@@ -66,3 +77,5 @@ requested. Document emulator vs real-AWS assumptions clearly.
 ### Step 5 - Report Coverage Gaps
 
 Summarize what is covered, known blind spots, and next highest-value tests.
+Call out whether each scenario is plan-only confidence, emulator confidence, or
+real-cloud confidence.

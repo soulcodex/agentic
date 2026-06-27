@@ -3,8 +3,9 @@ name: design-aws-terraform-iac
 description: >
   Designs AWS-targeted Terraform infrastructure plans before implementation.
   Focuses on service selection, module boundaries, state/backends, environment
-  separation, security/compliance guardrails, and acceptance criteria.
-version: 1.0.0
+  separation, security/compliance guardrails, acceptance criteria, and explicit
+  risk/validation assumptions.
+version: 1.1.0
 tags:
   - devops
   - terraform
@@ -26,12 +27,18 @@ vendor_support:
 
 Design AWS Terraform infrastructure before writing module code.
 
+Always pair this skill with `terraform-risk-playbook`. That skill is
+authoritative for the response contract, failure-mode classification,
+version/runtime guards, validation chain, and rollback notes.
+
 ### Step 1 - Confirm Scope and Constraints
 
 Capture required outcomes:
 - workloads and critical paths
 - regions, environments, and compliance constraints
 - cost boundaries and availability targets
+- runtime and version assumptions
+- backend and execution path assumptions (local, CI, Terraform Cloud, Atlantis)
 
 Capture non-goals to prevent accidental over-design.
 
@@ -71,6 +78,8 @@ Output a compact design brief with:
 - service choices and tradeoffs
 - module map and dependency order
 - state strategy and CI plan/apply gate strategy
+- explicit risk categories and validation expectations
+- rollback notes for destructive or state-mutating steps
 - measurable acceptance checks from `acceptance-checklist.md`
 
 This skill is planning-first. For module file layout and implementation details,

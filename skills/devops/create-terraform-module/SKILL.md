@@ -3,8 +3,9 @@ name: create-terraform-module
 description: >
   Creates or updates AWS-oriented Terraform module structure and implementation
   scaffolding. Focuses on file layout, variable/output contracts, provider and
-  version constraints, tagging standards, and safe composition patterns.
-version: 1.0.0
+  version constraints, tagging standards, safe composition patterns, and
+  address-stability guardrails.
+version: 1.1.0
 tags:
   - devops
   - terraform
@@ -23,6 +24,10 @@ vendor_support:
 ## Create Terraform Module Skill
 
 Create or revise Terraform module implementation details for AWS workloads.
+
+Always pair this skill with `terraform-risk-playbook`. That skill is
+authoritative for the response contract, risk category, version/runtime floor,
+validation expectations, and rollback notes.
 
 Authoritative precedence: when this skill and `terraform-infrastructure` are both
 active, this skill is authoritative for module layout, file set, and module
@@ -57,6 +62,12 @@ Implementation guardrails:
 - explicit `required_providers` and Terraform version constraints
 - `lifecycle` usage only when justified and documented
 - stable resource addressing to reduce churn in plans
+- prefer `for_each` over `count` when item identity must survive reordering or
+  selective removal
+- when refactoring addresses, emit `moved` blocks or explicit migration notes
+  instead of rename-only changes
+- verify runtime floor before suggesting `import`, `moved`, `optional()`, mock
+  providers, or `write_only` patterns
 - no plaintext secrets in code or defaults
 
 ### Step 4 - Add Example Consumer and Validation Steps

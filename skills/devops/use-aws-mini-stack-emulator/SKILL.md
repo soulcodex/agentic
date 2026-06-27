@@ -3,8 +3,8 @@ name: use-aws-mini-stack-emulator
 description: >
   Uses lightweight AWS stack emulation for faster local Terraform iteration.
   Defines what can be safely validated locally, compatibility caveats, and the
-  handoff boundary to real-AWS verification.
-version: 1.0.0
+  handoff boundary to real-AWS verification and reviewed plan/apply flows.
+version: 1.1.0
 tags:
   - devops
   - terraform
@@ -23,6 +23,10 @@ vendor_support:
 ## Use AWS Mini Stack Emulator Skill
 
 Use local AWS emulation to accelerate Terraform feedback loops where appropriate.
+
+Always pair this skill with `terraform-risk-playbook`. That skill is
+authoritative for the response contract, failure-mode classification,
+version/runtime guards, validation chain, and rollback notes.
 
 ### Step 1 - Select Emulator Scope
 
@@ -56,6 +60,12 @@ AWS validation before merge.
 
 This skill is for local acceleration only. It does not replace real AWS plan/apply
 verification for production-impacting infrastructure.
+
+It cannot prove:
+- production backend locking or state migration behavior
+- IAM or service semantics that emulators do not model faithfully
+- reviewed plan artifact and approval parity in CI
+- final confidence for production-impacting provider/runtime upgrades
 
 Avoid overlap with `docker-compose-local-setup`: this skill covers Terraform + AWS
 emulation behavior, not generic multi-service compose orchestration design.

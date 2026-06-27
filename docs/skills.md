@@ -25,7 +25,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `serverless-architecture` — Design and implement serverless workloads with operational guardrails.
 - `sql-query-optimization` — Diagnose and optimize SQL performance using plans, indexes, and rewrites.
 - `technical-roadmap-planning` — Build prioritized engineering roadmaps with dependencies and milestones.
-- `terraform-infrastructure` — Structure and review Terraform IaC modules, state, and pipelines.
+- `terraform-infrastructure` — Structure Terraform repo/stack layout, state topology, CI flow, and multi-region composition.
 - `webhook-development` — Build secure, reliable webhook receivers/senders with retries and idempotency.
 
 ### Data
@@ -58,6 +58,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 - `create-terraform-module` — Create AWS-oriented Terraform module scaffolding with explicit interfaces, provider constraints, and reusable layout guardrails.
 - `create-terraform-tests` — Design and implement risk-focused Terraform module tests (`terraform test`) with CI-friendly validation flow.
 - `design-aws-terraform-iac` — Plan AWS Terraform architecture, service/module boundaries, state strategy, and acceptance criteria before implementation.
+- `terraform-risk-playbook` — Diagnose Terraform/OpenTofu risk first, enforce response contract, version guards, validation, and rollback expectations.
 - `docker-compose-local-setup` — Configure local multi-service `docker compose` stacks with readiness, envs, volumes, migrations, and verification.
 - `use-aws-mini-stack-emulator` — Use lightweight AWS emulation safely for local Terraform feedback loops, with explicit handoff to real AWS checks.
 - `write-dockerfile` — Generate production-ready Dockerfiles with secure, efficient build patterns.
