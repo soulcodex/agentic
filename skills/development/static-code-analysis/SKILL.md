@@ -25,20 +25,35 @@ vendor_support:
 
 | Language | Recommended tool | Config file |
 |----------|-----------------|-------------|
-| TypeScript / JavaScript | ESLint + typescript-eslint (+ eslint-plugin-import if using `import/*` rules) | `eslint.config.ts` |
+| TypeScript / JavaScript | Rslint (`@rslint/core`) for new projects; ESLint when already entrenched or plugin coverage requires it | `rslint.config.ts` or `eslint.config.ts` |
 | Go | golangci-lint | `.golangci.yml` |
 | Python | Ruff | `ruff.toml` or `pyproject.toml` |
 | PHP | PHPStan | `phpstan.neon` |
 | Rust | Clippy (built-in) | `clippy.toml` |
 
 If a tool is already present, audit its configuration before making changes.
+Do not replace an established ESLint setup with Rslint unless migration is part
+of the task or the repo has no rules that Rslint cannot cover yet.
 
 ### Step 2 — Configure Rules
 
 Apply a strict baseline.
 If you use `import/*` rules, ensure `eslint-plugin-import` is installed and configured.
 
-**TypeScript (ESLint)**
+**TypeScript (Rslint)**
+```bash
+pnpm add -D @rslint/core
+pnpm exec rslint --init
+```
+
+Use `pnpm lint` as the project script. For repositories that want lint and type
+checking in one pass, configure parser projects and use:
+
+```bash
+pnpm exec rslint --type-check .
+```
+
+**TypeScript (ESLint fallback)**
 ```json
 {
   "rules": {
@@ -96,7 +111,7 @@ Run the auto-fixer first to resolve stylistic issues without manual effort:
 
 ```bash
 # TypeScript
-pnpm eslint . --fix
+pnpm exec rslint --fix .
 
 # Python
 ruff check . --fix
@@ -120,12 +135,19 @@ Install a pre-commit hook so violations are caught before `git push`:
 
 **Using Husky + lint-staged (JS/TS)**
 ```bash
-pnpm add -D husky lint-staged
+pnpm add -D husky lint-staged @commitlint/cli @commitlint/config-conventional
 npx husky init
 ```
 ```json
 // package.json
-"lint-staged": { "*.{ts,tsx}": "eslint --fix" }
+"lint-staged": { "*.{ts,tsx,js,jsx}": "rslint --fix" }
+```
+
+Use commitlint from a `commit-msg` hook or CI commit-range check when the repo
+uses Conventional Commits:
+
+```bash
+pnpm exec commitlint --edit "$1"
 ```
 
 **Using pre-commit (Python/Go)**
@@ -144,4 +166,5 @@ repos:
 - [ ] `<lint-command>` exits 0 with no output.
 - [ ] CI lint job passes on a clean branch.
 - [ ] Pre-commit hook blocks a commit that introduces a lint error.
+- [ ] Commitlint blocks a non-Conventional Commit message when configured.
 - [ ] No blanket `eslint-disable` or `#noqa` without explanatory comments.

@@ -189,8 +189,20 @@ const total = subtotal + subtotal * tax // precision risk
 
 ### Code Style
 
-- Use `pnpm` as the package manager.
-- Format with Prettier (`.prettierrc` in repo root); lint with ESLint (flat config `eslint.config.ts`).
+- Use pnpm 12 as the package manager baseline for new TypeScript projects.
+- Do not use Corepack to install pnpm. For pnpm 12, install or update with
+  `pnpm self-update next-12`, `npx get-pnpm next-12`, or the standalone installer
+  with `PNPM_VERSION=next-12`.
+- Use Rsbuild as the default build tool for React/Vue SPA applications and
+  micro-frontend hosts/remotes. Framework-owned stacks such as Next.js and Nuxt
+  keep their framework build layer unless project instructions say otherwise.
+- Use Vitest as the default unit and component test runner.
+- Format with Prettier when the repo has a Prettier config.
+- Lint TypeScript and JavaScript with Rslint (`@rslint/core`) for new projects
+  or when replacing lint tooling is in scope. If a repo already has ESLint,
+  inspect its config and migration cost before replacing it.
+- Use commitlint in Node-capable repositories to enforce Conventional Commit
+  messages in a `commit-msg` hook or CI commit-range check.
 - Prefer `const` over `let`; never use `var`.
 - Prefer named exports over default exports for better refactoring support.
 - Keep functions small (fits on a screen). Extract when logic becomes layered.

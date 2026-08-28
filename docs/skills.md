@@ -74,6 +74,7 @@ This page indexes all shared skills in this library, grouped by top-level skill 
 ### UI
 
 - `internationalization-i18n` — Add or improve i18n/l10n architecture, messages, and workflows.
+- `module-federation` — Add, review, or debug Module Federation in Rsbuild-first TypeScript applications.
 - `next-application-structure` — Define scalable Next.js App Router project structure and conventions.
 - `react-application-structure` — Define scalable React application architecture and folder layout.
 - `react-component-design` — Design maintainable React component APIs and composition boundaries.

@@ -1,13 +1,11 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
-  name: "TypeScript Next App"
+  name: "TypeScript React Module Federation Rsbuild"
   description: >
-    Standalone Next.js application with React, Tailwind CSS v4, and Vitest.
-    SSR-capable with App Router. Covers Next-specific patterns (Server Components,
-    route handlers, caching, middleware, runtime config), React component design,
-    hooks patterns, styling discipline, and a three-tier test strategy
-    (unit / component / acceptance).
-  version: "1.0.2"
+    React single-page application built with Rsbuild and Module Federation.
+    Supports host, remote, or mixed host/remote roles with strict TypeScript,
+    Vitest, shared dependency discipline, and federated type contracts.
+  version: "1.0.0"
 
 fragments:
   base:
@@ -19,12 +17,12 @@ fragments:
   languages:
     - typescript
   frameworks:
-    - next
+    - react
     - react-component-design
     - react-testing
     - react-styling
-    - next-patterns
-  architecture: []
+  architecture:
+    - module-federation
   practices:
     - tdd
     - api-design
@@ -34,22 +32,23 @@ fragments:
 tech_stack:
   language_runtime: "Node 24+"
   package_manager: "pnpm 12"
-  frontend_framework: "Next.js"
+  frontend_framework: "React (SPA)"
   ui_component_library: "shadcn/ui"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Turbopack (Next.js)"
+  build_tool: "Rsbuild"
   test_framework: "Vitest + @testing-library/react"
   additional:
-    - "React"
-    - "App Router"
+    - "@module-federation/rsbuild-plugin"
+    - "React Router"
     - "Rslint"
     - "commitlint"
-    - "Playwright (acceptance)"
+    - "Playwright (host/remote smoke)"
 
 skills:
   - project-map
   - code-review
   - add-tests
+  - module-federation
   - react-application-structure
   - react-component-design
   - react-component-testing
@@ -66,14 +65,12 @@ output:
   test_command: "pnpm test"
   lint_command: "pnpm lint"
   project_header: |
-    Standalone Next.js application with SSR via App Router.
+    React Module Federation application built with Rsbuild.
+    This app may act as a host, a remote, or both, but its federated role must be explicit in module-federation.config.ts.
+    Exposed modules are public runtime contracts. Remote URLs and shared dependency policy are host-owned contracts.
     Components and hooks use TypeScript strictly, with functional components only.
     Use alias imports for cross-directory modules and ESM import/export syntax only.
-    Server/client boundaries must be explicit and intentional.
-    Styling via Tailwind CSS v4; shadcn/ui for UI primitives.
-    API endpoints via route handlers. SSR safety rules apply everywhere.
-    Three-tier testing: Vitest unit tests for hooks/utils, @testing-library/react
-    for component behaviour, Playwright for acceptance tests.
+    Vitest covers unit and component behavior; Playwright covers host/remote smoke checks.
 
 vendors:
   enabled:

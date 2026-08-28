@@ -3,9 +3,9 @@ meta:
   name: "TypeScript Hexagonal Effect CLI"
   description: >
     TypeScript CLI application using @effect/cli and @effect/platform-node with
-    pnpm. Follows ports and adapters (hexagonal) so command handlers remain thin
+    pnpm 12. Follows ports and adapters (hexagonal) so command handlers remain thin
     adapters and domain/application logic stays framework-agnostic.
-  version: "1.0.1"
+  version: "1.0.2"
 
 fragments:
   base:
@@ -34,11 +34,13 @@ fragments:
 
 tech_stack:
   language_runtime: "Node 24+"
-  package_manager: "pnpm"
+  package_manager: "pnpm 12"
   cli_framework: "@effect/cli + @effect/platform-node"
   test_framework: "Vitest"
   additional:
     - "Effect"
+    - "Rslint"
+    - "commitlint"
 
 skills:
   - project-map

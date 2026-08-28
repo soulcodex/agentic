@@ -44,13 +44,14 @@ Follow a consistent naming scheme:
 @acme/ui           ← shared component library
 @acme/core         ← shared domain types and utilities
 @acme/config-ts    ← shared TypeScript config
-@acme/config-eslint ← shared ESLint config
+@acme/config-rslint ← shared Rslint config
 ```
 
 Rules:
 - Use a consistent org prefix (`@acme/`, `@org/`).
 - Separate packages for separate concerns — do not bundle the UI and the API.
-- Keep shared config packages (tsconfig, eslint) in `packages/config-*/`.
+- Keep shared config packages (tsconfig, rslint, and any retained eslint config)
+  in `packages/config-*/`.
 
 ### Step 3 — Shared Tooling at Root
 
@@ -62,7 +63,7 @@ monorepo/
   pnpm-workspace.yaml   ← workspace package globs
   turbo.json            ← Turborepo pipeline
   tsconfig.base.json    ← shared TS config
-  eslint.config.ts      ← shared ESLint config
+  rslint.config.ts      ← shared Rslint config
   .gitignore
   packages/
     api/

@@ -6,22 +6,23 @@ A profile is a named YAML preset that selects which fragments, tech stack detail
 
 | Profile | What it's for | Language(s) |
 |---|---|---|
-| `typescript-react-spa` | Standalone React SPA with Vite, React Router. No SSR. | TypeScript |
+| `typescript-react-spa` | Standalone React SPA with Rsbuild, React Router. No SSR. | TypeScript |
+| `typescript-react-module-federation-rsbuild` | React Module Federation app with Rsbuild for host, remote, or mixed roles | TypeScript |
 | `typescript-next-app` | Standalone Next.js app with SSR, App Router | TypeScript |
-| `typescript-vue-spa` | Standalone Vue 3 SPA with Vite, Pinia, Vue Router. No SSR. | TypeScript |
+| `typescript-vue-spa` | Standalone Vue 3 SPA with Rsbuild, Pinia, Vue Router. No SSR. | TypeScript |
 | `typescript-nuxt-app` | Standalone Nuxt 3 app with SSR, file-based routing, Nitro | TypeScript |
 | `typescript-hexagonal-microservice` | TypeScript backend service with Hono, hexagonal architecture, DDD | TypeScript |
 | `typescript-bff` | Backend-for-Frontend aggregation layer | TypeScript |
 | `typescript-hexagonal-next-ui` | Hono backend + Next.js frontend (SSR) | TypeScript |
-| `typescript-hexagonal-react-vite-ui` | Hono backend + React SPA frontend (no SSR) | TypeScript |
+| `typescript-hexagonal-react-vite-ui` | Hono backend + React SPA frontend with Rsbuild (no SSR) | TypeScript |
 | `typescript-hexagonal-nuxt-vite-ui` | Hono backend + Nuxt 3 / Vue 3 frontend (SSR) | TypeScript |
-| `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend (no SSR) | TypeScript |
+| `typescript-hexagonal-vue-vite-ui` | Hono backend + Vue 3 SPA frontend with Rsbuild (no SSR) | TypeScript |
 | `typescript-hexagonal-effect-cli` | TypeScript CLI with @effect/cli + @effect/platform-node, hexagonal + DDD | TypeScript |
 | `go-hexagonal-microservice` | Go backend microservice, hexagonal + DDD | Go |
 | `golang-hexagonal-next-ui` | Go backend + Next.js frontend (SSR) | Go + TypeScript |
-| `golang-hexagonal-react-vite-ui` | Go backend + React SPA frontend (no SSR) | Go + TypeScript |
+| `golang-hexagonal-react-vite-ui` | Go backend + React SPA frontend with Rsbuild (no SSR) | Go + TypeScript |
 | `golang-hexagonal-nuxt-vite-ui` | Go backend + Nuxt 3 / Vue 3 frontend (SSR) | Go + TypeScript |
-| `golang-hexagonal-vue-vite-ui` | Go backend + Vue 3 SPA frontend (no SSR) | Go + TypeScript |
+| `golang-hexagonal-vue-vite-ui` | Go backend + Vue 3 SPA frontend with Rsbuild (no SSR) | Go + TypeScript |
 | `golang-hexagonal-cobra-cli` | Go CLI tool with Cobra + Viper, hexagonal + DDD | Go |
 | `python-fastapi-microservice` | FastAPI service with uv + Pydantic, hexagonal | Python |
 | `python-hexagonal-typer-cli` | Python CLI tool with Typer + Rich, hexagonal | Python |

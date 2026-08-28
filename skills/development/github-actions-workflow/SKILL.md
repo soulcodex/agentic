@@ -30,6 +30,10 @@ Identify the runtime and package manager before scaffolding:
 - Test and lint commands (from `justfile`, `Makefile`, or `package.json`)
 - Deploy targets (container registry, cloud provider, static host)
 
+For pnpm 12 projects, do not install pnpm with Corepack. Bootstrap pnpm with
+`npx get-pnpm next-12`, the standalone installer, or the repository's existing
+approved setup action if it installs pnpm directly.
+
 ### Step 2 — Scaffold `.github/workflows/ci.yml`
 
 ```yaml
@@ -118,6 +122,10 @@ Cache package manager directories keyed on the lockfile hash:
 | uv (Python) | `~/.cache/uv` | `uv.lock` |
 | Composer | `~/.composer/cache` | `composer.lock` |
 
+For pnpm 12 with `actions/setup-node`, keep `cache: "pnpm"` for dependency
+caching after pnpm is installed. Do not add `corepack enable` or
+`corepack prepare` steps.
+
 ### Step 5 — Secrets
 
 - Never hardcode secrets or tokens in workflow files.
@@ -186,6 +194,7 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           cache: "pnpm"
+      - run: npx get-pnpm next-12
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm test
@@ -233,6 +242,7 @@ Rules:
 - [ ] Jobs run in correct dependency order (lint → test → build → deploy).
 - [ ] Dependency cache hits on the second run (check Actions logs).
 - [ ] Secrets referenced via `${{ secrets.* }}` — no hardcoded values.
+- [ ] pnpm 12 workflows install pnpm directly and do not use Corepack.
 - [ ] Concurrency group prevents duplicate runs on the same branch.
 - [ ] (Reusable) Called workflow declares all `inputs` and `secrets` it uses.
 - [ ] (Reusable) Cross-repo calls pin the workflow ref to a tag or SHA.
