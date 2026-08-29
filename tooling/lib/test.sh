@@ -2053,7 +2053,7 @@ bash "$COMPOSE" \
   --target "$TMP/t76a" \
   > /dev/null 2>&1
 
-assert_file_contains_block "$TMP/t76a/AGENTS.md" $'| Additional | React Router, Playwright (acceptance) |\n\n## Commands' "T76A tech to commands"
+assert_file_contains_block "$TMP/t76a/AGENTS.md" $'| Additional | React Router, Rslint, commitlint, Playwright (acceptance) |\n\n## Commands' "T76A tech to commands"
 assert_file_contains_block "$TMP/t76a/AGENTS.md" $'- **Lint**: `pnpm lint`\n\n## Conventions & Patterns' "T76A commands to conventions"
 assert_file_contains_block "$TMP/t76a/AGENTS.md" $'| CI/CD | `.agentic/fragments/ci-cd.md` |\n\n## Skills' "T76A conventions to skills"
 
