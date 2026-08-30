@@ -49,6 +49,7 @@ skills:
   - code-review
   - add-tests
   - module-federation
+  - module-federation-debugging
   - react-application-structure
   - react-component-design
   - react-component-testing

@@ -32,6 +32,10 @@ server-rendered host/remote contracts.
 If the task is a client-rendered Rsbuild MFE with no SSR requirement, use the
 regular `module-federation` skill instead.
 
+For deep runtime debugging, observability reports, production-only failures, or
+unclear host/remote ownership, use the `module-federation-debugging` skill when
+it is available, then return here for SSR architecture decisions.
+
 ### Step 1 - Classify The Rendering Contract
 
 Determine the real rendering mode before editing configuration:
@@ -84,6 +88,8 @@ For SSR federation, verify:
 
 Read [resources/debugging-playbook.md](resources/debugging-playbook.md) when
 debugging runtime, hydration, shared dependency, manifest, or type failures.
+If the `module-federation-debugging` skill is available, use it for the detailed
+triage workflow and keep this step focused on SSR-specific evidence.
 
 For SSR failures, always collect evidence from both sides:
 
@@ -105,4 +111,3 @@ Run the narrowest checks that prove the changed boundary:
   configured remote fallback behavior;
 - commitlint through the existing hook or CI commit-range check when the
   repository enforces Conventional Commits.
-

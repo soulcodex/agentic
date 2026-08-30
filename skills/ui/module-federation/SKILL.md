@@ -35,6 +35,10 @@ use Rslib for dual browser/server remote artifacts, treat Nuxt SSR federation
 as beta, and treat Next.js Module Federation as legacy Pages Router maintenance
 only.
 
+For deep runtime debugging, production-only failures, observability reports, or
+unclear host/remote ownership, use the `module-federation-debugging` skill when
+it is available.
+
 ### Step 1 - Inspect The Project
 
 Read the project root before changing files:

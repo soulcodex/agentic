@@ -198,6 +198,7 @@
           "memory-continuity",
           "microservices-architecture",
           "module-federation",
+          "module-federation-debugging",
           "module-federation-ssr",
           "monorepo-management",
           "new-gh-issue-orchestration",

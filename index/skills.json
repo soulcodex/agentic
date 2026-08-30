@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-08-30T22:23:04Z",
+  "generated_at": "2026-08-30T22:56:38Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -659,6 +659,20 @@
         "i18n",
         "l10n",
         "frontend"
+      ]
+    },
+    {
+      "name": "module-federation-debugging",
+      "group": "ui",
+      "path": "skills/ui/module-federation-debugging/SKILL.md",
+      "description": "Diagnose Module Federation failures with evidence-first triage across manifests, remote entries, runtime errors, shared ",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "module-federation",
+        "debugging",
+        "observability",
+        "typescript"
       ]
     },
     {
