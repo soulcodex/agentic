@@ -198,6 +198,7 @@
           "memory-continuity",
           "microservices-architecture",
           "module-federation",
+          "module-federation-ssr",
           "monorepo-management",
           "new-gh-issue-orchestration",
           "next-application-structure",

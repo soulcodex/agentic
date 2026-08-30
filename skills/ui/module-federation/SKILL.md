@@ -1,9 +1,10 @@
 ---
 name: module-federation
 description: >
-  Add, review, or debug Module Federation support in Rsbuild-first TypeScript
-  applications. Covers host/remote roles, exposes, remotes, shared dependencies,
-  generated types, runtime loading failures, and observability checks.
+  Add, review, or debug client-rendered Module Federation support in
+  Rsbuild-first TypeScript applications. Covers host/remote roles, exposes,
+  remotes, shared dependencies, generated types, runtime loading failures, and
+  observability checks.
 version: 1.0.0
 tags:
   - ui
@@ -22,9 +23,17 @@ vendor_support:
 
 ## Module Federation Skill
 
-Use this skill when adding Module Federation, reviewing host/remote contracts,
-debugging federated loading, or fixing type generation and shared dependency
-issues.
+Use this skill when adding client-rendered Module Federation, reviewing
+host/remote contracts, debugging federated loading, or fixing type generation
+and shared dependency issues.
+
+For SSR federation, hydration failures, server entries, Modern.js, Nuxt,
+Next.js, Vinext, or Vite SSR, use the `module-federation-ssr` skill when it is
+available. If only this skill is available, keep the work conservative: prefer
+Rsbuild for non-SSR federation, treat Modern.js as the preferred SSR app path,
+use Rslib for dual browser/server remote artifacts, treat Nuxt SSR federation
+as beta, and treat Next.js Module Federation as legacy Pages Router maintenance
+only.
 
 ### Step 1 - Inspect The Project
 
@@ -38,14 +47,16 @@ Read the project root before changing files:
 - app entry points and route registration that import remotes or exposed modules
 
 If the project has no Rsbuild, Rspack, Webpack, Modern.js, Next, Vite, or related
-build config, treat it as a new project and recommend the official scaffold:
+build config, treat it as a new client-rendered project and recommend the
+official scaffold:
 
 ```bash
 npm create module-federation@latest
 ```
 
 For new in-repo implementation, prefer Rsbuild unless local project instructions
-name another framework-owned build system.
+name another framework-owned build system. Do not retrofit true SSR federation
+from this skill; route that work to SSR-specific guidance first.
 
 ### Step 2 - Determine The Role
 
@@ -181,3 +192,5 @@ Run the narrowest checks that prove the change:
 - `pnpm build` for the Rsbuild production bundle
 - A host/remote smoke check when exposes, remotes, shared dependency policy, or
   deployment URLs changed
+- commitlint through the existing hook or CI commit-range check when the
+  repository enforces Conventional Commits

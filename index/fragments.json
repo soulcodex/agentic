@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-08-28T22:48:49Z",
+  "generated_at": "2026-08-30T22:23:05Z",
   "fragments": [
     {
       "name": "bff",
@@ -56,7 +56,7 @@
       "group": "architecture",
       "path": "agents/architecture/module-federation.md",
       "heading": "Module Federation",
-      "words": 526
+      "words": 870
     },
     {
       "name": "code-review",
