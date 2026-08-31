@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-06-27T19:20:55Z",
+  "generated_at": "2026-08-30T22:56:38Z",
   "skills": [
     {
       "name": "compose-agents-md",
@@ -659,6 +659,48 @@
         "i18n",
         "l10n",
         "frontend"
+      ]
+    },
+    {
+      "name": "module-federation-debugging",
+      "group": "ui",
+      "path": "skills/ui/module-federation-debugging/SKILL.md",
+      "description": "Diagnose Module Federation failures with evidence-first triage across manifests, remote entries, runtime errors, shared ",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "module-federation",
+        "debugging",
+        "observability",
+        "typescript"
+      ]
+    },
+    {
+      "name": "module-federation-ssr",
+      "group": "ui",
+      "path": "skills/ui/module-federation-ssr/SKILL.md",
+      "description": "Add, review, or debug server-side rendered Module Federation applications, including Modern.js, Nuxt, Next.js legacy Pag",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "module-federation",
+        "ssr",
+        "micro-frontends",
+        "typescript"
+      ]
+    },
+    {
+      "name": "module-federation",
+      "group": "ui",
+      "path": "skills/ui/module-federation/SKILL.md",
+      "description": "Add, review, or debug client-rendered Module Federation support in Rsbuild-first TypeScript applications. Covers host/re",
+      "version": "1.0.0",
+      "tags": [
+        "ui",
+        "module-federation",
+        "micro-frontends",
+        "rsbuild",
+        "typescript"
       ]
     },
     {

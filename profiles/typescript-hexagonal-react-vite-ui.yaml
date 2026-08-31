@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
-  name: "TypeScript Hexagonal + React/Vite SPA"
+  name: "TypeScript Hexagonal + React/Rsbuild SPA"
   description: >
     Full-stack TypeScript application with a Hono hexagonal backend and a React
     SPA frontend. Hono handles all business logic and HTTP APIs; React delivers a
-    client-side single-page application with Vite for fast builds and Vitest
+    client-side single-page application with Rsbuild for builds and Vitest
     for unit tests. No SSR.
-  version: "1.1.1"
+  version: "1.1.2"
 
 fragments:
   base:
@@ -60,15 +60,17 @@ tiers:
 
 tech_stack:
   language_runtime: "Node 24+"
-  package_manager: "pnpm"
+  package_manager: "pnpm 12"
   backend_framework: "Hono"
   frontend_framework: "React (SPA)"
   ui_component_library: "shadcn/ui"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Vite 6"
+  build_tool: "Rsbuild"
   test_framework: "Vitest"
   additional:
     - "React Router"
+    - "Rslint"
+    - "commitlint"
 
 skills:
   - project-map
@@ -100,6 +102,7 @@ output:
     Full-stack TypeScript project: Hono hexagonal backend + React SPA frontend (no SSR).
     Backend domain layer must have zero framework dependencies.
     Frontend uses strict TypeScript with functional components and hooks.
+    Frontend builds use Rsbuild and tests use Vitest.
     Use alias imports for cross-directory modules and ESM import/export syntax only.
     All dependencies are injected via interfaces defined in the domain or application layer.
 

@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/soulcodex/agentic/main/schemas/profile.schema.json
 meta:
-  name: "Go Hexagonal + Vue/Vite SPA"
+  name: "Go Hexagonal + Vue/Rsbuild SPA"
   description: >
     Full-stack application with a Go hexagonal backend and a Vue 3 SPA
     frontend. Go handles all business logic and HTTP APIs; Vue delivers a
-    client-side single-page application with Vite for fast builds and Vitest
+    client-side single-page application with Rsbuild for builds and Vitest
     for unit tests. No SSR.
-  version: "1.1.1"
+  version: "1.1.2"
 
 fragments:
   base:
@@ -59,17 +59,19 @@ tiers:
       lint_command:  "pnpm lint"
 
 tech_stack:
-  language_runtime: "Go 1.26+ (backend) / Node 22+ (frontend)"
-  package_manager: "Go modules (backend) / pnpm (frontend)"
+  language_runtime: "Go 1.26+ (backend) / Node 24+ (frontend)"
+  package_manager: "Go modules (backend) / pnpm 12 (frontend)"
   backend_framework: "gorilla/mux"
   frontend_framework: "Vue 3 (SPA)"
   ui_component_library: "shadcn/vue"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Vite 6"
+  build_tool: "Rsbuild"
   test_framework: "Vitest (frontend) / testify (backend)"
   additional:
     - "pinia"
     - "VueRouter"
+    - "Rslint"
+    - "commitlint"
 
 skills:
   - project-map
@@ -102,6 +104,7 @@ output:
     Full-stack project: Go hexagonal backend + Vue 3 SPA frontend (no SSR).
     Backend domain package must have zero external dependencies.
     Frontend uses Vue 3 <script setup> exclusively — no Options API.
+    Frontend builds use Rsbuild and tests use Vitest.
     Frontend TS convention: alias imports for cross-directory modules and ESM import/export syntax only.
     All dependencies are injected via interfaces defined in the domain or application layer.
 

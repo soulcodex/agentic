@@ -17,6 +17,9 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`, `build`
 - Summary is imperative, lowercase, no period, max 72 characters.
 - Body wraps at 100 characters. Explain *why*, not *what*.
 - Reference issue numbers in footer: `Closes #123`, `Refs #456`.
+- In Node-capable repositories, enforce this format with commitlint
+  (`@commitlint/cli` plus `@commitlint/config-conventional`) from a `commit-msg`
+  hook or CI commit-range check.
 
 Examples:
 ```

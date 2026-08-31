@@ -4,8 +4,8 @@ meta:
   description: >
     Full-stack application with a Go hexagonal backend and a Nuxt 3 / Vue 3
     frontend. Go handles all business logic and HTTP APIs; Nuxt delivers
-    SSR-capable pages with Vite for fast builds and Vitest for unit tests.
-  version: "1.1.1"
+    SSR-capable pages with Nuxt's Vite-backed build layer and Vitest for unit tests.
+  version: "1.1.2"
 
 fragments:
   base:
@@ -56,18 +56,20 @@ tiers:
       lint_command:  "pnpm lint"
 
 tech_stack:
-  language_runtime: "Go 1.26+ (backend) / Node 22+ (frontend)"
-  package_manager: "Go modules (backend) / pnpm (frontend)"
+  language_runtime: "Go 1.26+ (backend) / Node 24+ (frontend)"
+  package_manager: "Go modules (backend) / pnpm 12 (frontend)"
   backend_framework: "gorilla/mux"
   frontend_framework: "Nuxt 3"
   ui_component_library: "shadcn/vue"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Vite 6"
+  build_tool: "Vite 6 (via Nuxt)"
   test_framework: "Vitest (frontend) / testify (backend)"
   additional:
     - "Vue 3"
     - "pinia"
     - "VueRouter"
+    - "Rslint"
+    - "commitlint"
 
 skills:
   - project-map

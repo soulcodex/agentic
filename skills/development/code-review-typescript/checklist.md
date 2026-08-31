@@ -27,6 +27,14 @@ Extends the generic checklist. Apply every item to TypeScript-specific concerns.
   *Ref: [TypeScript module best practices](https://www.typescriptlang.org/docs/handbook/module-resolution.html)*
 - [ ] Cross-directory imports use path aliases (tsconfig `paths`), not `../../..` traversal
 
+## Tooling
+
+- [ ] pnpm 12 projects do not use Corepack as the pnpm install/bootstrap path
+- [ ] React/Vue SPA and micro-frontend builds use Rsbuild unless the project has an explicit exception
+- [ ] Unit and component tests use Vitest
+- [ ] New JS/TS lint setups use Rslint when rule coverage fits; existing ESLint configs are migrated only when migration is in scope
+- [ ] Conventional Commit enforcement uses commitlint in Node-capable repositories when commit validation is configured
+
 ## Async and Concurrency
 
 - [ ] No floating Promises — every `async` call is awaited or explicitly fire-and-forget with error handling

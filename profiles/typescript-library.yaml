@@ -5,7 +5,7 @@ meta:
     TypeScript reusable library/package for publishing to npm or a private registry.
     Prioritises strict typing, ESM-first output, tree-shakability, zero framework
     dependencies, and semantic versioning discipline.
-  version: "1.0.1"
+  version: "1.0.2"
 
 fragments:
   base:
@@ -25,9 +25,12 @@ fragments:
 
 tech_stack:
   language_runtime: "Node.js 24+ / browser-compatible"
-  package_manager: "pnpm"
+  package_manager: "pnpm 12"
   test_framework: "Vitest"
-  build_tool: "tsup / tsc"
+  build_tool: "Rslib (Rsbuild-based) / tsc"
+  additional:
+    - "Rslint"
+    - "commitlint"
 
 skills:
   - project-map

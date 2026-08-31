@@ -5,7 +5,7 @@ meta:
     Full-stack application with a Go hexagonal backend and a Next.js
     frontend. Go handles all business logic and HTTP APIs; Next.js delivers
     SSR-capable pages with modern build performance and Vitest for unit tests.
-  version: "1.1.1"
+  version: "1.1.2"
 
 fragments:
   base:
@@ -56,8 +56,8 @@ tiers:
       lint_command:  "pnpm lint"
 
 tech_stack:
-  language_runtime: "Go 1.26+ (backend) / Node 22+ (frontend)"
-  package_manager: "Go modules (backend) / pnpm (frontend)"
+  language_runtime: "Go 1.26+ (backend) / Node 24+ (frontend)"
+  package_manager: "Go modules (backend) / pnpm 12 (frontend)"
   backend_framework: "gorilla/mux"
   frontend_framework: "Next.js"
   ui_component_library: "shadcn/ui"
@@ -66,6 +66,8 @@ tech_stack:
   test_framework: "Vitest (frontend) / testify (backend)"
   additional:
     - "React"
+    - "Rslint"
+    - "commitlint"
     - "App Router"
 
 skills:

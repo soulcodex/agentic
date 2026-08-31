@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-21T18:41:10Z",
+  "generated_at": "2026-08-30T22:23:05Z",
   "fragments": [
     {
       "name": "bff",
@@ -52,6 +52,13 @@
       "words": 391
     },
     {
+      "name": "module-federation",
+      "group": "architecture",
+      "path": "agents/architecture/module-federation.md",
+      "heading": "Module Federation",
+      "words": 870
+    },
+    {
       "name": "code-review",
       "group": "base",
       "path": "agents/base/code-review.md",
@@ -70,7 +77,7 @@
       "group": "base",
       "path": "agents/base/git-conventions.md",
       "heading": "Git Conventions",
-      "words": 268
+      "words": 288
     },
     {
       "name": "security",
@@ -224,7 +231,7 @@
       "group": "languages",
       "path": "agents/languages/typescript.md",
       "heading": "TypeScript",
-      "words": 1180
+      "words": 1306
     },
     {
       "name": "api-design",
@@ -238,7 +245,7 @@
       "group": "practices",
       "path": "agents/practices/ci-cd.md",
       "heading": "CI/CD",
-      "words": 444
+      "words": 502
     },
     {
       "name": "go-standard-layout",

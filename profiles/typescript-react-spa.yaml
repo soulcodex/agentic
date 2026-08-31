@@ -2,11 +2,11 @@
 meta:
   name: "TypeScript React SPA"
   description: >
-    Standalone React single-page application with Vite, React Router,
+    Standalone React single-page application with Rsbuild, React Router,
     and Vitest. No server-side rendering. Covers component design, hooks
     patterns, prop drilling prevention, Tailwind v4 styling discipline, and a
     three-tier test strategy (unit / component / acceptance).
-  version: "1.0.1"
+  version: "1.0.2"
 
 fragments:
   base:
@@ -31,14 +31,16 @@ fragments:
 
 tech_stack:
   language_runtime: "Node 24+"
-  package_manager: "pnpm"
+  package_manager: "pnpm 12"
   frontend_framework: "React (SPA)"
   ui_component_library: "shadcn/ui"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Vite 6"
+  build_tool: "Rsbuild"
   test_framework: "Vitest + @testing-library/react"
   additional:
     - "React Router"
+    - "Rslint"
+    - "commitlint"
     - "Playwright (acceptance)"
 
 skills:
@@ -64,7 +66,7 @@ output:
     Components and hooks use TypeScript strictly, with functional components only.
     Use alias imports for cross-directory modules and ESM import/export syntax only.
     Routing via React Router with explicit route ownership and boundaries.
-    Styling via Tailwind CSS v4 utility classes; shadcn/ui for UI primitives.
+    Build with Rsbuild. Styling via Tailwind CSS v4 utility classes; shadcn/ui for UI primitives.
     Three-tier testing: Vitest unit tests for hooks/utils, @testing-library/react
     for component behaviour, Playwright for acceptance tests.
 

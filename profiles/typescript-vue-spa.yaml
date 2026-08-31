@@ -2,11 +2,11 @@
 meta:
   name: "TypeScript Vue 3 SPA"
   description: >
-    Standalone Vue 3 single-page application with Vite, Pinia, Vue Router,
+    Standalone Vue 3 single-page application with Rsbuild, Pinia, Vue Router,
     and Vitest. No server-side rendering. Covers component design, composition
     patterns, prop drilling prevention, Tailwind v4 styling discipline, and a
     three-tier test strategy (unit / component / acceptance).
-  version: "1.0.1"
+  version: "1.0.2"
 
 fragments:
   base:
@@ -31,15 +31,17 @@ fragments:
 
 tech_stack:
   language_runtime: "Node 24+"
-  package_manager: "pnpm"
+  package_manager: "pnpm 12"
   frontend_framework: "Vue 3 (SPA)"
   ui_component_library: "shadcn/vue"
   css_framework: "Tailwind CSS v4"
-  build_tool: "Vite 6"
+  build_tool: "Rsbuild"
   test_framework: "Vitest + @testing-library/vue"
   additional:
     - "Pinia"
     - "Vue Router 4"
+    - "Rslint"
+    - "commitlint"
     - "Playwright (acceptance)"
 
 skills:
@@ -65,7 +67,7 @@ output:
     All components use <script setup lang="ts"> exclusively — no Options API.
     Use alias imports for cross-directory modules and ESM import/export syntax only.
     State management via Pinia setup stores. Routing via Vue Router 4 with typed routes.
-    Styling via Tailwind CSS v4 utility classes; shadcn/vue for UI primitives.
+    Build with Rsbuild. Styling via Tailwind CSS v4 utility classes; shadcn/vue for UI primitives.
     Three-tier testing: Vitest unit tests for composables/stores, @testing-library/vue
     for component behaviour, Playwright for acceptance tests.
 
