@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run ShellCheck
-        uses: reviewdog/action-shellcheck@a94d585085f1f5215ae65f4de34e7bbd0523d550 # v1.33.0
+        uses: reviewdog/action-shellcheck@d0b8d5fd7fad6afdb6e1b6ce1778892be4d1f427 # v1.34.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
